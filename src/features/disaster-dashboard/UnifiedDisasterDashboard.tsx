@@ -18,6 +18,7 @@ import { applyTelemetrySafetyRules, TelemetryStreamClient, type TelemetryStreamS
 import { calculatePacketSequence, calculateTelemetryMetrics, type TelemetrySample } from "./operationalEvidence";
 import { PROJECT_ENHANCED_TARGET } from "./officialRfpGaps";
 import "./unified-disaster-dashboard.css";
+import "./field-header-hotfix.css";
 
 const POLL_INTERVAL_MS = 1_000;
 const DEFAULT_CHANGE_HIGHLIGHT_MS = POLL_INTERVAL_MS * 0.3;
