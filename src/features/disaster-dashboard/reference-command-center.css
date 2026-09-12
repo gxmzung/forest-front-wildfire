@@ -1,0 +1,345 @@
+﻿/* 2026-09-12 reference command-center visual layer
+   FIELD/preview only. Telemetry/Core/Uplink behavior is intentionally untouched. */
+
+.unified-disaster-board.is-field-mode {
+  --cc-bg: #f3f7fb;
+  --cc-panel: #ffffff;
+  --cc-line: #d9e3ec;
+  --cc-text: #163047;
+  --cc-muted: #667b8f;
+  --cc-blue: #1378d4;
+  --cc-green: #00a66a;
+  --cc-amber: #f2a51a;
+  --cc-red: #e73737;
+  height: 100vh !important;
+  min-height: 760px !important;
+  margin: 0 !important;
+  padding: 8px !important;
+  gap: 8px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--cc-bg) !important;
+  box-shadow: none !important;
+  color: var(--cc-text) !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header {
+  min-height: 66px !important;
+  height: 66px !important;
+  padding: 0 16px !important;
+  display: grid !important;
+  grid-template-columns: minmax(300px, 360px) minmax(260px, 1fr) auto !important;
+  grid-template-areas: "event mode summary" !important;
+  align-items: center !important;
+  gap: 14px !important;
+  border: 1px solid var(--cc-line) !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,.98) !important;
+  box-shadow: 0 3px 12px rgba(41,72,96,.08) !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .service-brand,
+.unified-disaster-board.is-field-mode .map-command-header .header-event-state,
+.unified-disaster-board.is-field-mode .map-command-header .asset-registry-open,
+.unified-disaster-board.is-field-mode .map-command-header .requirements-open,
+.unified-disaster-board.is-field-mode .map-command-header .asset-status-open,
+.unified-disaster-board.is-field-mode .map-command-header .last-updated,
+.unified-disaster-board.is-field-mode .map-command-header .field-preview-toggle {
+  display: none !important;
+}
+
+.unified-disaster-board.is-field-mode .event-selector {
+  grid-area: event !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  width: 100% !important;
+  max-width: 360px !important;
+  margin: 0 !important;
+  padding: 7px 12px !important;
+  border: 1px solid #c8d8e4 !important;
+  border-radius: 8px !important;
+  background: #fbfdff !important;
+}
+.unified-disaster-board.is-field-mode .event-selector > span {
+  color: #6f8191 !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+}
+.unified-disaster-board.is-field-mode .event-selector select {
+  width: 100% !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #15384c !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-mode-badge {
+  grid-area: mode !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  justify-self: center !important;
+  min-width: 260px !important;
+  max-width: 420px !important;
+  min-height: 40px !important;
+  padding: 8px 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  border: 1px solid #83cbb0 !important;
+  border-radius: 8px !important;
+  background: #f1fbf7 !important;
+  color: #11674e !important;
+}
+.unified-disaster-board.is-field-mode .field-mode-badge.field-preview-badge {
+  border-color: #e8c36b !important;
+  background: #fff9e9 !important;
+  color: #805f0b !important;
+}
+.unified-disaster-board.is-field-mode .field-mode-badge b { font-size: 11px !important; }
+.unified-disaster-board.is-field-mode .field-mode-badge span {
+  overflow: hidden !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.unified-disaster-board.is-field-mode .header-summary {
+  grid-area: summary !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  justify-self: end !important;
+  display: flex !important;
+  gap: 6px !important;
+  margin: 0 !important;
+}
+.unified-disaster-board.is-field-mode .header-summary button {
+  min-width: 62px !important;
+  height: 42px !important;
+  padding: 4px 8px !important;
+  border: 1px solid #e3ebf1 !important;
+  border-radius: 8px !important;
+  background: #f8fbfd !important;
+}
+.unified-disaster-board.is-field-mode .header-summary button span {
+  color: #738694 !important;
+  font-size: 8px !important;
+}
+.unified-disaster-board.is-field-mode .header-summary button b {
+  color: #115f50 !important;
+  font-size: 16px !important;
+}
+.unified-disaster-board.is-field-mode .header-summary button[data-alert="true"] b {
+  color: var(--cc-red) !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip {
+  min-height: 82px !important;
+  flex: 0 0 82px !important;
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(220px, .75fr) !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.unified-disaster-board.is-field-mode .field-kpi-strip > article,
+.unified-disaster-board.is-field-mode .field-kpi-context {
+  min-width: 0 !important;
+  height: 82px !important;
+  padding: 10px 12px !important;
+  border: 1px solid var(--cc-line) !important;
+  border-left: 4px solid #1ba97d !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 3px 10px rgba(42,70,92,.06) !important;
+}
+.unified-disaster-board.is-field-mode .field-kpi-strip small {
+  color: #718391 !important;
+  font-size: 9px !important;
+}
+.unified-disaster-board.is-field-mode .field-kpi-strip strong {
+  color: #103f52 !important;
+  font-size: 23px !important;
+  line-height: 1 !important;
+}
+.unified-disaster-board.is-field-mode .field-kpi-strip em {
+  color: #148a66 !important;
+  font-size: 8px !important;
+}
+.unified-disaster-board.is-field-mode .field-kpi-strip p {
+  color: #82929e !important;
+  font-size: 8px !important;
+}
+.unified-disaster-board.is-field-mode .field-kpi-context {
+  display: grid !important;
+  align-content: center !important;
+  border-left-color: #358fd4 !important;
+}
+.unified-disaster-board.is-field-mode .field-kpi-context b {
+  color: #174762 !important;
+  font-size: 13px !important;
+}
+.unified-disaster-board.is-field-mode .field-kpi-context span {
+  color: #718391 !important;
+  font-size: 9px !important;
+}
+
+/* Reference image ratio: tools ~18%, map flexible, inspector ~22%. */
+.unified-disaster-board.is-field-mode .dashboard-map-stage {
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.unified-disaster-board.is-field-mode .live-location-panel {
+  height: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.unified-disaster-board.is-field-mode .live-location-panel > header {
+  display: none !important;
+}
+.unified-disaster-board.is-field-mode .telemetry-connection-status {
+  min-height: 32px !important;
+  margin: 0 0 6px !important;
+  padding: 7px 12px !important;
+  border: 1px solid #d8e7df !important;
+  border-left: 4px solid #13996f !important;
+  border-radius: 8px !important;
+  background: #f5fbf8 !important;
+  color: #174d3c !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+}
+.unified-disaster-board.is-field-mode .live-location-layout {
+  height: calc(100% - 38px) !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: 285px minmax(0, 1fr) 360px !important;
+  grid-template-areas: "tools map inspector" !important;
+  gap: 8px !important;
+}
+
+.unified-disaster-board.is-field-mode .operations-panel {
+  grid-area: tools !important;
+  position: static !important;
+  inset: auto !important;
+  width: 285px !important;
+  min-width: 285px !important;
+  height: 100% !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  border: 1px solid var(--cc-line) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 3px 10px rgba(42,70,92,.06) !important;
+}
+.unified-disaster-board.is-field-mode .operations-panel-body {
+  height: 100% !important;
+  overflow: auto !important;
+}
+
+.unified-disaster-board.is-field-mode .location-map {
+  grid-area: map !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 420px !important;
+  border: 1px solid #c8d8e4 !important;
+  border-radius: 10px !important;
+  background: #d9e8de !important;
+  box-shadow: 0 3px 12px rgba(42,70,92,.08) !important;
+}
+.unified-disaster-board.is-field-mode .location-map .maplibregl-map,
+.unified-disaster-board.is-field-mode .location-map .maplibregl-canvas-container,
+.unified-disaster-board.is-field-mode .location-map .maplibregl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-inspector {
+  grid-area: inspector !important;
+  position: static !important;
+  inset: auto !important;
+  width: 360px !important;
+  min-width: 360px !important;
+  height: 100% !important;
+  max-height: none !important;
+  overflow: auto !important;
+  border: 1px solid var(--cc-line) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: 0 3px 10px rgba(42,70,92,.06) !important;
+}
+.unified-disaster-board.is-field-mode .field-command-inspector > header {
+  min-height: 62px !important;
+  padding: 12px 14px !important;
+  border-bottom: 1px solid var(--cc-line) !important;
+}
+.unified-disaster-board.is-field-mode .field-command-inspector strong,
+.unified-disaster-board.is-field-mode .field-command-inspector b {
+  color: #173d52 !important;
+}
+.unified-disaster-board.is-field-mode .field-command-inspector small,
+.unified-disaster-board.is-field-mode .field-command-inspector dt {
+  color: #718391 !important;
+}
+.unified-disaster-board.is-field-mode .field-seq-grid article {
+  background: #f8fbfd !important;
+  border-color: #dce6ed !important;
+}
+.unified-disaster-board.is-field-mode .field-seq-grid article strong {
+  font-size: 20px !important;
+}
+.unified-disaster-board.is-field-mode .field-seq-grid article strong[data-alert="true"] {
+  color: var(--cc-red) !important;
+}
+
+@media (max-width: 1500px) {
+  .unified-disaster-board.is-field-mode .live-location-layout {
+    grid-template-columns: 245px minmax(0,1fr) 320px !important;
+  }
+  .unified-disaster-board.is-field-mode .operations-panel {
+    width: 245px !important;
+    min-width: 245px !important;
+  }
+  .unified-disaster-board.is-field-mode .field-command-inspector {
+    width: 320px !important;
+    min-width: 320px !important;
+  }
+  .unified-disaster-board.is-field-mode .map-command-header {
+    grid-template-columns: 270px minmax(220px,1fr) auto !important;
+  }
+  .unified-disaster-board.is-field-mode .field-kpi-strip {
+    grid-template-columns: repeat(4,minmax(0,1fr)) 190px !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .unified-disaster-board.is-field-mode {
+    overflow: auto !important;
+  }
+  .unified-disaster-board.is-field-mode .live-location-layout {
+    grid-template-columns: 1fr !important;
+    grid-template-areas: "map" "tools" "inspector" !important;
+    height: auto !important;
+  }
+  .unified-disaster-board.is-field-mode .operations-panel,
+  .unified-disaster-board.is-field-mode .field-command-inspector {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+  }
+}
