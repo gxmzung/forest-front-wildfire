@@ -672,6 +672,7 @@ function locationFeatureCollection(locations: LiveLocation[], changedUntil: Reco
                           : "default",
           changed: (changedUntil[key] ?? 0) > Date.now(),
           selected: selectedKey === key,
+          twinState: location.sourceSystem === "GCS_UPLINK" ? (location.qualityStatus || "OFFLINE") : "NONE",
         },
       };
     }),
@@ -813,11 +814,11 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !eventCenter) return;
+    if (!map || !(focusCenter ?? eventCenter)) return;
     if (selectedEventRef.current === eventId) return;
     selectedEventRef.current = eventId;
-    const targetCenter = focusCenter ?? eventCenter;
-    if (wildfireDemo && !focusCenter) {
+    const targetCenter = (focusCenter ?? eventCenter)!;
+    if (wildfireDemo && !focusCenter && eventCenter) {
       map.easeTo({ center: eventCenter, zoom: 13.8, duration: 700 });
       return;
     }
@@ -827,7 +828,7 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
     if (nearbyLocations.length >= 2) {
       const bounds = new maplibregl.LngLatBounds();
       nearbyLocations.forEach((location) => bounds.extend([location.longitude, location.latitude]));
-      if (Math.hypot(eventCenter[0] - targetCenter[0], eventCenter[1] - targetCenter[1]) <= 0.08) {
+      if (eventCenter && Math.hypot(eventCenter[0] - targetCenter[0], eventCenter[1] - targetCenter[1]) <= 0.08) {
         bounds.extend(eventCenter);
       }
       map.fitBounds(bounds, { padding: 72, maxZoom: 15, duration: 700 });
@@ -1382,7 +1383,8 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
               "TVWS_BASE_STATION", "#37bfd0", "TVWS_CPE", "#37bfd0", "LTE_GATEWAY", "#37bfd0",
               "PRIVATE_5G_NTN_GATEWAY", "#37bfd0", "#f0a73d"],
           ],
-          "circle-stroke-color": "#ffffff",
+          "circle-opacity": ["match", ["get", "twinState"], "STALE", 0.72, "OFFLINE", 0.35, 1],
+          "circle-stroke-color": ["match", ["get", "twinState"], "STALE", "#d59b25", "OFFLINE", "#87938d", "#ffffff"],
           "circle-stroke-width": ["case", ["boolean", ["get", "selected"], false], 4, 2],
         },
       });
@@ -1396,6 +1398,9 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
             "icon-size": wildfireDemo ? 1.16 : 0.96,
             "icon-allow-overlap": true,
             "icon-ignore-placement": true,
+          },
+          paint: {
+            "icon-opacity": ["match", ["get", "twinState"], "STALE", 0.72, "OFFLINE", 0.35, 1],
           },
         });
       }
@@ -1419,6 +1424,9 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
           "icon-allow-overlap": wildfireDemo,
           "icon-ignore-placement": wildfireDemo,
           "icon-padding": 4,
+        },
+        paint: {
+          "icon-opacity": ["match", ["get", "twinState"], "STALE", 0.78, "OFFLINE", 0.45, 1],
         },
       });
 
@@ -1590,7 +1598,9 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
     if (!map || !showResources) return;
     if (!hasActivePulse) {
       if (map.getLayer("field-resource-point")) {
-        map.setPaintProperty("field-resource-point", "circle-stroke-color", "#ffffff");
+        map.setPaintProperty("field-resource-point", "circle-stroke-color", [
+          "match", ["get", "twinState"], "STALE", "#d59b25", "OFFLINE", "#87938d", "#ffffff",
+        ]);
         map.setPaintProperty("field-resource-point", "circle-stroke-width", [
           "case", ["boolean", ["get", "selected"], false], 4, 2,
         ]);

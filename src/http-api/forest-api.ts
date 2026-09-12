@@ -1,3 +1,7 @@
+import { LiveDroneTelemetryReader, mergeDroneTwins } from "./live-drone-twin";
+import { emptyE2EOverview, isLocalE2EMode, LOCAL_E2E_REGISTERED_ASSETS } from "./local-e2e";
+import { createFieldPreviewOverview, emptyFieldOverview, fieldRegisteredAssets, isFieldPreviewMode, isLocalFieldMode } from "./field-mode";
+const liveDroneReader = new LiveDroneTelemetryReader();
 import { dashboardApi, httpApi } from "./client";
 
 export interface ForestEvent {
@@ -166,6 +170,9 @@ export const forestApi = {
     httpApi<DataResponse<ForestEvent>>(
       `/api/v1/events/${encodeURIComponent(eventId)}`,
     ),
+
+  dashboardDroneTelemetry: (eventId: string) =>
+    dashboardApi<DataResponse<ApiRecord[]>>(`/api/v1/dashboard/telemetry/drones?eventId=${encodeURIComponent(eventId)}`, {signal: AbortSignal.timeout(2500)}),
 
   dashboardDisasterAssets: (disasterId: string) =>
     dashboardApi<DashboardDisasterAssetsResponse>(
@@ -365,6 +372,7 @@ export async function loadEventTimeline(
 }
 
 export interface EventOverview {
+  liveDroneTelemetry?: { status: string; matched: number; unmatched: number; live: number; stale: number; offline: number };
   event: ForestEvent;
   assets: ApiRecord[];
   unregisteredAssets: ApiRecord[];
@@ -425,8 +433,57 @@ export async function loadEventOverview(
 ): Promise<EventOverview> {
   const eventId = event.eventId;
 
+  if (isLocalFieldMode()) {
+    if (isFieldPreviewMode()) {
+      return createFieldPreviewOverview(event);
+    }
+    const telemetry = await liveDroneReader.read(
+      eventId,
+      false,
+      async () => (await forestApi.dashboardDroneTelemetry(eventId)).data,
+    );
+    const twins = mergeDroneTwins(fieldRegisteredAssets(), telemetry.rows, eventId);
+    return {
+      ...emptyFieldOverview(event),
+      assets: twins.assets,
+      liveDroneTelemetry: {
+        status: telemetry.status,
+        matched: twins.matched,
+        unmatched: twins.unmatched,
+        live: twins.states.LIVE,
+        stale: twins.states.STALE,
+        offline: twins.states.OFFLINE,
+      },
+    };
+  }
+
+  if (isLocalE2EMode()) {
+    const telemetry = await liveDroneReader.read(
+      eventId,
+      false,
+      async () => (await forestApi.dashboardDroneTelemetry(eventId)).data,
+    );
+    const twins = mergeDroneTwins(LOCAL_E2E_REGISTERED_ASSETS, telemetry.rows, eventId);
+    return {
+      ...emptyE2EOverview(event),
+      assets: twins.assets,
+      liveDroneTelemetry: {
+        status: telemetry.status,
+        matched: twins.matched,
+        unmatched: twins.unmatched,
+        live: twins.states.LIVE,
+        stale: twins.states.STALE,
+        offline: twins.states.OFFLINE,
+      },
+    };
+  }
+
   if (DASHBOARD_ASSET_ONLY_MODE) {
-    const dashboardAssets = await loadDashboardDisasterAssetsCached(eventId);
+    const [dashboardAssets, telemetry] = await Promise.all([
+      loadDashboardDisasterAssetsCached(eventId),
+      liveDroneReader.read(eventId, typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('demo') === '1',
+        async () => (await forestApi.dashboardDroneTelemetry(eventId)).data),
+    ]);
     const disaster = dashboardAssets.data.disaster;
     const rawDisasterType = String(
       disaster.disasterType ?? event.disasterType ?? "WILDFIRE",
@@ -440,16 +497,7 @@ export async function loadEventOverview(
       (row) => row.assignment.released_at === null,
     );
 
-    return {
-      event: {
-        ...event,
-        eventId: disaster.disasterId || eventId,
-        eventCode: disaster.disasterCode ?? event.eventCode,
-        disasterType,
-        eventName: disaster.disasterName ?? event.eventName,
-        status: disaster.status ?? event.status,
-      },
-      assets: activeDashboardAssets.map(({ assignment, asset }) => ({
+    const registeredAssets = activeDashboardAssets.map(({ assignment, asset }) => ({
         assetId: asset.asset_id,
         assetCode: asset.asset_code,
         assetType: asset.asset_type,
@@ -468,7 +516,19 @@ export async function loadEventOverview(
         assignedAt: assignment.assigned_at,
         releasedAt: assignment.released_at,
         eventRegistrationStatus: "REGISTERED",
-      })),
+      }));
+    const twins = mergeDroneTwins(registeredAssets, telemetry.rows, eventId);
+    return {
+      event: {
+        ...event,
+        eventId: disaster.disasterId || eventId,
+        eventCode: disaster.disasterCode ?? event.eventCode,
+        disasterType,
+        eventName: disaster.disasterName ?? event.eventName,
+        status: disaster.status ?? event.status,
+      },
+      assets: twins.assets,
+      liveDroneTelemetry: {status:telemetry.status,matched:twins.matched,unmatched:twins.unmatched,live:twins.states.LIVE,stale:twins.states.STALE,offline:twins.states.OFFLINE},
       unregisteredAssets: [],
       personnel: [],
       networks: [],
