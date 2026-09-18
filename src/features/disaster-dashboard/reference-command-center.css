@@ -3272,3 +3272,115 @@ body,
   opacity: 1 !important;
   white-space: nowrap !important;
 }
+
+/* =========================================================
+   OPERATIONAL POLISH / 2026-09-18
+   Reduce concept-art styling. Preserve dashboard geometry.
+   ========================================================= */
+
+/* Video deck: CCTV/NVR monitor style instead of concept artwork */
+.unified-disaster-board.is-field-mode .field-video-channel {
+  background: #f7faf9 !important;
+  border: 1px solid #c9d7d2 !important;
+  box-shadow: none !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-preview {
+  position: relative !important;
+  background: #13211f !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+}
+
+/* Remove decorative mock-camera scenery */
+.unified-disaster-board.is-field-mode .field-video-preview::before,
+.unified-disaster-board.is-field-mode .field-video-preview::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* All four channels use the same neutral monitor surface */
+.unified-disaster-board.is-field-mode .field-video-channel-1 .field-video-preview,
+.unified-disaster-board.is-field-mode .field-video-channel-2 .field-video-preview,
+.unified-disaster-board.is-field-mode .field-video-channel-3 .field-video-preview,
+.unified-disaster-board.is-field-mode .field-video-channel-4 .field-video-preview {
+  background: #13211f !important;
+  background-image: none !important;
+}
+
+/* Channel identifier */
+.unified-disaster-board.is-field-mode .field-video-badge {
+  background: rgba(255,255,255,.92) !important;
+  color: #173b34 !important;
+  border: 1px solid rgba(255,255,255,.45) !important;
+  box-shadow: none !important;
+  font-weight: 800 !important;
+  letter-spacing: .02em !important;
+}
+
+/* WAIT / CHECK / RTSP status = equipment status, not neon decoration */
+.unified-disaster-board.is-field-mode .field-video-live {
+  background: rgba(5,18,16,.82) !important;
+  color: #d8e5e1 !important;
+  border: 1px solid rgba(216,229,225,.28) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  font-weight: 800 !important;
+}
+
+/* Only a verified stream may receive a stronger ready indication */
+.unified-disaster-board.is-field-mode
+.field-video-channel[data-stream-ready="true"]
+.field-video-live {
+  background: #e8f5ef !important;
+  color: #12694f !important;
+  border-color: #8fc6b4 !important;
+}
+
+/* Caption should look like equipment metadata */
+.unified-disaster-board.is-field-mode .field-video-caption {
+  background: #ffffff !important;
+  border-top: 1px solid #dce6e2 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-caption strong {
+  color: #173b34 !important;
+  text-shadow: none !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-caption small {
+  color: #667a74 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-caption i {
+  color: #657972 !important;
+  font-style: normal !important;
+}
+
+/* Flatten unnecessary concept-style effects in command surfaces */
+.unified-disaster-board.is-field-mode .field-command-footer,
+.unified-disaster-board.is-field-mode .field-command-inspector {
+  box-shadow: none !important;
+}
+
+/* DEMO must remain visibly a simulation state */
+.unified-disaster-board.is-field-mode .demo-mode-badge {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Operational status chips: compact and restrained */
+.unified-disaster-board.is-field-mode [class*="status"],
+.unified-disaster-board.is-field-mode [class*="badge"] {
+  text-shadow: none;
+}
+
+/* Never visually claim LIVE just because this is demo preview */
+.unified-disaster-board.is-field-mode
+.field-video-channel[data-preview="true"]
+.field-video-live {
+  background: rgba(5,18,16,.82) !important;
+  color: #d8e5e1 !important;
+  border-color: rgba(216,229,225,.28) !important;
+}
