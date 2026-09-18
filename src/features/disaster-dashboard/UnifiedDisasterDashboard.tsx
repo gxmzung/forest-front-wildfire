@@ -1644,8 +1644,10 @@ export default function UnifiedDisasterDashboard() {
             <button type="button" onClick={() => setOperationsTab("networks")}><span>통신망</span><b>{overview.networks.length}</b></button>
             <button type="button" data-alert={activeAlertCount > 0} onClick={() => setOperationsTab("alerts")}><span>경보</span><b>{activeAlertCount}</b></button>
           </nav>
-          <button type="button" className="asset-registry-open" onClick={() => { window.location.href = "/device"; }}>자산 등록·관리</button>
-          <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>기능 검증 현황</button>
+          <div className="command-primary-actions">
+            <button type="button" className="asset-registry-open" onClick={() => { window.location.href = "/device"; }}>자산 등록·관리</button>
+            <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>기능 검증 현황</button>
+          </div>
           <button type="button" className="asset-status-open" onClick={() => { setSelectedLocationKey(null); setResourceDialogGroup("ALL"); }}>사건 투입 자산</button>
           <time className="last-updated" title={lastUpdatedAt?.toLocaleString("ko-KR")}><i /> 최근 갱신 {lastUpdatedAt ? relativeTime(lastUpdatedAt.toISOString()) : "대기 중"}</time>
         </header>
@@ -2055,10 +2057,20 @@ export default function UnifiedDisasterDashboard() {
                 ["MD1000 · 열화상", "IR"],
                 ["지휘차량 · 현장", "CMD"],
                 ["공중 자산 · 보조", "AIR"],
-              ].map(([label, code], index) => <article key={label} data-preview={fieldPreviewMode ? "true" : undefined}>
-                <span><b>{fieldPreviewMode && index < 2 ? "● LIVE" : "대기"}</b><i>{code}</i></span>
-                <strong>{label}</strong>
-                <small>{fieldPreviewMode ? (index < 2 ? "대표 공유용 영상 채널 예시" : "채널 연결 예시") : "RTSP 소스 연결 대기"}</small>
+              ].map(([label, code], index) => <article
+                key={label}
+                className={`field-video-channel field-video-channel-${index + 1}`}
+                data-preview={fieldPreviewMode ? "true" : undefined}
+              >
+                <div className="field-video-preview" aria-hidden="true">
+                  <span className="field-video-badge">{`CH${index + 1}`}</span>
+                  <span className="field-video-live">{fieldPreviewMode ? "● LIVE" : "WAIT"}</span>
+                </div>
+                <div className="field-video-caption">
+                  <strong>{label}</strong>
+                  <small>{fieldPreviewMode ? "DEMO 영상 채널" : "RTSP 소스 연결 대기"}</small>
+                  <i>{code}</i>
+                </div>
               </article>)}
             </div>
           </div>
