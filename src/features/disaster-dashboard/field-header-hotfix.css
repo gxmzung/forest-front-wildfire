@@ -1,0 +1,81 @@
+/* FIELD_HEADER_P0_CLEAN_20260912 */
+
+.unified-disaster-board.is-field-mode .map-command-header {
+  position: relative !important;
+  inset: auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(280px, 380px) minmax(220px, 1fr) auto !important;
+  grid-template-areas: "event mode summary" !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-height: 58px !important;
+  height: 58px !important;
+  padding: 0 14px !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .service-brand,
+.unified-disaster-board.is-field-mode .header-event-state,
+.unified-disaster-board.is-field-mode .asset-registry-open,
+.unified-disaster-board.is-field-mode .requirements-open,
+.unified-disaster-board.is-field-mode .asset-status-open,
+.unified-disaster-board.is-field-mode .last-updated,
+.unified-disaster-board.is-field-mode .field-preview-toggle {
+  display: none !important;
+}
+
+.unified-disaster-board.is-field-mode .event-selector {
+  grid-area: event !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 380px !important;
+  margin: 0 !important;
+  justify-self: start !important;
+}
+
+.unified-disaster-board.is-field-mode .field-mode-badge {
+  grid-area: mode !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  min-width: 190px !important;
+  max-width: 300px !important;
+  margin: 0 !important;
+  justify-self: center !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .header-summary {
+  grid-area: summary !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-self: end !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+@media (max-width: 1350px) {
+  .unified-disaster-board.is-field-mode .map-command-header {
+    grid-template-columns: minmax(230px, 310px) minmax(160px, 1fr) auto !important;
+    gap: 8px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-mode-badge {
+    min-width: 150px !important;
+    max-width: 210px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-mode-badge span {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+}

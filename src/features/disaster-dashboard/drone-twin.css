@@ -1,0 +1,14 @@
+.telemetry-connection-status {
+  padding: 6px 12px;
+  border-bottom: 1px solid #ccdcd4;
+  background: #f3f8f5;
+  color: #234d3d;
+  font-size: 13px;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+.dashboard-map-stage .live-location-panel:has(> .telemetry-connection-status) { display: grid; grid-template-rows: auto minmax(0, 1fr); }
+.dashboard-map-stage .live-location-panel:has(> .telemetry-connection-status) > .live-location-layout { min-height: 0; height: 100%; }
+[data-twin-state] { padding: 3px 7px; border-radius: 4px; background: #e6f4eb; color: #166342; }
+[data-twin-state="STALE"] { background: #fff0cd; color: #845500; }
+[data-twin-state="OFFLINE"] { background: #f7e5e5; color: #9c2929; }

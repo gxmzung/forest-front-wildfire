@@ -293,6 +293,35 @@ function createResourceIconImage(kind: ResourceIconKind) {
   return context.getImageData(0, 0, 48, 48);
 }
 
+/* PHASE_5_2_MD1000_HEADING */
+function createHeadingArrowImage() {
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  if (!context) return null;
+
+  canvas.width = 40;
+  canvas.height = 40;
+
+  context.lineJoin = "round";
+  context.lineCap = "round";
+
+  context.fillStyle = "#0b8f70";
+  context.strokeStyle = "#ffffff";
+  context.lineWidth = 4;
+
+  context.beginPath();
+  context.moveTo(20, 2);
+  context.lineTo(32, 30);
+  context.lineTo(20, 24);
+  context.lineTo(8, 30);
+  context.closePath();
+
+  context.fill();
+  context.stroke();
+
+  return context.getImageData(0, 0, 40, 40);
+}
+
 function createIncidentIconImage() {
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
@@ -413,7 +442,7 @@ function wildfireIncidentAreaFeatureCollection(
 const domainLayerStyle: Record<string, { type: "line" | "fill" | "circle"; color: string; opacity?: number }> = {
   firelines: { type: "line", color: "#d9271c" },
   "spread-predictions": { type: "fill", color: "#d79048", opacity: 0.08 },
-  "communication-coverages": { type: "fill", color: "#1689d6", opacity: 0.22 },
+  "communication-coverages": { type: "fill", color: "#1689d6", opacity: 0.075 },
   "slope-assessments": { type: "fill", color: "#8a52c7", opacity: 0.12 },
   "debris-flow-paths": { type: "line", color: "#70451f" },
   "debris-flow-areas": { type: "fill", color: "#b36a32", opacity: 0.16 },
@@ -447,7 +476,7 @@ const domainLayerStyle: Record<string, { type: "line" | "fill" | "circle"; color
   "water-sources": { type: "circle", color: "#13a9d6", opacity: 0.9 },
   "nearby-response-resources": { type: "circle", color: "#7057d9", opacity: 0.9 },
   viewsheds: { type: "fill", color: "#e8c33f", opacity: 0.12 },
-  "communication-shadows": { type: "fill", color: "#394a5a", opacity: 0.26 },
+  "communication-shadows": { type: "fill", color: "#394a5a", opacity: 0.11 },
   "slope-gradients": { type: "fill", color: "#a85c36", opacity: 0.18 },
 };
 
@@ -455,6 +484,8 @@ const wildfireOutlineLayerIds = new Set([
   "spread-predictions",
   "external-wildfire-risk",
   "wildfire-risk-zones",
+  "communication-coverages",
+  "communication-shadows",
 ]);
 
 const DEFAULT_EXPECTED_TELEMETRY_INTERVAL_MS = 30_000;
@@ -672,6 +703,11 @@ function locationFeatureCollection(locations: LiveLocation[], changedUntil: Reco
                           : "default",
           changed: (changedUntil[key] ?? 0) > Date.now(),
           selected: selectedKey === key,
+          headingDeg:
+            location.headingDeg == null || !Number.isFinite(location.headingDeg)
+              ? null
+              : location.headingDeg,
+          twinState: location.sourceSystem === "GCS_UPLINK" ? (location.qualityStatus || "OFFLINE") : "NONE",
         },
       };
     }),
@@ -697,8 +733,8 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: mapStyle,
-      center: [128.7, 36.35],
-      zoom: 12,
+      center: wildfireDemo && eventCenter ? eventCenter : [128.7, 36.35],
+      zoom: wildfireDemo && eventCenter ? 13.8 : 12,
       attributionControl: false,
       maxPitch: 80,
     });
@@ -813,21 +849,28 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !eventCenter) return;
-    if (selectedEventRef.current === eventId) return;
-    selectedEventRef.current = eventId;
-    const targetCenter = focusCenter ?? eventCenter;
-    if (wildfireDemo && !focusCenter) {
-      map.easeTo({ center: eventCenter, zoom: 13.8, duration: 700 });
+    if (!map || !(focusCenter ?? eventCenter)) return;
+
+    // DEMO 관제 화면은 사건 현장을 우선 표시한다.
+    // 일반 이벤트 중복 선택 방지 로직보다 먼저 처리해야 초기 광역 뷰에 남지 않는다.
+    if (wildfireDemo && !focusCenter && eventCenter) {
+      if (selectedEventRef.current !== eventId) {
+        selectedEventRef.current = eventId;
+        map.easeTo({ center: eventCenter, zoom: 13.8, duration: 700 });
+      }
       return;
     }
+
+    if (selectedEventRef.current === eventId) return;
+    selectedEventRef.current = eventId;
+    const targetCenter = (focusCenter ?? eventCenter)!;
     const nearbyLocations = locations.filter((location) =>
       Math.hypot(location.longitude - targetCenter[0], location.latitude - targetCenter[1]) <= 0.08
     );
     if (nearbyLocations.length >= 2) {
       const bounds = new maplibregl.LngLatBounds();
       nearbyLocations.forEach((location) => bounds.extend([location.longitude, location.latitude]));
-      if (Math.hypot(eventCenter[0] - targetCenter[0], eventCenter[1] - targetCenter[1]) <= 0.08) {
+      if (eventCenter && Math.hypot(eventCenter[0] - targetCenter[0], eventCenter[1] - targetCenter[1]) <= 0.08) {
         bounds.extend(eventCenter);
       }
       map.fitBounds(bounds, { padding: 72, maxZoom: 15, duration: 700 });
@@ -884,8 +927,8 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
                 paint: {
                   "line-color": style.color,
                   "line-width":
-                    layerId === "wildfire-risk-zones" ? 4.5 : 3,
-                  "line-opacity": 0.92,
+                    layerId === "wildfire-risk-zones" ? 2.8 : 1,
+                  "line-opacity": 0.58,
                   "line-dasharray":
                     layerId === "spread-predictions"
                       ? [2.4, 1.8]
@@ -933,20 +976,21 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
                       "interpolate",
                       ["linear"],
                       ["zoom"],
-                      8, 13,
-                      12, 15,
-                      15, 18,
+                      8, 10,
+                      12, 11.5,
+                      15, 13,
                     ],
                     "text-anchor": "left",
-                    "text-offset": [1.15, 0],
-                    "text-allow-overlap": true,
-                    "text-ignore-placement": true,
+                    "text-offset": [0.9, 0],
+                    "text-allow-overlap": false,
+                    "text-ignore-placement": false,
+                    "text-optional": true,
                   },
                   paint: {
                     "text-color": "#243b35",
-                    "text-halo-color": "rgba(255,255,255,.98)",
-                    "text-halo-width": 3,
-                    "text-halo-blur": 0.4,
+                    "text-halo-color": "rgba(255,255,255,.78)",
+                    "text-halo-width": 0.8,
+                    "text-halo-blur": 0.25,
                   },
                 });
               }
@@ -1238,8 +1282,8 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
           layout: { visibility: topologyVisibility },
           paint: {
             "line-color": definition.color,
-            "line-width": ["case", ["boolean", ["get", "focused"], false], 4, 2],
-            "line-opacity": ["case", ["boolean", ["get", "focused"], false], definition.state === "active" ? 0.82 : 0.58, 0.13],
+            "line-width": ["case", ["boolean", ["get", "focused"], false], 2.6, 1.15],
+            "line-opacity": ["case", ["boolean", ["get", "focused"], false], definition.state === "active" ? 0.72 : 0.52, 0.10],
             "line-dasharray": definition.dasharray,
           },
         });
@@ -1253,13 +1297,13 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
           visibility: topologyVisibility,
           "symbol-placement": "line-center",
           "text-field": ["get", "medium"],
-          "text-size": 10,
+          "text-size": 8.5,
           "text-allow-overlap": false,
         },
         paint: {
-          "text-color": "#29483f",
-          "text-halo-color": "rgba(255,255,255,.95)",
-          "text-halo-width": 2,
+          "text-color": "#35564d",
+          "text-halo-color": "rgba(255,255,255,.88)",
+          "text-halo-width": 1,
           "text-opacity": ["case", ["boolean", ["get", "focused"], false], 0.9, 0.18],
         },
       });
@@ -1332,6 +1376,13 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
         }
       }
 
+      if (!map.hasImage("field-heading-arrow")) {
+        const headingArrow = createHeadingArrowImage();
+        if (headingArrow) {
+          map.addImage("field-heading-arrow", headingArrow, { pixelRatio: 2 });
+        }
+      }
+
       for (const location of locations) {
         const imageId = `field-label-${keyOf(location)}`;
         if (!map.hasImage(imageId)) {
@@ -1343,9 +1394,154 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
         }
       }
       const resourceData = locationFeatureCollection(locations, changedUntil, selectedKey);
+
+      /* PHASE_5_2C_VECTOR_LINE_REAL */
+      const headingVectorFeatures = locations
+        .filter((location) =>
+          ["UAV", "MAIN_RELAY_DRONE", "SERVICE_RELAY_DRONE"].includes(location.category)
+          && location.headingDeg != null
+          && Number.isFinite(location.headingDeg)
+        )
+        .map((location) => {
+          const headingRad = Number(location.headingDeg) * Math.PI / 180;
+          /* PHASE_5_2D_HEADING_VISUAL */
+          const distanceDeg = 0.025;
+          const lonScale = Math.max(0.2, Math.cos(location.latitude * Math.PI / 180));
+
+          const endLongitude =
+            location.longitude + (Math.sin(headingRad) * distanceDeg) / lonScale;
+
+          const endLatitude =
+            location.latitude + Math.cos(headingRad) * distanceDeg;
+
+          return {
+            type: "Feature",
+            geometry: {
+              type: "LineString",
+              coordinates: [
+                [location.longitude, location.latitude],
+                [endLongitude, endLatitude],
+              ],
+            },
+            properties: {
+              id: location.id,
+              headingDeg: location.headingDeg,
+            },
+          };
+        });
+
+      const headingVectorData = {
+        type: "FeatureCollection",
+        features: headingVectorFeatures,
+      } as GeoJSON.FeatureCollection;
+
+      const headingTipFeatures = headingVectorFeatures.map((feature) => {
+        const coordinates = feature.geometry.coordinates;
+        const tip = coordinates[coordinates.length - 1];
+
+        return {
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: tip,
+          },
+          properties: {
+            ...feature.properties,
+          },
+        };
+      });
+
+      const headingTipData = {
+        type: "FeatureCollection",
+        features: headingTipFeatures,
+      } as GeoJSON.FeatureCollection;
+
+      /* PHASE_5_3_MD1000_TRAIL */
+      const trailGlobal = globalThis as typeof globalThis & {
+        __md1000TrailHistory?: Record<string, [number, number][]>;
+      };
+
+      const trailHistory =
+        trailGlobal.__md1000TrailHistory ??
+        (trailGlobal.__md1000TrailHistory = {});
+
+      for (const location of locations) {
+        if (
+          !["UAV", "MAIN_RELAY_DRONE", "SERVICE_RELAY_DRONE"].includes(location.category)
+          || !Number.isFinite(location.longitude)
+          || !Number.isFinite(location.latitude)
+        ) {
+          continue;
+        }
+
+        const key = String(location.id);
+        const point: [number, number] = [
+          Number(location.longitude),
+          Number(location.latitude),
+        ];
+
+        const history = trailHistory[key] ?? [];
+        const previous = history[history.length - 1];
+
+        const moved =
+          !previous ||
+          Math.abs(previous[0] - point[0]) > 0.000005 ||
+          Math.abs(previous[1] - point[1]) > 0.000005;
+
+        if (moved) {
+          history.push(point);
+
+          if (history.length > 30) {
+            history.splice(0, history.length - 30);
+          }
+
+          trailHistory[key] = history;
+        }
+      }
+
+      const trailFeatures = Object.entries(trailHistory)
+        .filter(([, coordinates]) => coordinates.length >= 2)
+        .map(([id, coordinates]) => ({
+          type: "Feature",
+          geometry: {
+            type: "LineString",
+            coordinates,
+          },
+          properties: {
+            id,
+          },
+        }));
+
+      const trailData = {
+        type: "FeatureCollection",
+        features: trailFeatures,
+      } as GeoJSON.FeatureCollection;
+
       const resourceSource = map.getSource("field-resource-source") as GeoJSONSource | undefined;
       if (resourceSource) resourceSource.setData(resourceData);
       else map.addSource("field-resource-source", { type: "geojson", data: resourceData });
+
+      const headingVectorSource = map.getSource("field-heading-vector-source") as GeoJSONSource | undefined;
+      if (headingVectorSource) headingVectorSource.setData(headingVectorData);
+      else map.addSource("field-heading-vector-source", {
+        type: "geojson",
+        data: headingVectorData,
+      });
+
+      const headingTipSource = map.getSource("field-heading-tip-source") as GeoJSONSource | undefined;
+      if (headingTipSource) headingTipSource.setData(headingTipData);
+      else map.addSource("field-heading-tip-source", {
+        type: "geojson",
+        data: headingTipData,
+      });
+
+      const trailSource = map.getSource("field-md1000-trail-source") as GeoJSONSource | undefined;
+      if (trailSource) trailSource.setData(trailData);
+      else map.addSource("field-md1000-trail-source", {
+        type: "geojson",
+        data: trailData,
+      });
+
       if (!map.getLayer("field-resource-halo")) map.addLayer({
         id: "field-resource-halo", type: "circle", source: "field-resource-source",
         paint: {
@@ -1369,6 +1565,78 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
           },
         });
       }
+      if (!map.getLayer("field-md1000-trail-halo")) map.addLayer({
+        id: "field-md1000-trail-halo",
+        type: "line",
+        source: "field-md1000-trail-source",
+        layout: {
+          "line-cap": "round",
+          "line-join": "round",
+        },
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": 7,
+          "line-opacity": 0.78,
+        },
+      });
+
+      if (!map.getLayer("field-md1000-trail-line")) map.addLayer({
+        id: "field-md1000-trail-line",
+        type: "line",
+        source: "field-md1000-trail-source",
+        layout: {
+          "line-cap": "round",
+          "line-join": "round",
+        },
+        paint: {
+          "line-color": "#087f5b",
+          "line-width": 3.5,
+          "line-opacity": 0.88,
+        },
+      });
+
+      if (!map.getLayer("field-heading-vector-halo")) map.addLayer({
+        id: "field-heading-vector-halo",
+        type: "line",
+        source: "field-heading-vector-source",
+        layout: {
+          "line-cap": "round",
+          "line-join": "round",
+        },
+        paint: {
+          "line-color": "#ffffff",
+          "line-width": 9,
+          "line-opacity": 0.95,
+        },
+      });
+
+      if (!map.getLayer("field-heading-vector-line")) map.addLayer({
+        id: "field-heading-vector-line",
+        type: "line",
+        source: "field-heading-vector-source",
+        layout: {
+          "line-cap": "round",
+          "line-join": "round",
+        },
+        paint: {
+          "line-color": "#087f5b",
+          "line-width": 5,
+          "line-opacity": 1,
+        },
+      });
+
+      if (!map.getLayer("field-heading-vector-tip")) map.addLayer({
+        id: "field-heading-vector-tip",
+        type: "circle",
+        source: "field-heading-tip-source",
+        paint: {
+          "circle-radius": 7,
+          "circle-color": "#087f5b",
+          "circle-stroke-color": "#ffffff",
+          "circle-stroke-width": 3,
+        },
+      });
+
       if (!map.getLayer("field-resource-point")) map.addLayer({
         id: "field-resource-point", type: "circle", source: "field-resource-source",
         paint: {
@@ -1382,7 +1650,8 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
               "TVWS_BASE_STATION", "#37bfd0", "TVWS_CPE", "#37bfd0", "LTE_GATEWAY", "#37bfd0",
               "PRIVATE_5G_NTN_GATEWAY", "#37bfd0", "#f0a73d"],
           ],
-          "circle-stroke-color": "#ffffff",
+          "circle-opacity": ["match", ["get", "twinState"], "STALE", 0.72, "OFFLINE", 0.35, 1],
+          "circle-stroke-color": ["match", ["get", "twinState"], "STALE", "#d59b25", "OFFLINE", "#87938d", "#ffffff"],
           "circle-stroke-width": ["case", ["boolean", ["get", "selected"], false], 4, 2],
         },
       });
@@ -1397,8 +1666,39 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
             "icon-allow-overlap": true,
             "icon-ignore-placement": true,
           },
+          paint: {
+            "icon-opacity": ["match", ["get", "twinState"], "STALE", 0.72, "OFFLINE", 0.35, 1],
+          },
         });
       }
+      if (!map.getLayer("field-resource-heading")) {
+        map.addLayer({
+          id: "field-resource-heading",
+          type: "symbol",
+          source: "field-resource-source",
+          filter: [
+            "all",
+            [
+              "match",
+              ["get", "category"],
+              ["UAV", "MAIN_RELAY_DRONE", "SERVICE_RELAY_DRONE"],
+              true,
+              false,
+            ],
+            ["!=", ["get", "headingDeg"], null],
+          ],
+          layout: {
+            "icon-image": "field-heading-arrow",
+            "icon-size": 0.72,
+            "icon-offset": [0, -27],
+            "icon-rotate": ["get", "headingDeg"],
+            "icon-rotation-alignment": "map",
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true,
+          },
+        });
+      }
+
       if (!map.getLayer("field-resource-label")) map.addLayer({
         id: "field-resource-label", type: "symbol", source: "field-resource-source",
         layout: {
@@ -1420,6 +1720,9 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
           "icon-ignore-placement": wildfireDemo,
           "icon-padding": 4,
         },
+        paint: {
+          "icon-opacity": ["match", ["get", "twinState"], "STALE", 0.78, "OFFLINE", 0.45, 1],
+        },
       });
 
       for (const layerId of [
@@ -1435,12 +1738,18 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
         );
       }
       for (const layerId of [
+        "field-md1000-trail-halo",
+        "field-md1000-trail-line",
+        "field-heading-vector-halo",
+        "field-heading-vector-line",
+        "field-heading-vector-tip",
         "field-resource-halo",
         "field-resource-pulse-1",
         "field-resource-pulse-2",
         "field-resource-pulse-3",
         "field-resource-point",
         "field-resource-icon",
+        "field-resource-heading",
         "field-resource-label",
       ]) {
         map.setLayoutProperty(
@@ -1590,7 +1899,9 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
     if (!map || !showResources) return;
     if (!hasActivePulse) {
       if (map.getLayer("field-resource-point")) {
-        map.setPaintProperty("field-resource-point", "circle-stroke-color", "#ffffff");
+        map.setPaintProperty("field-resource-point", "circle-stroke-color", [
+          "match", ["get", "twinState"], "STALE", "#d59b25", "OFFLINE", "#87938d", "#ffffff",
+        ]);
         map.setPaintProperty("field-resource-point", "circle-stroke-width", [
           "case", ["boolean", ["get", "selected"], false], 4, 2,
         ]);

@@ -1,3 +1,4 @@
+﻿@layer theme, base, components, utilities;
 :root {
   font-family:
     Inter, Pretendard, "Noto Sans KR", system-ui,
@@ -4269,9 +4270,9 @@ body {
 
 /* ==========================================================================
    Map-first command layout v1
-   - 지도 중심 관제 배치
-   - 지도 패널 내부의 잘못된 2열 분할 제거
-   - AI 예측 오버레이 기본 크기 축소
+   - 吏??以묒떖 愿??諛곗튂
+   - 吏???⑤꼸 ?대????섎せ??2??遺꾪븷 ?쒓굅
+   - AI ?덉륫 ?ㅻ쾭?덉씠 湲곕낯 ?ш린 異뺤냼
    ========================================================================== */
 
 .historical-context-bar {
@@ -4309,7 +4310,7 @@ body {
   gap: 10px !important;
 }
 
-/* 과거 규칙에서 map-panel이 2열 grid가 된 경우를 강제로 해제 */
+/* 怨쇨굅 洹쒖튃?먯꽌 map-panel??2??grid媛 ??寃쎌슦瑜?媛뺤젣濡??댁젣 */
 .dashboard-main > .map-panel,
 .map-panel {
   width: 100% !important;
@@ -4365,7 +4366,7 @@ body {
   min-height: 720px !important;
 }
 
-/* 지도 위 AI 패널은 기본적으로 판단을 가리지 않는 소형 도구막대로 사용 */
+/* 吏????AI ?⑤꼸? 湲곕낯?곸쑝濡??먮떒??媛由ъ? ?딅뒗 ?뚰삎 ?꾧뎄留됰?濡??ъ슜 */
 .prediction-layer-control {
   top: 68px !important;
   right: 14px !important;
@@ -4434,7 +4435,7 @@ body {
   left: 14px !important;
 }
 
-/* 산불현장 상세가 첫 진입부터 보이도록 목록/상세 비율도 조정 */
+/* ?곕텋?꾩옣 ?곸꽭媛 泥?吏꾩엯遺??蹂댁씠?꾨줉 紐⑸줉/?곸꽭 鍮꾩쑉??議곗젙 */
 .incident-operations-body {
   grid-template-columns:
     minmax(360px, 0.78fr)
@@ -4736,3 +4737,4 @@ body {
     min-width: 0 !important;
   }
 }
+
