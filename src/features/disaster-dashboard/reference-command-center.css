@@ -2181,863 +2181,239 @@
 }
 
 /* =========================================================
-   COMMAND CENTER V2 / 2026-09-18
-   Reference direction:
-   professional emergency command center + existing real GIS
-   Existing functions remain intact.
+   COMMAND CENTER FINAL LAYOUT / 2026-09-18
+   Single source of truth - replaces V2.0 ~ V2.4 overrides
    ========================================================= */
 
 .unified-disaster-board.is-field-mode {
-  --v2-border: #d8e2e8;
-  --v2-panel: rgba(255,255,255,.97);
-  --v2-text: #18302d;
-  --v2-muted: #6c7f7b;
-  --v2-accent: #087f68;
-  --v2-danger: #d93832;
+  --cc-header-h: 48px;
+  --cc-kpi-h: 64px;
+  --cc-footer-h: 150px;
+  --cc-gap: 6px;
+  --cc-left-w: 360px;
+  --cc-right-w: 320px;
 
-  background: #eef3f5 !important;
-  gap: 7px !important;
-  padding: 7px !important;
+  height: 100dvh !important;
+  min-height: 100dvh !important;
+  max-height: 100dvh !important;
+
+  display: grid !important;
+  grid-template-rows:
+    var(--cc-header-h)
+    var(--cc-kpi-h)
+    minmax(0, 1fr)
+    var(--cc-footer-h) !important;
+
+  gap: var(--cc-gap) !important;
+
+  padding: 6px !important;
+  margin: 0 !important;
+
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+
+  background: #edf3f1 !important;
 }
 
-/* Header: one compact command bar */
-.unified-disaster-board.is-field-mode .map-command-header {
-  min-height: 52px !important;
-  height: 52px !important;
-  padding: 5px 10px !important;
-  border: 1px solid var(--v2-border) !important;
-  border-radius: 8px !important;
-  background: var(--v2-panel) !important;
-  box-shadow: 0 2px 8px rgba(31,54,65,.06) !important;
-}
+/* =========================
+   HEADER
+   ========================= */
 
-.unified-disaster-board.is-field-mode .service-brand strong {
-  font-size: 16px !important;
-  letter-spacing: -.4px !important;
-}
+.unified-disaster-board.is-field-mode .command-header {
+  grid-row: 1 !important;
 
-.unified-disaster-board.is-field-mode .service-brand small {
-  font-size: 8px !important;
-  color: #8b9a98 !important;
-}
+  position: relative !important;
 
-/* KPI: reference-style operational cards */
-.unified-disaster-board.is-field-mode .field-kpi-strip {
-  min-height: 64px !important;
-  height: 64px !important;
-  gap: 7px !important;
-  padding: 0 !important;
-  background: transparent !important;
-}
-
-.unified-disaster-board.is-field-mode .field-kpi-strip > article,
-.unified-disaster-board.is-field-mode .field-kpi-context {
+  width: 100% !important;
   min-width: 0 !important;
-  min-height: 64px !important;
-  height: 64px !important;
-  padding: 8px 10px !important;
-  border: 1px solid var(--v2-border) !important;
-  border-radius: 8px !important;
-  background: var(--v2-panel) !important;
-  box-shadow: 0 2px 7px rgba(31,54,65,.05) !important;
+  height: var(--cc-header-h) !important;
+  min-height: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  gap: 8px !important;
+
+  padding: 5px 8px !important;
+  margin: 0 !important;
+
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 }
 
-.unified-disaster-board.is-field-mode .field-kpi-strip > article {
-  border-left: 4px solid var(--v2-accent) !important;
+/*
+ * 중앙 액션은 주변 flex 폭에 영향을 받지 않고
+ * viewport/header의 정확한 50%를 기준으로 배치.
+ */
+.unified-disaster-board.is-field-mode .command-primary-actions {
+  position: absolute !important;
+
+  left: 50% !important;
+  top: 50% !important;
+
+  transform: translate(-50%, -50%) !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 8px !important;
+
+  width: max-content !important;
+  min-width: max-content !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  z-index: 20 !important;
 }
 
-.unified-disaster-board.is-field-mode .field-kpi-strip strong {
-  font-size: 19px !important;
-  line-height: 1 !important;
-  letter-spacing: -.5px !important;
+.unified-disaster-board.is-field-mode
+.command-primary-actions .asset-registry-open,
+.unified-disaster-board.is-field-mode
+.command-primary-actions .requirements-open {
+  position: static !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 122px !important;
+  min-width: 122px !important;
+  max-width: 122px !important;
+
+  height: 32px !important;
+
+  padding: 0 12px !important;
+  margin: 0 !important;
+
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+
+  box-sizing: border-box !important;
 }
 
-.unified-disaster-board.is-field-mode .field-kpi-strip small,
-.unified-disaster-board.is-field-mode .field-kpi-strip p {
-  font-size: 9px !important;
+.unified-disaster-board.is-field-mode .header-summary {
+  margin-left: auto !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+
+  gap: 4px !important;
+
+  min-width: 0 !important;
+
+  flex-wrap: nowrap !important;
+  white-space: nowrap !important;
 }
 
-/* MAIN COMMAND GRID
-   left tools / actual GIS / right equipment inspector */
+.unified-disaster-board.is-field-mode .header-summary *,
+.unified-disaster-board.is-field-mode .command-header button {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+}
+
+/* =========================
+   KPI STRIP
+   ========================= */
+
+.unified-disaster-board.is-field-mode .command-kpi-strip,
+.unified-disaster-board.is-field-mode [class*="kpi-strip"] {
+  grid-row: 2 !important;
+
+  height: var(--cc-kpi-h) !important;
+  min-height: 0 !important;
+
+  margin: 0 !important;
+
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* =========================
+   MAIN STAGE
+   ========================= */
+
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage {
+  grid-row: 3 !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  min-width: 0 !important;
+  min-height: 0 !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
 .unified-disaster-board.is-field-mode
 .dashboard-map-stage.field-command-stage
 .live-location-layout {
-  display: grid !important;
-  grid-template-columns: 238px minmax(0, 1fr) 300px !important;
-  grid-template-areas: "tools map inspector" !important;
-  gap: 7px !important;
-  align-items: stretch !important;
+  width: 100% !important;
   height: 100% !important;
+
+  min-width: 0 !important;
   min-height: 0 !important;
+  max-width: none !important;
+
+  display: grid !important;
+
+  grid-template-columns:
+    var(--cc-left-w)
+    minmax(0, 1fr)
+    var(--cc-right-w) !important;
+
+  grid-template-rows: minmax(0, 1fr) !important;
+  grid-template-areas: "tools map inspector" !important;
+
+  gap: 7px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 }
+
+/* =========================
+   LEFT OPERATIONS
+   ========================= */
 
 .unified-disaster-board.is-field-mode
 .dashboard-map-stage.field-command-stage
 .operations-panel {
   grid-area: tools !important;
-  width: auto !important;
-  min-width: 0 !important;
-  height: 100% !important;
-  border: 1px solid var(--v2-border) !important;
-  border-radius: 8px !important;
-  background: var(--v2-panel) !important;
-  box-shadow: 0 2px 8px rgba(31,54,65,.06) !important;
-}
 
-.unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage
-.location-map {
-  grid-area: map !important;
-  min-width: 0 !important;
   width: 100% !important;
-  height: 100% !important;
-  border: 1px solid #c9d7dd !important;
-  border-radius: 8px !important;
-  overflow: hidden !important;
-  box-shadow: 0 2px 10px rgba(31,54,65,.08) !important;
-}
-
-.unified-disaster-board.is-field-mode .field-command-inspector {
-  grid-area: inspector !important;
-  width: auto !important;
   min-width: 0 !important;
-  height: 100% !important;
-  padding: 10px !important;
-  border: 1px solid var(--v2-border) !important;
-  border-radius: 8px !important;
-  background: var(--v2-panel) !important;
-  box-shadow: 0 2px 8px rgba(31,54,65,.06) !important;
-  overflow-y: auto !important;
-}
-
-/* Inspector becomes dense equipment telemetry panel */
-.unified-disaster-board.is-field-mode .field-command-inspector > header {
-  padding-bottom: 8px !important;
-  margin-bottom: 7px !important;
-  border-bottom: 1px solid #e4ebee !important;
-}
-
-.unified-disaster-board.is-field-mode .field-command-inspector > header strong {
-  font-size: 15px !important;
-}
-
-.unified-disaster-board.is-field-mode .field-twin-status,
-.unified-disaster-board.is-field-mode .field-seq-summary,
-.unified-disaster-board.is-field-mode .field-success-gate,
-.unified-disaster-board.is-field-mode .field-event-log {
-  border: 1px solid #e0e8eb !important;
-  border-radius: 7px !important;
-  box-shadow: none !important;
-  background: #fbfcfc !important;
-}
-
-/* GIS is the visual priority */
-.unified-disaster-board.is-field-mode .location-map .maplibregl-map,
-.unified-disaster-board.is-field-mode .location-map .maplibregl-canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* Bottom operational deck: RTSP + event timeline */
-.unified-disaster-board.is-field-mode .field-command-footer {
-  min-height: 112px !important;
-  height: 112px !important;
-  max-height: 112px !important;
-  gap: 7px !important;
-  padding: 0 !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-deck {
-  min-height: 0 !important;
-  height: 112px !important;
-  max-height: 112px !important;
-  border: 1px solid var(--v2-border) !important;
-  border-radius: 8px !important;
-  background: var(--v2-panel) !important;
-  overflow: hidden !important;
-}
-
-/* Operational controls should look like controls, not AI mockup cards */
-.unified-disaster-board.is-field-mode button,
-.unified-disaster-board.is-field-mode select {
-  box-shadow: none;
-}
-
-.unified-disaster-board.is-field-mode .asset-registry-open,
-.unified-disaster-board.is-field-mode .requirements-open,
-.unified-disaster-board.is-field-mode .asset-status-open {
-  min-height: 30px !important;
-  border-radius: 6px !important;
-  font-weight: 700 !important;
-}
-
-/* Keep DEMO / PREVIEW / LIVE provenance unmistakable */
-.unified-disaster-board.is-field-mode .demo-mode-badge,
-.unified-disaster-board.is-field-mode .field-mode-badge {
-  border-radius: 6px !important;
-  box-shadow: none !important;
-}
-
-/* Wide control-room target */
-@media (min-width: 1700px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 250px minmax(0, 1fr) 320px !important;
-  }
-}
-
-/* Laptop fallback */
-@media (max-width: 1450px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 210px minmax(0, 1fr) 270px !important;
-  }
-}
-
-
-/* =========================================================
-   COMMAND CENTER V2 - FINAL DENSITY
-   2026-09-18
-   ========================================================= */
-
-/* Main stage: readable left / GIS priority / dense inspector */
-.unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage
-.live-location-layout {
-  grid-template-columns: 250px minmax(0, 1fr) 310px !important;
-  gap: 8px !important;
-}
-
-/* Left operations panel: stop over-compression */
-.unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage
-.operations-panel {
-  width: 250px !important;
-  min-width: 250px !important;
-}
-
-.unified-disaster-board.is-field-mode
-.operations-panel button,
-.unified-disaster-board.is-field-mode
-.operations-panel select {
-  font-size: 11px !important;
-}
-
-.unified-disaster-board.is-field-mode
-.operations-panel small {
-  font-size: 9px !important;
-  line-height: 1.25 !important;
-}
-
-/* Right equipment inspector */
-.unified-disaster-board.is-field-mode .field-command-inspector {
-  width: 310px !important;
-  min-width: 310px !important;
-  padding: 10px !important;
-  font-size: 10px !important;
-}
-
-.unified-disaster-board.is-field-mode
-.field-command-inspector section {
-  margin-bottom: 7px !important;
-}
-
-.unified-disaster-board.is-field-mode
-.field-command-inspector p,
-.unified-disaster-board.is-field-mode
-.field-command-inspector small {
-  line-height: 1.2 !important;
-}
-
-/* Footer becomes a real command-center lower deck */
-.unified-disaster-board.is-field-mode .field-command-footer {
-  display: grid !important;
-  grid-template-columns: minmax(0, 1.65fr) minmax(380px, 1fr) !important;
-  gap: 8px !important;
-
-  height: 118px !important;
-  min-height: 118px !important;
-  max-height: 118px !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-deck,
-.unified-disaster-board.is-field-mode .field-timeline-deck {
-  height: 118px !important;
-  min-height: 118px !important;
-  max-height: 118px !important;
-
-  border: 1px solid #d8e2e8 !important;
-  border-radius: 8px !important;
-  background: rgba(255,255,255,.98) !important;
-  overflow: hidden !important;
-  box-shadow: 0 2px 7px rgba(31,54,65,.05) !important;
-}
-
-/* RTSP four-channel strip */
-.unified-disaster-board.is-field-mode
-.field-video-deck > div {
-  display: grid !important;
-  grid-template-columns: repeat(4, minmax(0,1fr)) !important;
-  gap: 6px !important;
-}
-
-.unified-disaster-board.is-field-mode
-.field-video-deck article {
-  min-width: 0 !important;
-  border-radius: 6px !important;
-}
-
-/* Timeline dense like an operations log */
-.unified-disaster-board.is-field-mode
-.field-timeline-deck ol {
-  overflow-y: auto !important;
-}
-
-.unified-disaster-board.is-field-mode
-.field-timeline-deck li {
-  min-height: 18px !important;
-  font-size: 9px !important;
-}
-
-/* Preserve map as the dominant visual surface */
-.unified-disaster-board.is-field-mode .location-map {
-  min-width: 0 !important;
-}
-
-/* 1920-ish workstation */
-@media (min-width: 1700px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 260px minmax(0, 1fr) 320px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .operations-panel {
-    width: 260px !important;
-    min-width: 260px !important;
-  }
-
-  .unified-disaster-board.is-field-mode .field-command-inspector {
-    width: 320px !important;
-    min-width: 320px !important;
-  }
-}
-
-/* Smaller company laptop */
-@media (max-width: 1450px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 220px minmax(0, 1fr) 270px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .operations-panel {
-    width: 220px !important;
-    min-width: 220px !important;
-  }
-
-  .unified-disaster-board.is-field-mode .field-command-inspector {
-    width: 270px !important;
-    min-width: 270px !important;
-  }
-}
-
-
-/* COMMAND CENTER V2 - LEFT PANEL READABILITY HOTFIX */
-
-@media (min-width: 1700px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 300px minmax(0, 1fr) 320px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .operations-panel {
-    width: 300px !important;
-    min-width: 300px !important;
-  }
-}
-
-.unified-disaster-board.is-field-mode
-.operations-panel button {
-  white-space: nowrap !important;
-  word-break: keep-all !important;
-}
-
-.unified-disaster-board.is-field-mode
-.operations-panel button span,
-.unified-disaster-board.is-field-mode
-.operations-panel button strong {
-  white-space: nowrap !important;
-  word-break: keep-all !important;
-}
-
-
-
-/* =========================================================
-   COMMAND CENTER V2.1 - FINAL LAYOUT POLISH
-   2026-09-18
-   ========================================================= */
-
-/* 1. 좌측 운영 패널 확대 + 중앙 지도 소폭 축소 */
-.unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage
-.live-location-layout {
-  grid-template-columns: 320px minmax(0, 1fr) 320px !important;
-  gap: 8px !important;
-}
-
-.unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage
-.operations-panel {
-  width: 320px !important;
-  min-width: 320px !important;
-}
-
-/* 좌측 패널 내부 텍스트/버튼 줄바꿈 억제 */
-.unified-disaster-board.is-field-mode
-.operations-panel button,
-.unified-disaster-board.is-field-mode
-.operations-panel button span,
-.unified-disaster-board.is-field-mode
-.operations-panel button strong {
-  white-space: nowrap !important;
-  word-break: keep-all !important;
-  overflow-wrap: normal !important;
-}
-
-/* 2. 상단 액션 버튼들을 하나의 중앙 그룹처럼 정렬 */
-.unified-disaster-board.is-field-mode
-.command-header-actions,
-.unified-disaster-board.is-field-mode
-.dashboard-header-actions,
-.unified-disaster-board.is-field-mode
-.header-actions {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  flex-wrap: nowrap !important;
-}
-
-.unified-disaster-board.is-field-mode
-.command-header-actions button,
-.unified-disaster-board.is-field-mode
-.dashboard-header-actions button,
-.unified-disaster-board.is-field-mode
-.header-actions button {
-  white-space: nowrap !important;
-  word-break: keep-all !important;
-  min-width: max-content !important;
-}
-
-/* 투입 장비 / 관제 인원 / 통신망 / 경보 등 KPI 문구 줄바꿈 금지 */
-.unified-disaster-board.is-field-mode
-.command-header button,
-.unified-disaster-board.is-field-mode
-.command-header span,
-.unified-disaster-board.is-field-mode
-.command-header strong,
-.unified-disaster-board.is-field-mode
-.command-header-actions *,
-.unified-disaster-board.is-field-mode
-.dashboard-header-actions * {
-  word-break: keep-all !important;
-  overflow-wrap: normal !important;
-}
-
-/* 특히 '투입 장비'처럼 두 글자씩 떨어지는 현상 방지 */
-.unified-disaster-board.is-field-mode
-.command-header [class*="stat"],
-.unified-disaster-board.is-field-mode
-.command-header [class*="count"],
-.unified-disaster-board.is-field-mode
-.command-header [class*="metric"],
-.unified-disaster-board.is-field-mode
-.command-header [class*="asset"] {
-  white-space: nowrap !important;
-  min-width: max-content !important;
-}
-
-/* 3. 하단 RTSP + 주요 이벤트 타임라인 높이 확보 */
-.unified-disaster-board.is-field-mode
-.field-command-footer {
-  grid-template-columns: minmax(0, 1.7fr) minmax(440px, .9fr) !important;
-  height: 150px !important;
-  min-height: 150px !important;
-  max-height: 150px !important;
-  overflow: hidden !important;
-  align-items: stretch !important;
-}
-
-.unified-disaster-board.is-field-mode
-.field-video-deck,
-.unified-disaster-board.is-field-mode
-.field-timeline-deck {
-  height: 100% !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-}
-
-/* 타임라인 내부만 스크롤되게 해서 하단 잘림 방지 */
-.unified-disaster-board.is-field-mode
-.field-timeline-deck {
-  display: flex !important;
-  flex-direction: column !important;
-}
-
-.unified-disaster-board.is-field-mode
-.field-timeline-deck > :last-child {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-}
-
-/* RTSP 4채널은 한 줄 유지 */
-.unified-disaster-board.is-field-mode
-.field-video-deck [class*="grid"],
-.unified-disaster-board.is-field-mode
-.field-video-grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-}
-
-/* 대형 관제 모니터 */
-@media (min-width: 1700px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 330px minmax(0, 1fr) 320px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .operations-panel {
-    width: 330px !important;
-    min-width: 330px !important;
-  }
-}
-
-/* 노트북/작은 모니터에서는 지도 공간 보호 */
-@media (max-width: 1450px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 270px minmax(0, 1fr) 270px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .operations-panel {
-    width: 270px !important;
-    min-width: 270px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .field-command-footer {
-    grid-template-columns: minmax(0, 1.5fr) minmax(360px, 1fr) !important;
-  }
-}
-
-
-
-/* =========================================================
-   COMMAND CENTER V2.2 - REFERENCE MATCH
-   ========================================================= */
-
-/* 전체 stage를 좌/지도/우에 정확히 채운다 */
-.unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage {
-  padding-left: 6px !important;
-  padding-right: 6px !important;
-}
-
-.unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage
-.live-location-layout {
-  width: 100% !important;
   max-width: none !important;
-  grid-template-columns: 340px minmax(0,1fr) 320px !important;
-  gap: 7px !important;
-}
 
-/* 좌측 사이드: 남는 여백 없이 실제 column 전체 사용 */
-.unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage
-.operations-panel {
-  width: 340px !important;
-  min-width: 340px !important;
-  max-width: 340px !important;
-  margin: 0 !important;
-}
-
-.unified-disaster-board.is-field-mode .operation-drawer,
-.unified-disaster-board.is-field-mode .operations-panel-body,
-.unified-disaster-board.is-field-mode .operation-tab-panel {
-  width: 100% !important;
-  max-width: none !important;
-}
-
-/* 상단: 브랜드 / 중앙 액션 / 현황 */
-.unified-disaster-board.is-field-mode .command-header {
-  position: relative !important;
-}
-
-.unified-disaster-board.is-field-mode .command-primary-actions {
-  position: absolute !important;
-  left: 50% !important;
-  top: 50% !important;
-  transform: translate(-50%,-50%) !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  z-index: 5 !important;
-}
-
-.unified-disaster-board.is-field-mode
-.command-primary-actions button {
-  width: auto !important;
-  min-width: 116px !important;
-  height: 32px !important;
-  padding: 0 14px !important;
-  white-space: nowrap !important;
-  word-break: keep-all !important;
-}
-
-/* 투입 장비 포함 header summary 절대 줄바꿈 금지 */
-.unified-disaster-board.is-field-mode .header-summary {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-}
-
-.unified-disaster-board.is-field-mode .header-summary button,
-.unified-disaster-board.is-field-mode .header-summary button span {
-  white-space: nowrap !important;
-  word-break: keep-all !important;
-  overflow-wrap: normal !important;
-}
-
-/* 지도 하단 HUD:
-   현재 실시간은 왼쪽 / 범례는 오른쪽으로 완전히 분리 */
-.unified-disaster-board.is-field-mode .map-playback-control,
-.unified-disaster-board.is-field-mode .map-playback,
-.unified-disaster-board.is-field-mode .timeline-control {
-  left: 16px !important;
-  right: auto !important;
-  bottom: 12px !important;
-  width: min(430px,42%) !important;
-  max-width: 430px !important;
-}
-
-.unified-disaster-board.is-field-mode .command-center-legend {
-  left: auto !important;
-  right: 12px !important;
-  bottom: 12px !important;
-  width: auto !important;
-  max-width: 52% !important;
-  margin: 0 !important;
-}
-
-/* 하단 영상 + 이벤트 */
-.unified-disaster-board.is-field-mode .field-command-footer {
-  height: 164px !important;
-  min-height: 164px !important;
-  max-height: 164px !important;
-  grid-template-columns: minmax(0,1.65fr) minmax(430px,.85fr) !important;
-  gap: 7px !important;
-  overflow: hidden !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-deck {
-  height: 100% !important;
-  max-height: none !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-deck > div {
-  height: calc(100% - 25px) !important;
-  display: grid !important;
-  grid-template-columns: repeat(4,minmax(0,1fr)) !important;
-  gap: 5px !important;
-  padding: 5px !important;
-}
-
-/* 영상 카드 */
-.unified-disaster-board.is-field-mode .field-video-channel {
-  position: relative !important;
-  display: grid !important;
-  grid-template-rows: minmax(0,1fr) auto !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  border-radius: 5px !important;
-  background: #173b35 !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-preview {
-  position: relative !important;
-  min-height: 78px !important;
-  background-size: cover !important;
-  background-position: center !important;
-  overflow: hidden !important;
-}
-
-/* DEMO용 서로 다른 임시 영상 화면 */
-.unified-disaster-board.is-field-mode .field-video-channel-1 .field-video-preview {
-  background:
-    linear-gradient(180deg,rgba(4,42,38,.05),rgba(4,42,38,.42)),
-    linear-gradient(145deg,#789b76 0%,#345f4d 45%,#173b35 100%) !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-channel-2 .field-video-preview {
-  background:
-    radial-gradient(circle at 57% 48%,#e33 0 5%,transparent 6%),
-    radial-gradient(circle at 55% 50%,#ddd 0 18%,#777 35%,#292929 72%) !important;
-  filter: grayscale(.65);
-}
-
-.unified-disaster-board.is-field-mode .field-video-channel-3 .field-video-preview {
-  background:
-    linear-gradient(165deg,#526f57 0 45%,#777 46% 56%,#3c493c 57% 100%) !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-channel-4 .field-video-preview {
-  background:
-    linear-gradient(180deg,#809b91 0 35%,#526e5c 36% 60%,#294d3e 100%) !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-badge,
-.unified-disaster-board.is-field-mode .field-video-live {
-  position: absolute !important;
-  top: 5px !important;
-  padding: 2px 5px !important;
-  border-radius: 3px !important;
-  background: rgba(10,31,37,.82) !important;
-  color: #fff !important;
-  font-size: 8px !important;
-  font-style: normal !important;
-  font-weight: 800 !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-badge {
-  left: 5px !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-live {
-  right: 5px !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-caption {
-  position: relative !important;
-  min-height: 32px !important;
-  padding: 5px 7px !important;
-  background: rgba(12,48,43,.96) !important;
-  color: white !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-caption strong {
-  display: block !important;
-  color: white !important;
-  font-size: 9px !important;
-  white-space: nowrap !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-caption small {
-  display: block !important;
-  color: rgba(255,255,255,.68) !important;
-  font-size: 7px !important;
-}
-
-.unified-disaster-board.is-field-mode .field-video-caption i {
-  position: absolute !important;
-  right: 6px !important;
-  bottom: 5px !important;
-  color: rgba(255,255,255,.72) !important;
-  font-size: 7px !important;
-}
-
-/* 이벤트 타임라인 끝까지 표시 + 내부 스크롤 */
-.unified-disaster-board.is-field-mode .field-timeline-deck {
   height: 100% !important;
   min-height: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  overflow: hidden !important;
-}
+  max-height: 100% !important;
 
-.unified-disaster-board.is-field-mode .field-timeline-deck ol {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  padding-bottom: 7px !important;
-}
-
-/* 큰 관제 화면 */
-@media (min-width:1700px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 350px minmax(0,1fr) 330px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .operations-panel {
-    width: 350px !important;
-    min-width: 350px !important;
-    max-width: 350px !important;
-  }
-}
-
-
-
-/* =========================================================
-   COMMAND CENTER V2.3
-   LEFT PANEL FULL-WIDTH + TRUE CENTER HEADER ACTIONS
-   ========================================================= */
-
-/* ---------- LEFT PANEL ---------- */
-
-/* 좌측 전체 column 확보 */
-.unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage
-.live-location-layout {
-  grid-template-columns: 360px minmax(0, 1fr) 320px !important;
-  gap: 7px !important;
-}
-
-/* operations panel 자체도 column 전체 사용 */
-.unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage
-.operations-panel {
-  width: 360px !important;
-  min-width: 360px !important;
-  max-width: 360px !important;
   margin: 0 !important;
   padding: 0 !important;
+
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 }
 
-/*
- * 핵심:
- * 왼쪽 navigation rail을 제외한 실제 내용 영역이
- * 남은 공간을 전부 먹도록 강제
- */
 .unified-disaster-board.is-field-mode
-.operations-panel .operation-drawer {
-  width: 100% !important;
-  max-width: none !important;
-  min-width: 0 !important;
-  margin: 0 !important;
+.operations-panel * {
+  box-sizing: border-box !important;
 }
 
+.unified-disaster-board.is-field-mode
+.operations-panel .operation-drawer,
 .unified-disaster-board.is-field-mode
 .operations-panel .operations-panel-body,
 .unified-disaster-board.is-field-mode
@@ -3047,33 +2423,16 @@
 .unified-disaster-board.is-field-mode
 .operations-panel .operation-content {
   width: 100% !important;
-  max-width: none !important;
+
   min-width: 0 !important;
+  max-width: 100% !important;
+
   margin-left: 0 !important;
   margin-right: 0 !important;
+
   box-sizing: border-box !important;
 }
 
-/* rail + content 형태의 내부 grid라면 content에 남은 폭 전부 할당 */
-.unified-disaster-board.is-field-mode
-.operations-panel [class*="layout"],
-.unified-disaster-board.is-field-mode
-.operations-panel [class*="shell"] {
-  grid-template-columns: max-content minmax(0, 1fr) !important;
-}
-
-/* KPI/측정/SEQ 카드도 부모 폭을 꽉 사용 */
-.unified-disaster-board.is-field-mode
-.operations-panel [class*="card"],
-.unified-disaster-board.is-field-mode
-.operations-panel [class*="section"],
-.unified-disaster-board.is-field-mode
-.operations-panel [class*="control"] {
-  max-width: none !important;
-  box-sizing: border-box !important;
-}
-
-/* 텍스트가 두 글자씩 떨어지는 것 방지 */
 .unified-disaster-board.is-field-mode
 .operations-panel button,
 .unified-disaster-board.is-field-mode
@@ -3086,123 +2445,346 @@
   overflow-wrap: normal !important;
 }
 
-
-/* ---------- HEADER TRUE CENTER ---------- */
-
-.unified-disaster-board.is-field-mode .command-header {
-  position: relative !important;
+/* 넓은 SEQ 데이터만 자기 영역에서 스크롤 */
+.unified-disaster-board.is-field-mode
+.operations-panel [class*="sequence"],
+.unified-disaster-board.is-field-mode
+.operations-panel [class*="seq"] {
+  max-width: 100% !important;
+  overflow-x: auto !important;
 }
 
-/*
- * 화면 전체 header의 50%에 그룹 중심점을 일치시킴.
- * 시나리오 선택기 위치와 무관하게 가운데.
- */
-.unified-disaster-board.is-field-mode .command-primary-actions {
-  position: absolute !important;
-  left: 50% !important;
-  top: 50% !important;
+/* =========================
+   MAP
+   ========================= */
 
-  transform: translate(-50%, -50%) !important;
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage
+.location-map {
+  grid-area: map !important;
 
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  position: relative !important;
 
-  width: max-content !important;
+  width: 100% !important;
+  height: 100% !important;
+
+  min-width: 0 !important;
+  min-height: 0 !important;
+
   margin: 0 !important;
   padding: 0 !important;
 
-  gap: 10px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* =========================
+   RIGHT INSPECTOR
+   ========================= */
+
+.unified-disaster-board.is-field-mode
+.field-command-inspector {
+  grid-area: inspector !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+
+  margin: 0 !important;
+
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  scrollbar-gutter: stable !important;
+
+  box-sizing: border-box !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-command-inspector * {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* =========================
+   MAP HUD
+   ========================= */
+
+/* 현재 실시간: 중앙 하단에서 범례 왼쪽까지 */
+.unified-disaster-board.is-field-mode
+.location-map [class*="playback"] {
+  position: absolute !important;
+
+  left: 18px !important;
+  right: auto !important;
+  bottom: 12px !important;
+
+  width: min(470px, 43%) !important;
+  max-width: 43% !important;
+
+  margin: 0 !important;
+
   z-index: 20 !important;
 }
 
+/* 범례: 우측 하단 */
 .unified-disaster-board.is-field-mode
-.command-primary-actions .asset-registry-open,
-.unified-disaster-board.is-field-mode
-.command-primary-actions .requirements-open {
-  position: static !important;
-  transform: none !important;
+.command-center-legend {
+  position: absolute !important;
 
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  left: auto !important;
+  right: 14px !important;
+  bottom: 12px !important;
 
-  width: 122px !important;
-  min-width: 122px !important;
-  max-width: 122px !important;
+  width: auto !important;
+  max-width: 50% !important;
 
-  height: 32px !important;
+  min-height: 0 !important;
 
   margin: 0 !important;
-  padding: 0 12px !important;
+  padding: 6px 9px !important;
 
-  white-space: nowrap !important;
-  word-break: keep-all !important;
-  overflow-wrap: normal !important;
+  z-index: 21 !important;
 }
 
-/* 우측 summary는 우측에 그대로 유지 */
-.unified-disaster-board.is-field-mode .header-summary {
-  margin-left: auto !important;
+/* =========================
+   FOOTER
+   ========================= */
 
+.unified-disaster-board.is-field-mode
+.field-command-footer {
+  grid-row: 4 !important;
+
+  width: 100% !important;
+  height: var(--cc-footer-h) !important;
+
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-height: var(--cc-footer-h) !important;
+
+  display: grid !important;
+  grid-template-columns:
+    minmax(0, 1.7fr)
+    minmax(420px, .9fr) !important;
+
+  gap: 7px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-deck,
+.unified-disaster-board.is-field-mode
+.field-timeline-deck {
+  width: 100% !important;
+  height: 100% !important;
+
+  min-width: 0 !important;
+  min-height: 0 !important;
+
+  margin: 0 !important;
+
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* 영상 4채널 */
+.unified-disaster-board.is-field-mode
+.field-video-deck > div {
+  height: calc(100% - 24px) !important;
+  min-height: 0 !important;
+
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+
+  gap: 5px !important;
+
+  padding: 4px !important;
+
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel {
+  position: relative !important;
+
+  min-width: 0 !important;
+  min-height: 0 !important;
+
+  height: 100% !important;
+
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+
+  padding: 0 !important;
+
+  overflow: hidden !important;
+
+  border-radius: 5px !important;
+  background: #173b35 !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-preview {
+  position: relative !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+
+  background-size: cover !important;
+  background-position: center !important;
+
+  overflow: hidden !important;
+}
+
+/* DEMO mock feeds */
+.unified-disaster-board.is-field-mode
+.field-video-channel-1 .field-video-preview {
+  background:
+    linear-gradient(180deg,rgba(4,42,38,.05),rgba(4,42,38,.42)),
+    linear-gradient(145deg,#789b76 0%,#345f4d 45%,#173b35 100%) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel-2 .field-video-preview {
+  background:
+    radial-gradient(circle at 57% 48%,#a65b5b 0 5%,transparent 6%),
+    radial-gradient(circle at 55% 50%,#ddd 0 18%,#777 35%,#292929 72%) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel-3 .field-video-preview {
+  background:
+    linear-gradient(165deg,#526f57 0 45%,#777 46% 56%,#3c493c 57% 100%) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel-4 .field-video-preview {
+  background:
+    linear-gradient(180deg,#809b91 0 35%,#526e5c 36% 60%,#294d3e 100%) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-badge,
+.unified-disaster-board.is-field-mode
+.field-video-live {
+  position: absolute !important;
+  top: 5px !important;
+
+  padding: 2px 5px !important;
+
+  border-radius: 3px !important;
+
+  background: rgba(10,31,37,.82) !important;
+  color: #fff !important;
+
+  font-size: 8px !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-badge {
+  left: 5px !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-live {
+  right: 5px !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-caption {
+  position: relative !important;
+
+  min-height: 30px !important;
+
+  padding: 4px 7px !important;
+
+  background: rgba(12,48,43,.96) !important;
+  color: #fff !important;
+
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-caption strong {
+  display: block !important;
+
+  font-size: 9px !important;
+  color: #fff !important;
+
+  white-space: nowrap !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-caption small {
+  display: block !important;
+
+  font-size: 7px !important;
+  color: rgba(255,255,255,.68) !important;
+
+  white-space: nowrap !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-caption i {
+  position: absolute !important;
+
+  right: 6px !important;
+  bottom: 4px !important;
+
+  font-size: 7px !important;
+  color: rgba(255,255,255,.72) !important;
+}
+
+/* 이벤트 타임라인 */
+.unified-disaster-board.is-field-mode
+.field-timeline-deck {
   display: flex !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-
-  flex-wrap: nowrap !important;
-  white-space: nowrap !important;
+  flex-direction: column !important;
 }
 
-/* 투입 장비 / 관제 인원 / 통신망 / 경보 */
-.unified-disaster-board.is-field-mode .header-summary button,
-.unified-disaster-board.is-field-mode .header-summary button *,
-.unified-disaster-board.is-field-mode .header-summary span,
-.unified-disaster-board.is-field-mode .header-summary strong {
-  white-space: nowrap !important;
-  word-break: keep-all !important;
-  overflow-wrap: normal !important;
+.unified-disaster-board.is-field-mode
+.field-timeline-deck ol {
+  flex: 1 1 auto !important;
+
+  min-height: 0 !important;
+
+  margin: 0 !important;
+  padding-bottom: 6px !important;
+
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
 }
 
-
-/* ---------- LARGE COMMAND DISPLAY ---------- */
+/* =========================
+   RESPONSIVE
+   ========================= */
 
 @media (min-width: 1700px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 380px minmax(0, 1fr) 330px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .operations-panel {
-    width: 380px !important;
-    min-width: 380px !important;
-    max-width: 380px !important;
+  .unified-disaster-board.is-field-mode {
+    --cc-left-w: 370px;
+    --cc-right-w: 330px;
+    --cc-footer-h: 154px;
   }
 }
 
-
-/* ---------- SMALLER DISPLAY ---------- */
-
 @media (max-width: 1450px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 310px minmax(0, 1fr) 270px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .operations-panel {
-    width: 310px !important;
-    min-width: 310px !important;
-    max-width: 310px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .command-primary-actions {
-    gap: 6px !important;
+  .unified-disaster-board.is-field-mode {
+    --cc-left-w: 300px;
+    --cc-right-w: 270px;
+    --cc-footer-h: 142px;
   }
 
   .unified-disaster-board.is-field-mode
@@ -3213,153 +2795,119 @@
     min-width: 108px !important;
     max-width: 108px !important;
   }
-}
 
+  .unified-disaster-board.is-field-mode
+  .field-command-footer {
+    grid-template-columns:
+      minmax(0, 1.55fr)
+      minmax(350px, 1fr) !important;
+  }
+}
 
 
 /* =========================================================
-   COMMAND CENTER V2.4 - OVERFLOW / SPACING FINAL FIX
+   FINAL LEFT OPERATIONS WIDTH / CLIPPING FIX
    ========================================================= */
 
-/* ---------- 1. HEADER : LEFT / TRUE CENTER / RIGHT ---------- */
-
-/*
- * absolute 중앙정렬을 폐기하고 header 자체를 3영역 grid로 만든다.
- * 중앙 액션이 사건/시나리오나 우측 카운터와 포개지지 않는다.
- */
-.unified-disaster-board.is-field-mode .command-header {
-  position: relative !important;
-  display: grid !important;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
-  align-items: center !important;
-  column-gap: 14px !important;
-  overflow: visible !important;
+.unified-disaster-board.is-field-mode {
+  --cc-left-w: 430px;
 }
 
-/* 기존 absolute 중앙정렬 완전 해제 */
-.unified-disaster-board.is-field-mode .command-primary-actions {
-  position: static !important;
-  left: auto !important;
-  right: auto !important;
-  top: auto !important;
-  transform: none !important;
-
-  grid-column: 2 !important;
-
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-
-  width: max-content !important;
-  min-width: max-content !important;
-
-  gap: 10px !important;
-  margin: 0 auto !important;
-  padding: 0 !important;
-
-  z-index: auto !important;
-}
-
+/* 왼쪽 패널 내부 콘텐츠가 자기 column을 넘지 않도록 */
 .unified-disaster-board.is-field-mode
-.command-primary-actions .asset-registry-open,
-.unified-disaster-board.is-field-mode
-.command-primary-actions .requirements-open {
-  position: static !important;
-  transform: none !important;
-
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-
-  min-width: 122px !important;
-  width: 122px !important;
-  height: 32px !important;
-
-  padding: 0 12px !important;
-  margin: 0 !important;
-
-  white-space: nowrap !important;
-  word-break: keep-all !important;
-}
-
-/* 우측 숫자 현황은 오른쪽 영역에 고정 */
-.unified-disaster-board.is-field-mode .header-summary {
-  grid-column: 3 !important;
-  justify-self: end !important;
-
-  margin: 0 !important;
+.operations-panel {
   min-width: 0 !important;
-
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-end !important;
-  gap: 5px !important;
-
-  flex-wrap: nowrap !important;
-  white-space: nowrap !important;
+  overflow: hidden !important;
 }
 
-/* 투입 장비 등이 절대 두 줄로 안 떨어지게 */
-.unified-disaster-board.is-field-mode .header-summary button,
-.unified-disaster-board.is-field-mode .header-summary button *,
-.unified-disaster-board.is-field-mode .header-summary span,
-.unified-disaster-board.is-field-mode .header-summary strong {
+.unified-disaster-board.is-field-mode
+.operations-panel > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* 측정 제어 action row */
+.unified-disaster-board.is-field-mode
+.operations-panel [class*="action"] {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+/* 버튼 글자 줄바꿈 방지 */
+.unified-disaster-board.is-field-mode
+.operations-panel button {
+  min-width: 0 !important;
   white-space: nowrap !important;
   word-break: keep-all !important;
   overflow-wrap: normal !important;
 }
 
-
-/* ---------- 2. MAIN THREE-COLUMN LAYOUT ---------- */
-
-/*
- * 좌우 패널이 viewport 밖으로 튀어나가지 않도록
- * column width를 확정하고 중앙 지도만 유동폭으로 사용.
- */
+/* KPI 카드/SEQ 영역도 패널 폭 전체 사용 */
 .unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage {
-  width: 100% !important;
+.operations-panel article,
+.unified-disaster-board.is-field-mode
+.operations-panel section {
   min-width: 0 !important;
-  box-sizing: border-box !important;
-
-  padding: 0 7px 6px !important;
-  overflow: hidden !important;
+  max-width: 100% !important;
 }
 
+/* 현재 사용 중인 큰 데스크톱 */
+@media (min-width: 1700px) {
+  .unified-disaster-board.is-field-mode {
+    --cc-left-w: 450px;
+    --cc-right-w: 330px;
+  }
+}
+
+/* 노트북/좁은 화면에서는 지도 폭 보호 */
+@media (max-width: 1450px) {
+  .unified-disaster-board.is-field-mode {
+    --cc-left-w: 350px;
+    --cc-right-w: 270px;
+  }
+}
+
+
+
+/* =========================================================
+   LEFT PANEL INNER CLIPPING - DEFINITIVE FIX
+   ========================================================= */
+
+/*
+ * 외부 column은 고정하되 내부 콘텐츠를 잘라내지 않는다.
+ */
 .unified-disaster-board.is-field-mode
 .dashboard-map-stage.field-command-stage
-.live-location-layout {
+.operations-panel {
   width: 100% !important;
   min-width: 0 !important;
   max-width: 100% !important;
 
-  grid-template-columns: 350px minmax(0, 1fr) 320px !important;
-  gap: 8px !important;
+  overflow-x: visible !important;
+  overflow-y: hidden !important;
 
-  overflow: hidden !important;
   box-sizing: border-box !important;
 }
 
-
-/* ---------- 3. LEFT PANEL ---------- */
-
+/*
+ * 세로 navigation을 제외한 실제 operation content가
+ * 남은 가로폭 전체를 사용하도록 한다.
+ */
 .unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage
-.operations-panel {
-  width: 350px !important;
+.operations-panel > div,
+.unified-disaster-board.is-field-mode
+.operations-panel main,
+.unified-disaster-board.is-field-mode
+.operations-panel section,
+.unified-disaster-board.is-field-mode
+.operations-panel article {
   min-width: 0 !important;
-  max-width: 350px !important;
+  max-width: 100% !important;
 
-  height: 100% !important;
-
-  margin: 0 !important;
-  padding: 0 !important;
-
-  overflow: hidden !important;
   box-sizing: border-box !important;
 }
 
-/* 내부 drawer가 부모 밖으로 삐져나가는 것 방지 */
+/* 내부 drawer/content 폭 제한 제거 */
 .unified-disaster-board.is-field-mode
 .operations-panel .operation-drawer,
 .unified-disaster-board.is-field-mode
@@ -3372,187 +2920,355 @@
 .operations-panel .operation-content {
   width: 100% !important;
   min-width: 0 !important;
-  max-width: 100% !important;
+  max-width: none !important;
 
-  margin-left: 0 !important;
-  margin-right: 0 !important;
+  padding-right: 6px !important;
 
-  box-sizing: border-box !important;
-}
-
-/* 모든 자식이 부모 폭을 강제로 넘지 못하게 */
-.unified-disaster-board.is-field-mode
-.operations-panel * {
-  box-sizing: border-box !important;
-}
-
-/* 카드/섹션/컨트롤은 사용 가능한 폭 전체 사용 */
-.unified-disaster-board.is-field-mode
-.operations-panel [class*="card"],
-.unified-disaster-board.is-field-mode
-.operations-panel [class*="section"],
-.unified-disaster-board.is-field-mode
-.operations-panel [class*="control"] {
-  max-width: 100% !important;
-}
-
-/* SEQ 같이 넓은 데이터 영역만 내부 스크롤 허용 */
-.unified-disaster-board.is-field-mode
-.operations-panel [class*="sequence"],
-.unified-disaster-board.is-field-mode
-.operations-panel [class*="seq"] {
-  max-width: 100% !important;
-  overflow-x: auto !important;
-  overflow-y: visible !important;
-}
-
-
-/* ---------- 4. MAP ---------- */
-
-.unified-disaster-board.is-field-mode
-.dashboard-map-stage.field-command-stage
-.location-map {
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 100% !important;
-
-  margin: 0 !important;
-
-  overflow: hidden !important;
-  box-sizing: border-box !important;
-}
-
-
-/* ---------- 5. RIGHT INSPECTOR ---------- */
-
-.unified-disaster-board.is-field-mode
-.field-command-inspector {
-  width: 320px !important;
-  min-width: 0 !important;
-  max-width: 320px !important;
-
-  height: 100% !important;
-
-  margin: 0 !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
+  overflow-x: visible !important;
 
   box-sizing: border-box !important;
 }
 
 /*
- * 우측 내부 카드가 320px보다 커지면서 잘리는 현상 제거.
+ * 측정 제어 버튼:
+ * 고정폭/최소폭 때문에 마지막 버튼이 밀려나는 것을 방지.
  */
 .unified-disaster-board.is-field-mode
-.field-command-inspector *,
+.operations-panel [class*="control"] button,
 .unified-disaster-board.is-field-mode
-.field-command-inspector article,
+.operations-panel [class*="action"] button,
 .unified-disaster-board.is-field-mode
-.field-command-inspector section,
-.unified-disaster-board.is-field-mode
-.field-command-inspector div {
+.operations-panel [class*="measure"] button {
+  flex: 1 1 0 !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+
+  font-size: 9px !important;
+
   box-sizing: border-box !important;
+}
+
+/*
+ * 버튼 row 자체도 반드시 현재 패널 안에서 끝나도록.
+ */
+.unified-disaster-board.is-field-mode
+.operations-panel [class*="control"],
+.unified-disaster-board.is-field-mode
+.operations-panel [class*="action"],
+.unified-disaster-board.is-field-mode
+.operations-panel [class*="measure"] {
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  box-sizing: border-box !important;
+}
+
+/*
+ * SEQ 품질 표:
+ * 우측 Lost 열까지 반드시 패널 내부에 표시.
+ */
+.unified-disaster-board.is-field-mode
+.operations-panel [class*="sequence"],
+.unified-disaster-board.is-field-mode
+.operations-panel [class*="seq"] {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+
+  overflow-x: hidden !important;
+
+  box-sizing: border-box !important;
+}
+
+.unified-disaster-board.is-field-mode
+.operations-panel [class*="sequence"] *,
+.unified-disaster-board.is-field-mode
+.operations-panel [class*="seq"] * {
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/*
+ * 실제 콘텐츠 우측에 안전 여백 확보.
+ */
+.unified-disaster-board.is-field-mode
+.operations-panel {
+  padding-right: 6px !important;
+}
+
+/*
+ * 데스크톱에서는 현재 확보한 폭 유지.
+ * 더 이상 지도 폭을 불필요하게 줄이지 않는다.
+ */
+@media (min-width: 1700px) {
+  .unified-disaster-board.is-field-mode {
+    --cc-left-w: 450px;
+  }
+}
+
+
+
+/* =========================================================
+   FINAL VIEWPORT FIT - 2026-09-18
+   1. Remove footer dead space
+   2. Give operations content enough horizontal room
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode {
+  --cc-left-w: 480px !important;
+  --cc-footer-h: 96px !important;
+}
+
+/* 큰 데스크톱: 좌측 운영 패널 완전 표시 */
+@media (min-width: 1700px) {
+  .unified-disaster-board.is-field-mode {
+    --cc-left-w: 500px !important;
+    --cc-right-w: 330px !important;
+    --cc-footer-h: 96px !important;
+  }
+}
+
+/* Footer 예약 공간 자체를 실제 콘텐츠 높이에 맞춤 */
+.unified-disaster-board.is-field-mode
+.field-command-footer {
+  height: var(--cc-footer-h) !important;
+  min-height: var(--cc-footer-h) !important;
+  max-height: var(--cc-footer-h) !important;
+
+  align-self: stretch !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  overflow: hidden !important;
+}
+
+/* 영상/타임라인이 96px 전체를 사용 */
+.unified-disaster-board.is-field-mode
+.field-video-deck,
+.unified-disaster-board.is-field-mode
+.field-timeline-deck {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+
+  margin: 0 !important;
+  padding-bottom: 0 !important;
+
+  overflow: hidden !important;
+}
+
+/* 영상 deck의 기존 calc 높이 제거 */
+.unified-disaster-board.is-field-mode
+.field-video-deck > div {
+  height: calc(100% - 22px) !important;
+  min-height: 0 !important;
+  max-height: calc(100% - 22px) !important;
+
+  margin: 0 !important;
+  padding-bottom: 3px !important;
+}
+
+/* 4개 영상 카드가 남는 높이를 전부 채움 */
+.unified-disaster-board.is-field-mode
+.field-video-channel {
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+}
+
+/* 타임라인도 footer 끝까지 사용 */
+.unified-disaster-board.is-field-mode
+.field-timeline-deck ol {
+  height: auto !important;
+  min-height: 0 !important;
+
+  flex: 1 1 auto !important;
+
+  margin: 0 !important;
+  padding-bottom: 2px !important;
+
+  overflow-y: auto !important;
+}
+
+/* 좌측 콘텐츠 우측 끝 잘림 방지 */
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage
+.operations-panel {
+  padding-right: 0 !important;
+}
+
+.unified-disaster-board.is-field-mode
+.operations-panel .operation-drawer,
+.unified-disaster-board.is-field-mode
+.operations-panel .operations-panel-body,
+.unified-disaster-board.is-field-mode
+.operations-panel .operation-tab-panel,
+.unified-disaster-board.is-field-mode
+.operations-panel .operation-panel-content,
+.unified-disaster-board.is-field-mode
+.operations-panel .operation-content {
+  width: 100% !important;
+  max-width: 100% !important;
+
+  padding-right: 8px !important;
+
+  overflow-x: hidden !important;
+
+  box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   VIEWPORT FIT FINAL
+   Only controls outer geometry.
+   Do NOT modify operations-panel children here.
+   ========================================================= */
+
+html,
+body,
+#root {
+  margin: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode {
+  width: 100vw !important;
+  max-width: 100vw !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+
+  --cc-left-w: 410px !important;
+  --cc-right-w: 300px !important;
+}
+
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage
+.live-location-layout {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  grid-template-columns:
+    410px
+    minmax(0, 1fr)
+    300px !important;
+
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+/* ONLY the three grid items */
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage
+.operations-panel {
+  min-width: 0 !important;
+  max-width: 410px !important;
+}
+
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage
+.location-map {
+  min-width: 0 !important;
+  width: 100% !important;
   max-width: 100% !important;
 }
 
-
-/* ---------- 6. MAP BOTTOM HUD ---------- */
-
-/* 현재 실시간 */
 .unified-disaster-board.is-field-mode
-.location-map [class*="playback"],
-.unified-disaster-board.is-field-mode
-.location-map [class*="timeline-control"] {
-  max-width: 42% !important;
-  left: 14px !important;
-  right: auto !important;
-  bottom: 12px !important;
+.dashboard-map-stage.field-command-stage
+.field-command-inspector {
+  min-width: 0 !important;
+  width: 300px !important;
+  max-width: 300px !important;
 }
 
-/* 범례는 반대편 */
-.unified-disaster-board.is-field-mode .command-center-legend {
-  left: auto !important;
-  right: 14px !important;
-  bottom: 12px !important;
+/* Footer must use exactly the same viewport width */
+.unified-disaster-board.is-field-mode
+.field-command-footer {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
 
+  grid-template-columns:
+    minmax(0, 2fr)
+    minmax(360px, 1fr) !important;
+
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+/* 1600px 이하 */
+@media (max-width: 1600px) {
+  .unified-disaster-board.is-field-mode {
+    --cc-left-w: 380px !important;
+    --cc-right-w: 280px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.field-command-stage
+  .live-location-layout {
+    grid-template-columns:
+      380px
+      minmax(0, 1fr)
+      280px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.field-command-stage
+  .operations-panel {
+    max-width: 380px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.field-command-stage
+  .field-command-inspector {
+    width: 280px !important;
+    max-width: 280px !important;
+  }
+}
+
+/* =========================================================
+   DEMO MODE BADGE - FINAL VISIBILITY FIX
+   dashboard-responsive-tv.css hides its span at narrow widths.
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode .demo-mode-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
   width: auto !important;
-  max-width: 52% !important;
-
-  margin: 0 !important;
+  min-width: max-content !important;
+  overflow: visible !important;
 }
 
-/* 서로 영역 침범 방지 */
-.unified-disaster-board.is-field-mode
-.location-map [class*="playback"] {
-  z-index: 7 !important;
+.unified-disaster-board.is-field-mode .demo-mode-badge span {
+  display: inline !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  white-space: nowrap !important;
 }
-
-.unified-disaster-board.is-field-mode
-.command-center-legend {
-  z-index: 8 !important;
-}
-
-
-/* ---------- 7. LARGE DISPLAY ---------- */
-
-@media (min-width: 1700px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 370px minmax(0, 1fr) 330px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .operations-panel {
-    width: 370px !important;
-    max-width: 370px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .field-command-inspector {
-    width: 330px !important;
-    max-width: 330px !important;
-  }
-}
-
-
-/* ---------- 8. SMALLER DISPLAY ---------- */
-
-@media (max-width: 1450px) {
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .live-location-layout {
-    grid-template-columns: 300px minmax(0, 1fr) 270px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .dashboard-map-stage.field-command-stage
-  .operations-panel {
-    width: 300px !important;
-    max-width: 300px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .field-command-inspector {
-    width: 270px !important;
-    max-width: 270px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .command-primary-actions {
-    gap: 6px !important;
-  }
-
-  .unified-disaster-board.is-field-mode
-  .command-primary-actions .asset-registry-open,
-  .unified-disaster-board.is-field-mode
-  .command-primary-actions .requirements-open {
-    width: 106px !important;
-    min-width: 106px !important;
-  }
-}
-

@@ -1,6 +1,7 @@
 import { DroneTwinDetail } from "./DroneTwinDetail";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { externalDisasterApi, loadDashboardDisasterAssetsCached, loadEventOverview, loadEventTimeline, type ApiRecord, type EventOverview, type EventTimeline, type ForestEvent } from "../../http-api";
+import { forestApi } from "../../http-api/forest-api";
 import { isLocalE2EMode, LOCAL_E2E_EVENT } from "../../http-api/local-e2e";
 import { fieldCoreStatusLabel, fieldEvent, isFieldPreviewMode, isLocalFieldMode } from "../../http-api/field-mode";
 import LivePositionMap from "./LivePositionMap";
@@ -671,6 +672,12 @@ export default function UnifiedDisasterDashboard() {
   const [resourceDialogGroup, setResourceDialogGroup] = useState<ResourceGroup | "ALL" | "ALL_ASSETS" | null>(null);
 
   const [videoDrone, setVideoDrone] = useState<LiveLocation | null>(null);
+
+  // Field command video channels.
+  // RTSP itself is not browser-playable; this state reflects the real
+  // channel configuration registered for the primary UAV.
+  const [fieldVideoChannels, setFieldVideoChannels] = useState<ApiRecord[]>([]);
+  const [fieldVideoLoading, setFieldVideoLoading] = useState(false);
   const [timeline, setTimeline] = useState<EventTimeline | null>(null);
   const [timelineIndex, setTimelineIndex] = useState<number | null>(null);
   const [timelinePlaying, setTimelinePlaying] = useState(false);
@@ -1394,6 +1401,43 @@ export default function UnifiedDisasterDashboard() {
     ? (fieldPreviewMode ? fieldScenarioLocations : liveLocations)
         .find((location) => resourceGroupOf(location) === "UAV") ?? null
     : null;
+  useEffect(() => {
+    let active = true;
+
+    if (!fieldPrimaryDrone || fieldPreviewMode) {
+      setFieldVideoChannels([]);
+      setFieldVideoLoading(false);
+      return () => { active = false; };
+    }
+
+    const loadVideoChannels = async () => {
+      setFieldVideoLoading(true);
+
+      try {
+        const result = await forestApi.videoChannels(fieldPrimaryDrone.id);
+
+        if (active) {
+          setFieldVideoChannels(Array.isArray(result.data) ? result.data : []);
+        }
+      } catch {
+        if (active) setFieldVideoChannels([]);
+      } finally {
+        if (active) setFieldVideoLoading(false);
+      }
+    };
+
+    void loadVideoChannels();
+
+    const timer = window.setInterval(() => {
+      void loadVideoChannels();
+    }, 5000);
+
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [fieldPrimaryDrone?.id, fieldPreviewMode]);
+
   const fieldPrimaryAsset = localFieldMode && fieldPrimaryDrone
     ? overview?.assets.find((asset) =>
         String(asset.assetId ?? "") === fieldPrimaryDrone.id
@@ -2057,21 +2101,49 @@ export default function UnifiedDisasterDashboard() {
                 ["MD1000 · 열화상", "IR"],
                 ["지휘차량 · 현장", "CMD"],
                 ["공중 자산 · 보조", "AIR"],
-              ].map(([label, code], index) => <article
-                key={label}
-                className={`field-video-channel field-video-channel-${index + 1}`}
-                data-preview={fieldPreviewMode ? "true" : undefined}
-              >
-                <div className="field-video-preview" aria-hidden="true">
-                  <span className="field-video-badge">{`CH${index + 1}`}</span>
-                  <span className="field-video-live">{fieldPreviewMode ? "● LIVE" : "WAIT"}</span>
-                </div>
-                <div className="field-video-caption">
-                  <strong>{label}</strong>
-                  <small>{fieldPreviewMode ? "DEMO 영상 채널" : "RTSP 소스 연결 대기"}</small>
-                  <i>{code}</i>
-                </div>
-              </article>)}
+              ].map(([label, code], index) => {
+                const channel = fieldVideoChannels[index] ?? null;
+                const streamUri = text(channel?.streamUri, "");
+                const enabled = channel?.enabled === true;
+                const verification = text(channel?.verificationStatus, "UNVERIFIED");
+                const rtspReady = Boolean(streamUri) && enabled;
+                const reachable = rtspReady && verification === "REACHABLE";
+
+                const stateLabel = fieldPreviewMode
+                  ? "DEMO"
+                  : fieldVideoLoading
+                    ? "CHECK"
+                    : reachable
+                      ? "RTSP READY"
+                      : rtspReady
+                        ? "RTSP"
+                        : "WAIT";
+
+                const detailLabel = fieldPreviewMode
+                  ? "DEMO · 실제 영상 미연결"
+                  : reachable
+                    ? "RTSP 연결 확인 · 브라우저 변환 대기"
+                    : rtspReady
+                      ? "RTSP 등록 · 연결 확인 필요"
+                      : "영상 소스 연결 대기";
+
+                return <article
+                  key={label}
+                  className={`field-video-channel field-video-channel-${index + 1}`}
+                  data-preview={fieldPreviewMode ? "true" : undefined}
+                  data-stream-ready={reachable ? "true" : undefined}
+                >
+                  <div className="field-video-preview" aria-hidden="true">
+                    <span className="field-video-badge">{`CH${index + 1}`}</span>
+                    <span className="field-video-live">{stateLabel}</span>
+                  </div>
+                  <div className="field-video-caption">
+                    <strong>{label}</strong>
+                    <small>{detailLabel}</small>
+                    <i>{code}</i>
+                  </div>
+                </article>;
+              })}
             </div>
           </div>
           <div className="field-timeline-deck">
