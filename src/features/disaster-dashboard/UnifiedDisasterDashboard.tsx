@@ -25,8 +25,8 @@ const DEFAULT_CHANGE_HIGHLIGHT_MS = POLL_INTERVAL_MS * 0.3;
 const DEFAULT_EVENT_ID = "10000000-0000-4000-8000-000000000001";
 const FORCE_DEMO_MODE = new URLSearchParams(window.location.search).get("demo") === "1";
 const FORCE_LOCAL_E2E_MODE = isLocalE2EMode();
-const FORCE_LOCAL_FIELD_MODE = isLocalFieldMode();
-const FORCE_FIELD_PREVIEW_MODE = isFieldPreviewMode();
+const FORCE_LOCAL_FIELD_MODE = isLocalFieldMode() || new URLSearchParams(window.location.search).get("field") === "1";
+const FORCE_FIELD_PREVIEW_MODE = FORCE_LOCAL_FIELD_MODE && (isFieldPreviewMode() || new URLSearchParams(window.location.search).get("preview") === "1");
 
 function text(value: unknown, fallback = "-") { return value == null || value === "" ? fallback : String(value); }
 const koreanLabels: Record<string, string> = {
@@ -734,8 +734,10 @@ export default function UnifiedDisasterDashboard() {
     setError(null);
   }, [localE2EMode, localFieldMode]);
 
+  /* FIELD_EXTERNAL_API_FINAL */
   const refreshExternalIntegrations = useCallback(async () => {
-    if (localE2EMode || localFieldMode) {
+    /* FIELD_EXTERNAL_INTEGRATIONS_ENABLED */
+    if (localE2EMode) {
       setExternalFirmsRows([]);
       setExternalLandslideHistoryRows([]);
       setExternalWildfireRiskRows([]);
@@ -947,7 +949,7 @@ export default function UnifiedDisasterDashboard() {
             message: errorMessage(landslideRegionalRisk.reason),
           },
     }));
-  }, [demoMode, localE2EMode, localFieldMode]);
+  }, [demoMode, localE2EMode]);
 
   useEffect(() => {
     void refreshExternalIntegrations();
@@ -1185,6 +1187,36 @@ export default function UnifiedDisasterDashboard() {
   );
 
   const liveLocations = useMemo(() => overview ? overviewLocations(overview) : [], [overview]);
+
+  /* FIELD_DEOKSUNG_SCENARIO_ALIGNMENT */
+  const FIELD_DEOKSUNG_CENTER: [number, number] = [126.616667, 36.666667];
+
+  /*
+   * Preview only:
+   * Preserve the relative layout of all synthetic assets,
+   * but translate the whole scenario to Deoksungsan.
+   *
+   * REAL ?field=1 locations are NEVER modified here.
+   */
+  const fieldScenarioLocations = useMemo(() => {
+    if (!fieldPreviewMode || liveLocations.length === 0) {
+      return liveLocations;
+    }
+
+    const anchor =
+      liveLocations.find((location) => resourceGroupOf(location) === "UAV")
+      ?? liveLocations[0];
+
+    const deltaLongitude = FIELD_DEOKSUNG_CENTER[0] - anchor.longitude;
+    const deltaLatitude = FIELD_DEOKSUNG_CENTER[1] - anchor.latitude;
+
+    return liveLocations.map((location) => ({
+      ...location,
+      longitude: location.longitude + deltaLongitude,
+      latitude: location.latitude + deltaLatitude,
+    }));
+  }, [fieldPreviewMode, liveLocations]);
+
   const timelineSnapshots = useMemo(
     () => buildTimelineSnapshots(timeline, [...(overview?.assets ?? []), ...(overview?.unregisteredAssets ?? [])]),
     [overview?.assets, overview?.unregisteredAssets, timeline],
@@ -1200,7 +1232,9 @@ export default function UnifiedDisasterDashboard() {
     return () => window.clearTimeout(timer);
   }, [timelineIndex, timelinePlaying, timelineSnapshots.length]);
   const playbackSnapshot = timelineIndex == null ? null : timelineSnapshots[timelineIndex] ?? null;
-  const mapLocations = playbackSnapshot?.locations ?? liveLocations;
+  const mapLocations =
+    playbackSnapshot?.locations
+    ?? (fieldPreviewMode ? fieldScenarioLocations : liveLocations);
   const handleTimelinePlayToggle = useCallback(() => {
     if (timelineSnapshots.length < 2) return;
     if (timelinePlaying) {
@@ -1221,13 +1255,64 @@ export default function UnifiedDisasterDashboard() {
     setSelectedLocationKey(null);
   }, []);
   const activeAlertCount = useMemo(() => overview?.alerts.filter((item) => !["RESOLVED", "EXPIRED", "CANCELLED"].includes(String(item.status))).length ?? 0, [overview]);
+  /* PHASE_5_3B_PREVIEW_MOTION */
+  const [fieldPreviewMotionTick, setFieldPreviewMotionTick] = useState(0);
+
+  useEffect(() => {
+    if (!fieldPreviewMode) {
+      setFieldPreviewMotionTick(0);
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setFieldPreviewMotionTick((current) => current + 1);
+    }, 1_000);
+
+    return () => window.clearInterval(timer);
+  }, [fieldPreviewMode]);
+
   const visibleLocations = useMemo(() => {
-    return mapLocations.filter((item) => visibleResourceGroups.has(resourceGroupOf(item)));
-  }, [mapLocations, visibleResourceGroups]);
+    return mapLocations
+      .filter((item) => visibleResourceGroups.has(resourceGroupOf(item)))
+      .map((item) => {
+        if (fieldPreviewMode && resourceGroupOf(item) === "UAV") {
+          const phase = fieldPreviewMotionTick * 0.34;
+
+          const latitude =
+            item.latitude +
+            Math.sin(phase) * 0.0018 +
+            fieldPreviewMotionTick * 0.00008;
+
+          const longitude =
+            item.longitude +
+            Math.cos(phase) * 0.0022 +
+            fieldPreviewMotionTick * 0.00010;
+
+          return {
+            ...item,
+            latitude,
+            longitude,
+            headingDeg: (231 + fieldPreviewMotionTick * 11) % 360,
+          };
+        }
+
+        return item;
+      });
+  }, [
+    fieldPreviewMode,
+    fieldPreviewMotionTick,
+    mapLocations,
+    visibleResourceGroups,
+  ]);
   const eventCoordinates = overview?.event.geometry?.coordinates;
-  const eventCenter = eventCoordinates && Number.isFinite(Number(eventCoordinates[0])) && Number.isFinite(Number(eventCoordinates[1]))
-    ? [Number(eventCoordinates[0]), Number(eventCoordinates[1])] as [number, number]
-    : null;
+  const eventCenter: [number, number] | null =
+    localFieldMode
+      ? FIELD_DEOKSUNG_CENTER
+      : eventCoordinates
+        && Number.isFinite(Number(eventCoordinates[0]))
+        && Number.isFinite(Number(eventCoordinates[1]))
+          ? [Number(eventCoordinates[0]), Number(eventCoordinates[1])] as [number, number]
+          : null;
   const liveCenter = mapLocations.length
     ? (() => {
         const middle = Math.floor(mapLocations.length / 2);
@@ -1306,7 +1391,8 @@ export default function UnifiedDisasterDashboard() {
     ].map((item) => ({ ...item, state: fieldKpiState(item.value, item.target, item.direction) }));
   }, [overview, telemetrySamples]);
   const fieldPrimaryDrone = localFieldMode
-    ? liveLocations.find((location) => resourceGroupOf(location) === "UAV") ?? null
+    ? (fieldPreviewMode ? fieldScenarioLocations : liveLocations)
+        .find((location) => resourceGroupOf(location) === "UAV") ?? null
     : null;
   const fieldPrimaryAsset = localFieldMode && fieldPrimaryDrone
     ? overview?.assets.find((asset) =>
@@ -1328,6 +1414,134 @@ export default function UnifiedDisasterDashboard() {
   const fieldSystemId = Number(fieldPrimaryAttributes.systemId);
   const fieldComponentId = Number(fieldPrimaryAttributes.componentId);
   const fieldSourceAddress = text(fieldPrimaryAttributes.sourceAddress, fieldPreviewMode ? "127.0.0.1:64361" : "수신 대기");
+  const fieldTelemetryAgeSec = fieldPrimaryDrone?.observedAt
+    ? Math.max(0, Math.floor((Date.now() - new Date(fieldPrimaryDrone.observedAt).getTime()) / 1000))
+    : null;
+  const fieldTwinState = fieldPreviewMode
+    ? "PREVIEW"
+    : fieldPrimaryDrone == null
+      ? "WAITING"
+      : fieldTelemetryAgeSec != null && fieldTelemetryAgeSec < 10
+        ? "LIVE"
+        : fieldTelemetryAgeSec != null && fieldTelemetryAgeSec < 30
+          ? "STALE"
+          : "OFFLINE";
+  const fieldTwinLabel = fieldTwinState === "LIVE"
+    ? "PHYSICAL ↔ DIGITAL SYNC"
+    : fieldTwinState === "STALE"
+      ? "SYNC DELAY"
+      : fieldTwinState === "OFFLINE"
+        ? "PHYSICAL LINK OFFLINE"
+        : fieldTwinState === "PREVIEW"
+          ? "PREVIEW TWIN · NOT FLIGHT"
+          : "WAITING FOR PHYSICAL STATE";
+  const fieldDisplay = {
+    altitude: fieldPrimaryDrone?.altitude ?? (fieldPreviewMode ? 126 : null),
+    speed: fieldPrimaryDrone?.groundSpeedMps ?? (fieldPreviewMode ? 8.4 : null),
+    heading: fieldPrimaryDrone?.headingDeg ?? (fieldPreviewMode ? 132 : null),
+    battery: fieldPrimaryDrone?.batteryPct ?? (fieldPreviewMode ? 84 : null),
+    signal: fieldPrimaryDrone?.signalStrengthDbm ?? (fieldPreviewMode ? -61 : null),
+    flightMode: fieldPrimaryDrone?.flightMode ?? (fieldPreviewMode ? "LOITER" : null),
+    armed: fieldPrimaryDrone?.armed ?? (fieldPreviewMode ? true : null),
+    latitude: fieldPrimaryDrone?.latitude ?? (fieldPreviewMode ? 36.321742 : null),
+    longitude: fieldPrimaryDrone?.longitude ?? (fieldPreviewMode ? 127.414883 : null),
+  };
+  const fieldSyncPercent = fieldTwinState === "LIVE" ? 100
+    : fieldTwinState === "PREVIEW" ? 100
+      : fieldTwinState === "STALE" ? 62
+        : fieldTwinState === "OFFLINE" ? 0
+          : 0;
+  /* PHASE_5_4_FIELD_FRESHNESS */
+  const fieldFreshnessState =
+    fieldPreviewMode
+      ? "PREVIEW"
+      : fieldTelemetryAgeSec == null
+        ? "WAITING"
+        : fieldTelemetryAgeSec < 10
+          ? "LIVE"
+          : fieldTelemetryAgeSec < 30
+            ? "STALE"
+            : "OFFLINE";
+
+  const fieldFreshnessLabel =
+    fieldFreshnessState === "LIVE"
+      ? "LIVE · 정상 수신"
+      : fieldFreshnessState === "STALE"
+        ? "STALE · 갱신 지연"
+        : fieldFreshnessState === "OFFLINE"
+          ? "OFFLINE · 수신 중단"
+          : fieldFreshnessState === "PREVIEW"
+            ? "PREVIEW · SIMULATED"
+            : "WAITING · 위치 수신 대기";
+
+  const fieldFreshnessDetail =
+    fieldPreviewMode
+      ? "DEMO DATA · NOT FLIGHT"
+      : fieldTelemetryAgeSec == null
+        ? "GLOBAL_POSITION_INT(33) 대기"
+        : `마지막 위치 수신 ${fieldTelemetryAgeSec}s 전`;
+
+  /* PHASE_5_5_FIELD_SUCCESS_GATE */
+  const fieldHasCorePosition = Boolean(
+    fieldPrimaryDrone
+    && fieldPrimaryDrone.latitude != null
+    && fieldPrimaryDrone.longitude != null
+    && Number.isFinite(fieldPrimaryDrone.latitude)
+    && Number.isFinite(fieldPrimaryDrone.longitude)
+  );
+
+  const fieldPipelineMapState =
+    fieldPreviewMode
+      ? "PREVIEW"
+      : fieldHasCorePosition
+        ? fieldFreshnessState
+        : "WAIT";
+
+  const fieldPipelineRows = [
+    {
+      id: "uplink",
+      label: "QGC / Uplink",
+      state: fieldPreviewMode ? "PREVIEW" : "CHECK",
+      detail: fieldPreviewMode
+        ? "SIMULATED"
+        : "CHECK_FIELD_MD1000.ps1",
+    },
+    {
+      id: "core",
+      label: "Core Position",
+      state: fieldPreviewMode || fieldHasCorePosition ? "OK" : "WAIT",
+      detail: fieldPreviewMode
+        ? "PREVIEW POSITION"
+        : fieldHasCorePosition
+          ? "MSG33 POSITION RECEIVED"
+          : "GLOBAL_POSITION_INT(33) WAIT",
+    },
+    {
+      id: "twin",
+      label: "Map Twin",
+      state: fieldPreviewMode
+        ? "PREVIEW"
+        : fieldHasCorePosition
+          ? "OK"
+          : "WAIT",
+      detail: fieldPreviewMode
+        ? "SIMULATED TWIN"
+        : fieldHasCorePosition
+          ? "MARKER / TRAIL READY"
+          : "POSITION REQUIRED",
+    },
+    {
+      id: "freshness",
+      label: "Freshness",
+      state: fieldPipelineMapState,
+      detail: fieldPreviewMode
+        ? "SIMULATED"
+        : fieldTelemetryAgeSec == null
+          ? "NO POSITION"
+          : `${fieldTelemetryAgeSec}s`,
+    },
+  ];
+
   const eventSwitching = Boolean(overview && overview.event.eventId !== selectedId);
   const toggleLayer = useCallback((layerId: string) => {
     setVisibleLayerIds((current) => {
@@ -1367,7 +1581,7 @@ export default function UnifiedDisasterDashboard() {
   }, [refreshEvents]);
 
   return (
-    <main className={`unified-disaster-board${localFieldMode ? " is-field-mode" : ""}`} aria-label="산림 재난 통합 현황">
+    <main className={`unified-disaster-board${localFieldMode || demoMode ? " is-field-mode" : ""}`} aria-label="산림 재난 통합 현황">
       {error && <p className="unified-disaster-error" role="status"><strong>데이터 갱신 지연</strong><span>{error}</span><small>{overview ? "마지막 정상 데이터를 유지합니다." : "연결을 다시 확인하고 있습니다."}</small></p>}
       {!overview && (
         <section className="dashboard-readiness" aria-live="polite">
@@ -1452,7 +1666,7 @@ export default function UnifiedDisasterDashboard() {
             <span>{localFieldMode ? (fieldPreviewMode ? "DEMO DATA · NOT FLIGHT" : "MD1000 · MAVLink v2 · SYNTHETIC OFF") : localE2EMode ? "LOCAL E2E · 실기체 아님" : demoMode ? "DEMO · 모의 관제" : "LIVE · 운영 데이터"}</span>
           </aside>
         </section>
-        <section className={`dashboard-map-stage${localFieldMode ? " field-command-stage" : " asset-panel-collapsed"}`} aria-label="지도 중심 통합 상황판">
+        <section className={`dashboard-map-stage${localFieldMode || demoMode ? " field-command-stage" : " asset-panel-collapsed"}`} aria-label="지도 중심 통합 상황판">
           <section className="live-location-panel" aria-label="실시간 현장 위치">
             {!demoMode && overview.liveDroneTelemetry && <div
               className="telemetry-connection-status"
@@ -1520,7 +1734,7 @@ export default function UnifiedDisasterDashboard() {
                 visibleResourceGroups={visibleResourceGroups}
                 onResourceGroupToggle={toggleResourceGroup}
                 onResourceGroupInspect={(group) => { setSelectedLocationKey(null); setResourceDialogGroup(group); }}
-                locations={liveLocations}
+                locations={fieldPreviewMode ? fieldScenarioLocations : liveLocations}
                 lastUpdatedAt={lastUpdatedAt}
                 activeTab={operationsTab}
                 onActiveTabChange={setOperationsTab}
@@ -1532,16 +1746,91 @@ export default function UnifiedDisasterDashboard() {
                 onOpenDroneVideo={(location) => setVideoDrone(location)}
                 telemetrySamples={telemetrySamples}
               />
-              {localFieldMode && <aside className="field-command-inspector" aria-label="MD1000 장비 상세 정보">
+              {(localFieldMode || demoMode) && <aside className="field-command-inspector" aria-label="MD1000 장비 상세 정보">
                 <header>
                   <div><small>장비 상세 정보</small><strong>{fieldPrimaryDrone?.label ?? "MD1000 실기체"}</strong></div>
-                  <em data-state={fieldPreviewMode ? "preview" : fieldPrimaryDrone ? "live" : "waiting"}>{fieldPreviewMode ? "미리보기" : fieldPrimaryDrone ? "수신 중" : "대기"}</em>
+                  <em
+                    className="field-freshness-chip"
+                    data-state={fieldFreshnessState.toLowerCase()}
+                  >
+                    {fieldFreshnessState}
+                  </em>
                 </header>
+                <div
+                  className="field-freshness-banner"
+                  data-state={fieldFreshnessState.toLowerCase()}
+                >
+                  <strong>{fieldFreshnessLabel}</strong>
+                  <span>{fieldFreshnessDetail}</span>
+                </div>
+
+                <section
+                  className="field-success-gate"
+                  aria-label="MD1000 FIELD success gate"
+                >
+                  <header>
+                    <div>
+                      <small>FIELD SUCCESS GATE</small>
+                      <strong>MD1000 실기체 연동</strong>
+                    </div>
+                    <em data-state={fieldPipelineMapState.toLowerCase()}>
+                      {fieldPipelineMapState}
+                    </em>
+                  </header>
+
+                  <div className="field-success-gate-list">
+                    {fieldPipelineRows.map((row) => (
+                      <article key={row.id}>
+                        <span>{row.label}</span>
+                        <b data-state={row.state.toLowerCase()}>
+                          {row.state}
+                        </b>
+                        <small>{row.detail}</small>
+                      </article>
+                    ))}
+                  </div>
+
+                  <footer>
+                    <span>POSITION SOURCE</span>
+                    <strong>MAVLink GLOBAL_POSITION_INT (MSG 33)</strong>
+                  </footer>
+                </section>
+
                 <div className="field-inspector-identity">
                   <span>무인기 · MD1000</span>
                   <b>{fieldPrimaryDrone?.status ?? "실기체 위치 수신 대기"}</b>
                   <small>{fieldPreviewMode ? "DEMO DATA · NOT FLIGHT" : "GLOBAL_POSITION_INT(33) 기반 현재 위치"}</small>
                 </div>
+                <section className="field-twin-status" data-state={fieldTwinState.toLowerCase()} aria-label="MD1000 디지털 트윈 동기화 상태">
+                  <header>
+                    <span>Digital Twin</span>
+                    <strong>{fieldTwinLabel}</strong>
+                  </header>
+                  <div className="field-twin-grid">
+                    <article><small>Physical Asset</small><b>MD1000</b></article>
+                    <article><small>Twin State</small><b>{fieldTwinState}</b></article>
+                    <article><small>Position Source</small><b>{fieldPreviewMode ? "PREVIEW" : "MAVLink MSG 33"}</b></article>
+                    <article
+                      className="field-freshness-cell"
+                      data-state={fieldFreshnessState.toLowerCase()}
+                    >
+                      <small>Freshness</small>
+                      <b>{fieldFreshnessState}</b>
+                      <em>
+                        {fieldPreviewMode
+                          ? "SIMULATED"
+                          : fieldTelemetryAgeSec == null
+                            ? "-"
+                            : `${fieldTelemetryAgeSec}s`}
+                      </em>
+                    </article>
+                    <article><small>Latitude</small><b>{fieldDisplay.latitude == null ? "-" : fieldDisplay.latitude.toFixed(6)}</b></article>
+                    <article><small>Longitude</small><b>{fieldDisplay.longitude == null ? "-" : fieldDisplay.longitude.toFixed(6)}</b></article>
+                  </div>
+                  <div className="field-sync-meter" aria-label={`Digital Twin sync ${fieldSyncPercent}%`}>
+                    <span style={{ width: `${fieldSyncPercent}%` }} />
+                  </div>
+                </section>
                 <nav className="field-inspector-tabs" aria-label="장비 정보 분류"><span className="active">통신 품질</span><span>상세 정보</span><span>실시간 영상</span></nav>
                 <section className="field-seq-summary" aria-label="최근 SEQ 통신 품질">
                   <header><span>최근 100 SEQ 기준</span><small>{fieldPreviewMode ? "예시 데이터" : fieldSequenceSummary?.expected ? `SEQ ${fieldSequenceSummary.fromSequence ?? "-"}–${fieldSequenceSummary.toSequence ?? "-"}` : "수신 대기"}</small></header>
@@ -1550,17 +1839,19 @@ export default function UnifiedDisasterDashboard() {
                     <article><small>Lost</small><strong data-alert={fieldSequenceLost > 0}>{fieldSequenceLost || "-"}</strong></article>
                     <article><small>Loss %</small><strong data-alert={(fieldSequenceLossPct ?? 0) >= 3}>{fieldSequenceLossPct == null ? "-" : `${fieldSequenceLossPct.toFixed(1)}%`}</strong></article>
                     <article><small>최근 수신</small><strong>{fieldPrimaryDrone ? relativeTime(fieldPrimaryDrone.observedAt) : "대기"}</strong></article>
-                    <article><small>고도</small><strong>{fieldPrimaryDrone?.altitude == null ? "-" : `${fieldPrimaryDrone.altitude.toFixed(0)}m`}</strong></article>
-                    <article><small>속도</small><strong>{fieldPrimaryDrone?.groundSpeedMps == null ? "-" : `${fieldPrimaryDrone.groundSpeedMps.toFixed(1)}m/s`}</strong></article>
+                    <article><small>고도</small><strong>{fieldDisplay.altitude == null ? "-" : `${fieldDisplay.altitude.toFixed(0)}m`}</strong></article>
+                    <article><small>속도</small><strong>{fieldDisplay.speed == null ? "-" : `${fieldDisplay.speed.toFixed(1)}m/s`}</strong></article>
                   </div>
                 </section>
                 <dl className="field-link-diagnostics">
                   <div><dt>MAVLink</dt><dd>{Number.isFinite(fieldMavlinkVersion) ? `v${fieldMavlinkVersion}` : "v2 대기"}</dd></div>
                   <div><dt>SYS / COMP</dt><dd>{Number.isFinite(fieldSystemId) && Number.isFinite(fieldComponentId) ? `${fieldSystemId} / ${fieldComponentId}` : "1 / 1 설정"}</dd></div>
                   <div><dt>Source</dt><dd>{fieldSourceAddress}</dd></div>
-                  <div><dt>Flight Mode</dt><dd>{fieldPrimaryDrone?.flightMode ?? "수신 대기"}</dd></div>
-                  <div><dt>Signal</dt><dd>{fieldPrimaryDrone?.signalStrengthDbm == null ? "측정 대기" : `${fieldPrimaryDrone.signalStrengthDbm.toFixed(0)} dBm`}</dd></div>
-                  <div><dt>Battery</dt><dd>{fieldPrimaryDrone?.batteryPct == null ? "측정 대기" : `${fieldPrimaryDrone.batteryPct.toFixed(0)}%`}</dd></div>
+                  <div><dt>Flight Mode</dt><dd>{fieldDisplay.flightMode ?? "수신 대기"}</dd></div>
+                  <div><dt>Signal</dt><dd>{fieldDisplay.signal == null ? "측정 대기" : `${fieldDisplay.signal.toFixed(0)} dBm`}</dd></div>
+                  <div><dt>Battery</dt><dd>{fieldDisplay.battery == null ? "측정 대기" : `${fieldDisplay.battery.toFixed(0)}%`}</dd></div>
+                  <div><dt>Heading</dt><dd>{fieldDisplay.heading == null ? "수신 대기" : `${fieldDisplay.heading.toFixed(0)}°`}</dd></div>
+                  <div><dt>Armed</dt><dd>{fieldDisplay.armed == null ? "수신 대기" : fieldDisplay.armed ? "ARMED" : "DISARMED"}</dd></div>
                 </dl>
                 <section className="field-event-log">
                   <header><strong>장비 이벤트 로그</strong><small>최근 상태</small></header>
@@ -1755,7 +2046,7 @@ export default function UnifiedDisasterDashboard() {
             data-active-pulses={Object.values(changedUntil).filter((until) => until > Date.now()).length}
           ><i /> 사건 데이터 변화 감지 · 갱신 주기의 30% 동안 테두리 강조</div>
         </section>
-        {localFieldMode && <section className="field-command-footer" aria-label="현장 영상 및 이벤트 타임라인">
+        {(localFieldMode || demoMode) && <section className="field-command-footer" aria-label="현장 영상 및 이벤트 타임라인">
           <div className="field-video-deck">
             <header><strong>실시간 영상</strong><small>{fieldPreviewMode ? "미리보기 4채널" : "RTSP 연결 상태"}</small></header>
             <div>

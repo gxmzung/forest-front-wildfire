@@ -1,4 +1,4 @@
-﻿/* 2026-09-12 reference command-center visual layer
+/* 2026-09-12 reference command-center visual layer
    FIELD/preview only. Telemetry/Core/Uplink behavior is intentionally untouched. */
 
 .unified-disaster-board.is-field-mode {
@@ -343,3 +343,2240 @@
     height: auto !important;
   }
 }
+
+/* =========================================================
+   2026-09-13 FIELD Digital Twin + production capability layer
+   ========================================================= */
+.unified-disaster-board.is-field-mode .field-twin-status {
+  margin: 0 8px 6px;
+  padding: 8px;
+  border: 1px solid #dce8e3;
+  border-radius: 8px;
+  background: #f8fbfa;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status > header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status > header span {
+  color: #71847c;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status > header strong {
+  margin-left: auto;
+  color: #17684f;
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status[data-state="live"] {
+  border-color: #9ed9c3;
+  background: #f0faf6;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status[data-state="stale"] {
+  border-color: #e7c66f;
+  background: #fff9eb;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status[data-state="offline"] {
+  border-color: #e7aaa7;
+  background: #fff4f3;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status[data-state="preview"] {
+  border-color: #e4c46c;
+  background: #fff9e9;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-grid article {
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid #e4ece8;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-grid small {
+  display: block;
+  margin-bottom: 2px;
+  color: #80928a;
+  font-size: 7px;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-grid b {
+  display: block;
+  overflow: hidden;
+  color: #244b40;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Keep useful production-demo header capabilities visible in FIELD. */
+.unified-disaster-board.is-field-mode .map-command-header .service-brand {
+  display: flex !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .asset-registry-open,
+.unified-disaster-board.is-field-mode .map-command-header .requirements-open {
+  display: inline-flex !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .asset-status-open {
+  display: none !important;
+}
+
+/* Compact actions so the map-first layout does not lose horizontal space. */
+.unified-disaster-board.is-field-mode .map-command-header .asset-registry-open,
+.unified-disaster-board.is-field-mode .map-command-header .requirements-open {
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  border-radius: 8px !important;
+  font-size: 9px !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 1500px) {
+  .unified-disaster-board.is-field-mode .map-command-header .service-brand {
+    display: none !important;
+  }
+
+  .unified-disaster-board.is-field-mode .map-command-header .asset-registry-open,
+  .unified-disaster-board.is-field-mode .map-command-header .requirements-open {
+    display: none !important;
+  }
+}
+
+/* =========================================================
+   2026-09-13 FIELD MAP-FIRST OVERRIDE
+   ========================================================= */
+.unified-disaster-board.is-field-mode {
+  grid-template-rows: 56px 58px minmax(0, 1fr) 94px !important;
+  gap: 6px !important;
+  padding: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header {
+  height: 56px !important;
+  min-height: 56px !important;
+  padding: 0 12px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip {
+  flex: 0 0 58px !important;
+  min-height: 58px !important;
+  height: 58px !important;
+  gap: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip > article,
+.unified-disaster-board.is-field-mode .field-kpi-context {
+  height: 58px !important;
+  min-height: 58px !important;
+  padding: 6px 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip strong {
+  font-size: 18px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-icon {
+  width: 30px !important;
+  height: 30px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .live-location-layout {
+  grid-template-columns: 220px minmax(0, 1fr) 270px !important;
+  gap: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .operations-panel {
+  width: 220px !important;
+  min-width: 220px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .operation-drawer {
+  width: 152px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .location-map {
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .field-command-inspector,
+.unified-disaster-board.is-field-mode .field-command-inspector {
+  width: 270px !important;
+  min-width: 270px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .map-status-pill {
+  left: 234px !important;
+  bottom: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-inspector > header {
+  min-height: 46px !important;
+  padding: 7px 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-seq-summary {
+  padding: 7px 8px 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-seq-grid article {
+  min-height: 44px !important;
+  padding: 5px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-seq-grid article strong {
+  font-size: 15px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-footer {
+  min-height: 94px !important;
+  height: 94px !important;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, .75fr) !important;
+  gap: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck > header,
+.unified-disaster-board.is-field-mode .field-timeline-deck > header {
+  height: 22px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck > div {
+  height: calc(100% - 22px) !important;
+  padding: 4px !important;
+  gap: 4px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck article {
+  padding: 5px 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-timeline-deck ol {
+  padding: 3px 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-timeline-deck li {
+  min-height: 15px !important;
+}
+
+@media (max-width: 1500px) {
+  .unified-disaster-board.is-field-mode .field-command-stage .live-location-layout {
+    grid-template-columns: 190px minmax(0, 1fr) 240px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .operations-panel {
+    width: 190px !important;
+    min-width: 190px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .operation-drawer {
+    width: 122px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-inspector {
+    width: 240px !important;
+    min-width: 240px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .map-status-pill {
+    left: 204px !important;
+  }
+}
+
+@media (min-width: 1501px) {
+  .unified-disaster-board.is-field-mode .map-command-header {
+    grid-template-columns: auto minmax(260px, 360px) minmax(220px, 1fr) auto auto auto !important;
+    grid-template-areas: none !important;
+    column-gap: 8px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .map-command-header .service-brand,
+  .unified-disaster-board.is-field-mode .map-command-header .event-selector,
+  .unified-disaster-board.is-field-mode .map-command-header .field-mode-badge,
+  .unified-disaster-board.is-field-mode .map-command-header .header-summary,
+  .unified-disaster-board.is-field-mode .map-command-header .asset-registry-open,
+  .unified-disaster-board.is-field-mode .map-command-header .requirements-open {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    margin: 0 !important;
+  }
+}
+
+/* =========================================================
+   2026-09-13 FIELD PHASE 2 — Digital Twin telemetry density
+   ========================================================= */
+.unified-disaster-board.is-field-mode .field-twin-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.unified-disaster-board.is-field-mode .field-sync-meter {
+  height: 4px;
+  margin-top: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dce7e2;
+}
+
+.unified-disaster-board.is-field-mode .field-sync-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #14966d;
+  transition: width .25s ease;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status[data-state="stale"] .field-sync-meter > span {
+  background: #d49a20;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status[data-state="offline"] .field-sync-meter > span,
+.unified-disaster-board.is-field-mode .field-twin-status[data-state="waiting"] .field-sync-meter > span {
+  background: #d84b46;
+}
+
+.unified-disaster-board.is-field-mode .field-link-diagnostics dd {
+  font-variant-numeric: tabular-nums;
+}
+
+.unified-disaster-board.is-field-mode .field-seq-grid strong {
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   2026-09-13 FIELD PHASE 3 — polish / overflow guard
+   Goal: no clipped text, no panel spill, map remains dominant.
+   ========================================================= */
+
+/* Header: prevent the two utility actions from stretching across the row. */
+.unified-disaster-board.is-field-mode .map-command-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .service-brand {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  max-width: 185px !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .event-selector {
+  flex: 1 1 300px !important;
+  min-width: 220px !important;
+  max-width: 430px !important;
+  width: auto !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .field-mode-badge {
+  flex: 0 1 310px !important;
+  min-width: 190px !important;
+  max-width: 310px !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .header-summary {
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .asset-registry-open,
+.unified-disaster-board.is-field-mode .map-command-header .requirements-open {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 86px !important;
+  max-width: 108px !important;
+  height: 32px !important;
+  min-height: 32px !important;
+  padding: 0 9px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* KPI row: keep labels/value inside each card. */
+.unified-disaster-board.is-field-mode .field-kpi-strip {
+  min-width: 0 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip > article,
+.unified-disaster-board.is-field-mode .field-kpi-context {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip > article > div,
+.unified-disaster-board.is-field-mode .field-kpi-context > div {
+  min-width: 0 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip small,
+.unified-disaster-board.is-field-mode .field-kpi-strip p,
+.unified-disaster-board.is-field-mode .field-kpi-strip strong {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Main columns: give text panels just enough room without sacrificing the map. */
+.unified-disaster-board.is-field-mode .field-command-stage .live-location-layout {
+  grid-template-columns: 236px minmax(0, 1fr) 300px !important;
+  gap: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .operations-panel {
+  width: 236px !important;
+  min-width: 236px !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .operation-drawer {
+  width: 168px !important;
+  min-width: 0 !important;
+  overflow-x: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .field-command-inspector,
+.unified-disaster-board.is-field-mode .field-command-inspector {
+  width: 300px !important;
+  min-width: 300px !important;
+  overflow-x: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .map-status-pill {
+  left: 250px !important;
+}
+
+/* Left panel: allow Korean labels to use two lines cleanly instead of clipping. */
+.unified-disaster-board.is-field-mode .operations-panel,
+.unified-disaster-board.is-field-mode .operations-panel * {
+  box-sizing: border-box !important;
+}
+
+.unified-disaster-board.is-field-mode .operations-panel button,
+.unified-disaster-board.is-field-mode .operations-panel label,
+.unified-disaster-board.is-field-mode .operations-panel article,
+.unified-disaster-board.is-field-mode .operations-panel div {
+  min-width: 0 !important;
+}
+
+.unified-disaster-board.is-field-mode .operations-panel button span,
+.unified-disaster-board.is-field-mode .operations-panel button strong,
+.unified-disaster-board.is-field-mode .operations-panel label span,
+.unified-disaster-board.is-field-mode .operations-panel article span,
+.unified-disaster-board.is-field-mode .operations-panel article strong {
+  overflow-wrap: anywhere !important;
+  word-break: keep-all !important;
+}
+
+/* Inspector: English/Korean status text must never escape cards. */
+.unified-disaster-board.is-field-mode .field-command-inspector,
+.unified-disaster-board.is-field-mode .field-command-inspector * {
+  box-sizing: border-box !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-inspector > header,
+.unified-disaster-board.is-field-mode .field-inspector-identity,
+.unified-disaster-board.is-field-mode .field-twin-status,
+.unified-disaster-board.is-field-mode .field-seq-summary,
+.unified-disaster-board.is-field-mode .field-link-diagnostics,
+.unified-disaster-board.is-field-mode .field-event-log {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-inspector > header > div,
+.unified-disaster-board.is-field-mode .field-inspector-identity,
+.unified-disaster-board.is-field-mode .field-twin-status > header,
+.unified-disaster-board.is-field-mode .field-twin-grid article,
+.unified-disaster-board.is-field-mode .field-seq-grid article,
+.unified-disaster-board.is-field-mode .field-link-diagnostics div {
+  min-width: 0 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status > header {
+  align-items: flex-start !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status > header strong {
+  min-width: 0 !important;
+  max-width: 175px !important;
+  text-align: right !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+  line-height: 1.15 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-grid b,
+.unified-disaster-board.is-field-mode .field-seq-grid strong,
+.unified-disaster-board.is-field-mode .field-link-diagnostics dd {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.unified-disaster-board.is-field-mode .field-inspector-tabs {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .field-inspector-tabs span {
+  min-width: 0 !important;
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Event log rows: keep timestamp + message inside the inspector. */
+.unified-disaster-board.is-field-mode .field-event-log li {
+  grid-template-columns: 7px 42px minmax(0, 1fr) auto !important;
+  min-width: 0 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-event-log li span,
+.unified-disaster-board.is-field-mode .field-event-log li em {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Bottom strip: avoid the tiny timeline squeezing text into nothing. */
+.unified-disaster-board.is-field-mode .field-command-footer {
+  grid-template-columns: minmax(0, 1.45fr) minmax(390px, .9fr) !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck article strong,
+.unified-disaster-board.is-field-mode .field-video-deck article small,
+.unified-disaster-board.is-field-mode .field-timeline-deck li strong,
+.unified-disaster-board.is-field-mode .field-timeline-deck li span {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+/* Typical field laptop / 1600–1800px browser width. */
+@media (max-width: 1800px) {
+  .unified-disaster-board.is-field-mode .map-command-header .header-summary button {
+    min-width: 50px !important;
+    width: 50px !important;
+    padding: 3px 4px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .map-command-header .header-summary button span {
+    font-size: 7px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .map-command-header .header-summary button b {
+    font-size: 14px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .map-command-header .asset-registry-open,
+  .unified-disaster-board.is-field-mode .map-command-header .requirements-open {
+    min-width: 76px !important;
+    max-width: 92px !important;
+    padding: 0 7px !important;
+    font-size: 8px !important;
+  }
+}
+
+@media (max-width: 1500px) {
+  .unified-disaster-board.is-field-mode .field-command-stage .live-location-layout {
+    grid-template-columns: 214px minmax(0, 1fr) 278px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .operations-panel {
+    width: 214px !important;
+    min-width: 214px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .operation-drawer {
+    width: 146px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .field-command-inspector,
+  .unified-disaster-board.is-field-mode .field-command-inspector {
+    width: 278px !important;
+    min-width: 278px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .map-status-pill {
+    left: 228px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .map-command-header .service-brand {
+    display: flex !important;
+    max-width: 155px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .map-command-header .asset-registry-open,
+  .unified-disaster-board.is-field-mode .map-command-header .requirements-open {
+    display: none !important;
+  }
+}
+
+/* =========================================================
+   2026-09-13 PHASE 4 — readability + production information hierarchy
+   FIELD/preview only. No telemetry behavior changes.
+   ========================================================= */
+
+/* Single-screen hierarchy: compact header/KPI, readable side rails, map remains dominant. */
+.unified-disaster-board.is-field-mode {
+  grid-template-rows: 54px 58px minmax(0, 1fr) 104px !important;
+  gap: 6px !important;
+  padding: 6px !important;
+  font-size: 12px !important;
+}
+
+/* ----- header ----- */
+.unified-disaster-board.is-field-mode .map-command-header {
+  min-height: 54px !important;
+  height: 54px !important;
+  padding: 0 10px !important;
+  gap: 8px !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .service-brand {
+  min-width: 0 !important;
+  max-width: 190px !important;
+  gap: 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .service-brand > span {
+  width: 32px !important;
+  height: 32px !important;
+  flex: 0 0 32px !important;
+  font-size: 14px !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .service-brand strong {
+  max-width: 145px !important;
+  overflow: hidden !important;
+  font-size: 13px !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.unified-disaster-board.is-field-mode .event-selector {
+  min-width: 300px !important;
+  max-width: 340px !important;
+  padding: 5px 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .event-selector > span {
+  font-size: 8px !important;
+}
+
+.unified-disaster-board.is-field-mode .event-selector select {
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-mode-badge {
+  min-width: 235px !important;
+  max-width: 300px !important;
+  min-height: 34px !important;
+  padding: 5px 10px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-mode-badge b,
+.unified-disaster-board.is-field-mode .field-mode-badge span {
+  font-size: 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .header-summary {
+  gap: 4px !important;
+}
+
+.unified-disaster-board.is-field-mode .header-summary button {
+  min-width: 46px !important;
+  width: 46px !important;
+  height: 34px !important;
+  padding: 2px 4px !important;
+}
+
+.unified-disaster-board.is-field-mode .header-summary button span {
+  font-size: 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .header-summary button b {
+  font-size: 13px !important;
+}
+
+.unified-disaster-board.is-field-mode .map-command-header .asset-registry-open,
+.unified-disaster-board.is-field-mode .map-command-header .requirements-open,
+.unified-disaster-board.is-field-mode .field-preview-toggle {
+  min-height: 32px !important;
+  height: 32px !important;
+  padding: 0 8px !important;
+  font-size: 8px !important;
+  white-space: nowrap !important;
+}
+
+/* ----- KPI strip ----- */
+.unified-disaster-board.is-field-mode .field-kpi-strip {
+  min-height: 58px !important;
+  height: 58px !important;
+  flex-basis: 58px !important;
+  gap: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip > article,
+.unified-disaster-board.is-field-mode .field-kpi-context {
+  min-height: 58px !important;
+  height: 58px !important;
+  padding: 6px 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-icon {
+  width: 30px !important;
+  height: 30px !important;
+  font-size: 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip small {
+  font-size: 8px !important;
+  line-height: 1.15 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip strong {
+  margin-top: 2px !important;
+  font-size: 17px !important;
+  line-height: 1 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip em,
+.unified-disaster-board.is-field-mode .field-kpi-strip p {
+  font-size: 7px !important;
+}
+
+/* ----- main columns ----- */
+.unified-disaster-board.is-field-mode .field-command-stage .live-location-layout {
+  grid-template-columns: 228px minmax(0, 1fr) 312px !important;
+  gap: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .operations-panel {
+  width: 228px !important;
+  min-width: 228px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .operation-drawer {
+  width: 160px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .field-command-inspector,
+.unified-disaster-board.is-field-mode .field-command-inspector {
+  width: 312px !important;
+  min-width: 312px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage .map-status-pill {
+  left: 242px !important;
+}
+
+/* ----- left operations rail: increase actual reading size, reduce dead padding ----- */
+.unified-disaster-board.is-field-mode .operation-rail-brand {
+  height: 54px !important;
+}
+
+.unified-disaster-board.is-field-mode .operation-rail-brand b {
+  font-size: 12px !important;
+}
+
+.unified-disaster-board.is-field-mode .operation-rail-brand span {
+  font-size: 7.5px !important;
+}
+
+.unified-disaster-board.is-field-mode .operations-panel > nav button {
+  min-height: 58px !important;
+  padding: 5px 2px !important;
+  font-size: 8px !important;
+  line-height: 1.2 !important;
+}
+
+.unified-disaster-board.is-field-mode .operations-panel > nav button span,
+.unified-disaster-board.is-field-mode .operations-panel > nav button small {
+  font-size: 8px !important;
+  line-height: 1.2 !important;
+}
+
+.unified-disaster-board.is-field-mode .operation-drawer > header {
+  min-height: 48px !important;
+  padding: 8px 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .operation-drawer > header strong {
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+}
+
+.unified-disaster-board.is-field-mode .operation-drawer > header small {
+  margin-top: 2px !important;
+  font-size: 7.5px !important;
+  line-height: 1.25 !important;
+}
+
+.unified-disaster-board.is-field-mode .operations-panel-body {
+  padding: 7px 7px 18px !important;
+  scrollbar-width: thin !important;
+}
+
+.unified-disaster-board.is-field-mode .layer-control-list {
+  gap: 4px !important;
+}
+
+.unified-disaster-board.is-field-mode .layer-control-list button,
+.unified-disaster-board.is-field-mode .layer-control-list .unavailable-layer {
+  min-height: 39px !important;
+  padding: 6px 7px !important;
+  row-gap: 1px !important;
+}
+
+.unified-disaster-board.is-field-mode .layer-control-list button > span,
+.unified-disaster-board.is-field-mode .layer-control-list .unavailable-layer > span {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+}
+
+.unified-disaster-board.is-field-mode .layer-control-list button > small,
+.unified-disaster-board.is-field-mode .layer-control-list .unavailable-layer > small {
+  font-size: 7.5px !important;
+  line-height: 1.2 !important;
+}
+
+.unified-disaster-board.is-field-mode .layer-control-list button > em,
+.unified-disaster-board.is-field-mode .layer-control-list .unavailable-layer > em {
+  font-size: 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .domain-evidence-card {
+  padding: 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .domain-evidence-card strong,
+.unified-disaster-board.is-field-mode .domain-evidence-card span {
+  font-size: 8.5px !important;
+}
+
+.unified-disaster-board.is-field-mode .domain-evidence-card small,
+.unified-disaster-board.is-field-mode .operation-readonly-note {
+  font-size: 7.5px !important;
+  line-height: 1.35 !important;
+}
+
+/* ----- right inspector: explicit hierarchy ----- */
+.unified-disaster-board.is-field-mode .field-command-inspector > header {
+  min-height: 50px !important;
+  padding: 8px 10px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-inspector > header small {
+  font-size: 8px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-inspector > header strong {
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-inspector > header em {
+  padding: 4px 7px !important;
+  font-size: 8px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-inspector-identity {
+  padding: 8px 10px !important;
+  gap: 2px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-inspector-identity span {
+  font-size: 8px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-inspector-identity b {
+  font-size: 13px !important;
+  line-height: 1.25 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-inspector-identity small {
+  font-size: 7.5px !important;
+  line-height: 1.25 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status {
+  margin: 0 8px 7px !important;
+  padding: 8px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status > header span {
+  font-size: 7.5px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status > header strong {
+  max-width: 190px !important;
+  font-size: 8.5px !important;
+  line-height: 1.25 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-grid {
+  gap: 5px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-grid article {
+  min-height: 42px !important;
+  padding: 6px 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-grid small {
+  font-size: 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-grid b {
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-sync {
+  margin-top: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-inspector-tabs {
+  min-height: 34px !important;
+  height: 34px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-inspector-tabs span {
+  padding: 0 5px !important;
+  font-size: 9px !important;
+  line-height: 34px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-seq-summary {
+  padding: 8px 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-seq-summary > header span {
+  font-size: 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-seq-summary > header small {
+  font-size: 7.5px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-seq-grid {
+  gap: 5px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-seq-grid article {
+  min-height: 47px !important;
+  padding: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-seq-grid article small {
+  font-size: 7.5px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-seq-grid article strong {
+  margin-top: 2px !important;
+  font-size: 14px !important;
+  line-height: 1.1 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-link-diagnostics {
+  padding: 6px 9px !important;
+  gap: 3px 8px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-link-diagnostics div {
+  min-height: 34px !important;
+  padding: 4px 0 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-link-diagnostics dt {
+  font-size: 7.5px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-link-diagnostics dd {
+  margin-top: 2px !important;
+  font-size: 9px !important;
+  line-height: 1.2 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-event-log {
+  padding: 7px 9px 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-event-log > header strong {
+  font-size: 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-event-log > header small {
+  font-size: 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-event-log li {
+  grid-template-columns: 7px 43px minmax(0, 1fr) 48px !important;
+  min-height: 23px !important;
+  gap: 5px !important;
+  font-size: 7.5px !important;
+}
+
+/* ----- bottom media / timeline: readable but subordinate ----- */
+.unified-disaster-board.is-field-mode .field-command-footer {
+  min-height: 104px !important;
+  height: 104px !important;
+  grid-template-columns: minmax(0, 1.5fr) minmax(420px, .9fr) !important;
+  gap: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck > header,
+.unified-disaster-board.is-field-mode .field-timeline-deck > header {
+  height: 25px !important;
+  padding: 0 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck > header strong,
+.unified-disaster-board.is-field-mode .field-timeline-deck > header strong {
+  font-size: 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck > div {
+  height: calc(100% - 25px) !important;
+  padding: 5px !important;
+  gap: 5px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck article {
+  padding: 6px 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck article strong {
+  font-size: 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck article small {
+  font-size: 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-timeline-deck ol {
+  padding: 4px 8px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-timeline-deck li {
+  min-height: 17px !important;
+  grid-template-columns: 36px 7px 72px minmax(0, 1fr) !important;
+  font-size: 7.5px !important;
+}
+
+/* Preview must be unmistakable without dominating the map. */
+.unified-disaster-board.is-field-mode:has(.field-preview-badge) .telemetry-connection-status {
+  border-left-color: #d39a24 !important;
+  background: #fffaf0 !important;
+  color: #6f5114 !important;
+}
+
+.unified-disaster-board.is-field-mode:has(.field-preview-badge) .field-command-inspector {
+  box-shadow: inset 0 3px 0 #d7a632, 0 2px 8px rgba(42,70,92,.05) !important;
+}
+
+/* 1600-ish field laptop: preserve labels before hiding controls. */
+@media (max-width: 1700px) {
+  .unified-disaster-board.is-field-mode .field-command-stage .live-location-layout {
+    grid-template-columns: 218px minmax(0, 1fr) 294px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .operations-panel {
+    width: 218px !important;
+    min-width: 218px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .operation-drawer {
+    width: 150px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .field-command-inspector,
+  .unified-disaster-board.is-field-mode .field-command-inspector {
+    width: 294px !important;
+    min-width: 294px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .map-status-pill {
+    left: 232px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-footer {
+    grid-template-columns: minmax(0, 1.45fr) minmax(390px, .9fr) !important;
+  }
+}
+
+@media (max-width: 1500px) {
+  .unified-disaster-board.is-field-mode .field-command-stage .live-location-layout {
+    grid-template-columns: 208px minmax(0, 1fr) 280px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .operations-panel {
+    width: 208px !important;
+    min-width: 208px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .operation-drawer {
+    width: 140px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .field-command-inspector,
+  .unified-disaster-board.is-field-mode .field-command-inspector {
+    width: 280px !important;
+    min-width: 280px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-stage .map-status-pill {
+    left: 222px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .map-command-header .service-brand {
+    max-width: 150px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .map-command-header .asset-registry-open,
+  .unified-disaster-board.is-field-mode .map-command-header .requirements-open {
+    display: none !important;
+  }
+}
+
+/* =========================================================
+   PHASE 5-1
+   MD1000 / UAV PRIMARY MARKER EMPHASIS ONLY
+   - no layout changes
+   - no trail
+   - no heading
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode
+.map-position-marker[data-category="UAV"],
+.unified-disaster-board.is-field-mode
+.map-position-marker[data-category="DRONE"] {
+  z-index: 18 !important;
+}
+
+.unified-disaster-board.is-field-mode
+.map-position-marker[data-category="UAV"] > i,
+.unified-disaster-board.is-field-mode
+.map-position-marker[data-category="DRONE"] > i {
+  width: 28px !important;
+  height: 28px !important;
+  border: 3px solid #ffffff !important;
+  box-shadow:
+    0 0 0 3px rgba(15, 118, 110, .28),
+    0 4px 14px rgba(7, 54, 45, .30) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.map-position-marker[data-category="UAV"] > b,
+.unified-disaster-board.is-field-mode
+.map-position-marker[data-category="DRONE"] > b {
+  left: 32px !important;
+  max-width: 180px !important;
+  padding: 5px 8px !important;
+  border: 1px solid rgba(255,255,255,.86) !important;
+  border-radius: 6px !important;
+  background: rgba(7, 70, 57, .94) !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  line-height: 1.15 !important;
+  box-shadow: 0 3px 10px rgba(0,0,0,.22) !important;
+}
+
+/* selected MD1000/UAV gets one extra ring */
+.unified-disaster-board.is-field-mode
+.map-position-marker[data-category="UAV"][data-selected="true"] > i,
+.unified-disaster-board.is-field-mode
+.map-position-marker[data-category="DRONE"][data-selected="true"] > i {
+  box-shadow:
+    0 0 0 4px rgba(16, 185, 129, .34),
+    0 0 0 8px rgba(16, 185, 129, .12),
+    0 5px 16px rgba(7,54,45,.34) !important;
+}
+
+/* keep generic assets quieter than primary aircraft */
+.unified-disaster-board.is-field-mode
+.map-position-marker:not([data-category="UAV"]):not([data-category="DRONE"]) > b {
+  max-width: 150px;
+}
+
+
+
+/* PHASE_5_4_FIELD_FRESHNESS_CSS */
+
+.field-freshness-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  border: 1px solid rgba(15, 92, 73, 0.18);
+  background: #eef7f3;
+  color: #0b6c54;
+}
+
+.field-freshness-chip[data-state="live"] {
+  background: #e6f8ef;
+  color: #087f5b;
+  border-color: #8bd5b8;
+}
+
+.field-freshness-chip[data-state="stale"] {
+  background: #fff7e5;
+  color: #a56700;
+  border-color: #efc66c;
+}
+
+.field-freshness-chip[data-state="offline"] {
+  background: #f3f4f4;
+  color: #6f7c77;
+  border-color: #b8c1bd;
+}
+
+.field-freshness-chip[data-state="waiting"] {
+  background: #f4f7f6;
+  color: #66756f;
+  border-color: #ccd5d1;
+}
+
+.field-freshness-chip[data-state="preview"] {
+  background: #fff7df;
+  color: #9a6300;
+  border-color: #edc05d;
+}
+
+.field-freshness-banner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2px;
+  margin: 8px 8px 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d9e6e1;
+  background: #f8fbfa;
+}
+
+.field-freshness-banner strong {
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.field-freshness-banner span {
+  font-size: 9px;
+  line-height: 1.25;
+  color: #66756f;
+}
+
+.field-freshness-banner[data-state="live"] {
+  border-color: #8bd5b8;
+  background: #ecfaf3;
+}
+
+.field-freshness-banner[data-state="live"] strong {
+  color: #087f5b;
+}
+
+.field-freshness-banner[data-state="stale"] {
+  border-color: #edc56e;
+  background: #fff8e8;
+}
+
+.field-freshness-banner[data-state="stale"] strong {
+  color: #a56700;
+}
+
+.field-freshness-banner[data-state="offline"] {
+  border-color: #d5aaaa;
+  background: #fff1f1;
+}
+
+.field-freshness-banner[data-state="offline"] strong {
+  color: #b3261e;
+}
+
+.field-freshness-banner[data-state="waiting"] {
+  border-color: #d7dfdc;
+  background: #f7f9f8;
+}
+
+.field-freshness-banner[data-state="waiting"] strong {
+  color: #60706a;
+}
+
+.field-freshness-banner[data-state="preview"] {
+  border-color: #efc66c;
+  background: #fff9e9;
+}
+
+.field-freshness-banner[data-state="preview"] strong {
+  color: #9a6300;
+}
+
+.field-freshness-cell {
+  position: relative;
+}
+
+.field-freshness-cell b {
+  display: block;
+  font-weight: 800;
+}
+
+.field-freshness-cell em {
+  display: block;
+  margin-top: 1px;
+  font-size: 8px;
+  font-style: normal;
+  color: #7b8782;
+}
+
+.field-freshness-cell[data-state="live"] b {
+  color: #087f5b;
+}
+
+.field-freshness-cell[data-state="stale"] b {
+  color: #b27700;
+}
+
+.field-freshness-cell[data-state="offline"] b {
+  color: #c0342b;
+}
+
+.field-freshness-cell[data-state="preview"] b {
+  color: #9a6300;
+}
+
+.field-freshness-cell[data-state="waiting"] b {
+  color: #68756f;
+}
+
+
+
+/* PHASE_5_5_FIELD_SUCCESS_GATE_CSS */
+
+.field-success-gate {
+  margin: 7px 8px;
+  border: 1px solid #d8e4df;
+  border-radius: 9px;
+  background: #fbfdfc;
+  overflow: hidden;
+}
+
+.field-success-gate > header {
+  min-height: 40px;
+  padding: 7px 9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid #e5ece9;
+  background: #f5faf8;
+}
+
+.field-success-gate > header div {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.field-success-gate > header small {
+  font-size: 8px;
+  line-height: 1.1;
+  color: #6a7973;
+  letter-spacing: .04em;
+}
+
+.field-success-gate > header strong {
+  font-size: 11px;
+  line-height: 1.2;
+  color: #173d33;
+}
+
+.field-success-gate > header em {
+  flex: 0 0 auto;
+  min-width: 52px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  border: 1px solid #cbd8d3;
+  background: #f3f6f5;
+  color: #62716b;
+  text-align: center;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.field-success-gate > header em[data-state="live"],
+.field-success-gate > header em[data-state="ok"] {
+  background: #e9f9f1;
+  border-color: #91d8bb;
+  color: #087f5b;
+}
+
+.field-success-gate > header em[data-state="stale"] {
+  background: #fff6de;
+  border-color: #efc467;
+  color: #9d6500;
+}
+
+.field-success-gate > header em[data-state="offline"] {
+  background: #fff0ef;
+  border-color: #e4a5a0;
+  color: #b3261e;
+}
+
+.field-success-gate > header em[data-state="preview"] {
+  background: #fff8e5;
+  border-color: #ebc465;
+  color: #966000;
+}
+
+.field-success-gate-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  padding: 7px;
+}
+
+.field-success-gate-list article {
+  min-width: 0;
+  min-height: 49px;
+  padding: 6px 7px;
+  border: 1px solid #e1e9e6;
+  border-radius: 7px;
+  background: #ffffff;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 2px 5px;
+}
+
+.field-success-gate-list article > span {
+  min-width: 0;
+  font-size: 8px;
+  font-weight: 700;
+  color: #53635d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-success-gate-list article > b {
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+  color: #68766f;
+}
+
+.field-success-gate-list article > b[data-state="ok"],
+.field-success-gate-list article > b[data-state="live"] {
+  color: #087f5b;
+}
+
+.field-success-gate-list article > b[data-state="stale"] {
+  color: #ae7200;
+}
+
+.field-success-gate-list article > b[data-state="offline"] {
+  color: #c0342b;
+}
+
+.field-success-gate-list article > b[data-state="preview"] {
+  color: #9b6500;
+}
+
+.field-success-gate-list article > b[data-state="check"] {
+  color: #1767a5;
+}
+
+.field-success-gate-list article > small {
+  grid-column: 1 / -1;
+  min-width: 0;
+  font-size: 7px;
+  line-height: 1.2;
+  color: #89938f;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-success-gate > footer {
+  padding: 6px 9px;
+  border-top: 1px solid #e6ecea;
+  background: #f8fbfa;
+  display: grid;
+  gap: 1px;
+}
+
+.field-success-gate > footer span {
+  font-size: 7px;
+  font-weight: 700;
+  color: #76847e;
+}
+
+.field-success-gate > footer strong {
+  font-size: 8px;
+  color: #164f40;
+  overflow-wrap: anywhere;
+}
+
+
+
+/* FIELD_LEFT_PANEL_FINAL_CSS */
+
+/* Slightly wider FIELD operations panel without sacrificing map too much */
+.unified-disaster-board.is-field-mode .operations-panel {
+  width: 186px;
+}
+
+/* Keep rail compact */
+.unified-disaster-board.is-field-mode .operation-rail {
+  width: 58px;
+  flex: 0 0 58px;
+}
+
+/* Give content area more usable text width */
+.unified-disaster-board.is-field-mode .operations-panel-content,
+.unified-disaster-board.is-field-mode .operation-tab-panel {
+  min-width: 0;
+}
+
+/* External API section readable */
+.unified-disaster-board.is-field-mode
+.layer-level-group[aria-labelledby="external-layer-title"] {
+  padding: 7px;
+}
+
+.unified-disaster-board.is-field-mode
+.external-api-status-grid {
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.unified-disaster-board.is-field-mode
+.external-api-status-item {
+  min-height: 34px;
+  padding: 5px 6px;
+}
+
+.unified-disaster-board.is-field-mode
+.external-api-status-item > span {
+  font-size: 7px;
+}
+
+.unified-disaster-board.is-field-mode
+.external-api-status-item > b {
+  font-size: 7px;
+}
+
+.unified-disaster-board.is-field-mode
+.external-api-status-item > em {
+  font-size: 6.5px;
+}
+
+/* Allow external layer descriptions to use up to 2 lines */
+.unified-disaster-board.is-field-mode
+.layer-level-group[aria-labelledby="external-layer-title"] > button small {
+  white-space: normal;
+  overflow: hidden;
+  text-overflow: clip;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  line-height: 1.3;
+}
+
+/* Slightly more compact AI section */
+.unified-disaster-board.is-field-mode
+.layer-level-group[aria-labelledby="analysis-layer-title"]
+.unavailable-layer {
+  min-height: 22px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+/* Keep map from being squeezed vertically */
+.unified-disaster-board.is-field-mode .dashboard-map-stage {
+  min-width: 0;
+}
+
+
+/* 2026-09-18 field command-center density pass */
+.unified-disaster-board.is-field-mode .field-kpi-strip {
+  flex: 0 0 86px !important;
+  min-height: 86px !important;
+  max-height: 86px !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(180px, .72fr) !important;
+  gap: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip > article,
+.unified-disaster-board.is-field-mode .field-kpi-strip > aside {
+  min-height: 0 !important;
+  height: 86px !important;
+  padding: 9px 12px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip > article {
+  display: grid !important;
+  align-content: center !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip small {
+  font-size: 9px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip strong {
+  font-size: 18px !important;
+  line-height: 1.05 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip p {
+  margin: 3px 0 0 !important;
+  font-size: 8px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip em {
+  top: 7px !important;
+  right: 8px !important;
+}
+
+/* GIS is the primary operational surface. */
+.unified-disaster-board.is-field-mode .field-video-deck {
+  max-height: 112px !important;
+}
+/* =========================================================
+   2026-09-18 FINAL MAP-FIRST LAYOUT
+   Header 54 / KPI 58 / GIS flexible / Footer 92
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode {
+  height: 100vh !important;
+  min-height: 0 !important;
+  grid-template-rows: 54px 58px minmax(0, 1fr) 92px !important;
+  gap: 6px !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip {
+  height: 58px !important;
+  min-height: 58px !important;
+  max-height: 58px !important;
+  flex: 0 0 58px !important;
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr))
+    minmax(170px, .70fr) !important;
+  gap: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip > article,
+.unified-disaster-board.is-field-mode .field-kpi-context {
+  height: 58px !important;
+  min-height: 58px !important;
+  max-height: 58px !important;
+  padding: 6px 9px !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip > article {
+  display: grid !important;
+  align-content: center !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip strong {
+  font-size: 17px !important;
+  line-height: 1 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip small {
+  font-size: 8px !important;
+  line-height: 1.1 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip p,
+.unified-disaster-board.is-field-mode .field-kpi-strip em {
+  font-size: 7px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-stage {
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-command-stage .live-location-layout {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-command-stage .location-map {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+/* RTSP remains available but subordinate to GIS */
+.unified-disaster-board.is-field-mode .field-command-footer {
+  height: 92px !important;
+  min-height: 92px !important;
+  max-height: 92px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck {
+  height: 100% !important;
+  max-height: 92px !important;
+}
+/* 2026-09-18 DEMO map layout fix
+   DEMO has no field-command-inspector. Do not reserve an empty inspector column. */
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.asset-panel-collapsed
+.live-location-layout {
+  grid-template-columns: 228px minmax(0, 1fr) !important;
+  grid-template-areas: "tools map" !important;
+  gap: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.asset-panel-collapsed
+.operations-panel {
+  grid-area: tools !important;
+  width: 228px !important;
+  min-width: 228px !important;
+}
+
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.asset-panel-collapsed
+.location-map {
+  grid-area: map !important;
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+@media (max-width: 1500px) {
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.asset-panel-collapsed
+  .live-location-layout {
+    grid-template-columns: 208px minmax(0, 1fr) !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.asset-panel-collapsed
+  .operations-panel {
+    width: 208px !important;
+    min-width: 208px !important;
+  }
+}
+/* 2026-09-18 map HUD refinement
+   Keep operational information readable without covering the GIS. */
+.unified-disaster-board.is-field-mode .command-center-legend {
+  left: auto !important;
+  right: 10px !important;
+  bottom: 10px !important;
+  width: auto !important;
+  max-width: min(560px, calc(100% - 32px)) !important;
+  min-height: 0 !important;
+  padding: 7px 10px !important;
+  gap: 5px 9px !important;
+  border: 1px solid rgba(122, 145, 160, .42) !important;
+  border-radius: 6px !important;
+  background: rgba(250, 252, 253, .92) !important;
+  box-shadow: 0 2px 8px rgba(32, 53, 68, .10) !important;
+  backdrop-filter: blur(4px);
+}
+
+.unified-disaster-board.is-field-mode .command-center-legend strong {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+}
+
+.unified-disaster-board.is-field-mode .command-center-legend span {
+  font-size: 9px !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+}
+
+.unified-disaster-board.is-field-mode .command-center-legend i {
+  transform: scale(.82);
+  transform-origin: center;
+}
+
+.unified-disaster-board.is-field-mode .map-topology-hint {
+  left: 50% !important;
+  right: auto !important;
+  bottom: 10px !important;
+  transform: translateX(-50%) !important;
+  width: auto !important;
+  max-width: 420px !important;
+  min-height: 0 !important;
+  padding: 6px 9px !important;
+  gap: 5px 8px !important;
+  border: 1px solid rgba(96, 125, 118, .36) !important;
+  border-radius: 6px !important;
+  background: rgba(250, 252, 251, .91) !important;
+  box-shadow: 0 2px 8px rgba(32, 53, 68, .08) !important;
+  backdrop-filter: blur(4px);
+}
+
+.unified-disaster-board.is-field-mode .map-topology-hint strong,
+.unified-disaster-board.is-field-mode .map-topology-hint span {
+  font-size: 9px !important;
+  line-height: 1.15 !important;
+  white-space: nowrap !important;
+}
+
+.unified-disaster-board.is-field-mode .map-topology-hint small {
+  display: none !important;
+}
+
+@media (max-width: 1400px) {
+  .unified-disaster-board.is-field-mode .command-center-legend {
+    max-width: 460px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .map-topology-hint {
+    max-width: 340px !important;
+  }
+}
+
+/* =========================================================
+   COMMAND CENTER V2 / 2026-09-18
+   Reference direction:
+   professional emergency command center + existing real GIS
+   Existing functions remain intact.
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode {
+  --v2-border: #d8e2e8;
+  --v2-panel: rgba(255,255,255,.97);
+  --v2-text: #18302d;
+  --v2-muted: #6c7f7b;
+  --v2-accent: #087f68;
+  --v2-danger: #d93832;
+
+  background: #eef3f5 !important;
+  gap: 7px !important;
+  padding: 7px !important;
+}
+
+/* Header: one compact command bar */
+.unified-disaster-board.is-field-mode .map-command-header {
+  min-height: 52px !important;
+  height: 52px !important;
+  padding: 5px 10px !important;
+  border: 1px solid var(--v2-border) !important;
+  border-radius: 8px !important;
+  background: var(--v2-panel) !important;
+  box-shadow: 0 2px 8px rgba(31,54,65,.06) !important;
+}
+
+.unified-disaster-board.is-field-mode .service-brand strong {
+  font-size: 16px !important;
+  letter-spacing: -.4px !important;
+}
+
+.unified-disaster-board.is-field-mode .service-brand small {
+  font-size: 8px !important;
+  color: #8b9a98 !important;
+}
+
+/* KPI: reference-style operational cards */
+.unified-disaster-board.is-field-mode .field-kpi-strip {
+  min-height: 64px !important;
+  height: 64px !important;
+  gap: 7px !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip > article,
+.unified-disaster-board.is-field-mode .field-kpi-context {
+  min-width: 0 !important;
+  min-height: 64px !important;
+  height: 64px !important;
+  padding: 8px 10px !important;
+  border: 1px solid var(--v2-border) !important;
+  border-radius: 8px !important;
+  background: var(--v2-panel) !important;
+  box-shadow: 0 2px 7px rgba(31,54,65,.05) !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip > article {
+  border-left: 4px solid var(--v2-accent) !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip strong {
+  font-size: 19px !important;
+  line-height: 1 !important;
+  letter-spacing: -.5px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-kpi-strip small,
+.unified-disaster-board.is-field-mode .field-kpi-strip p {
+  font-size: 9px !important;
+}
+
+/* MAIN COMMAND GRID
+   left tools / actual GIS / right equipment inspector */
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage
+.live-location-layout {
+  display: grid !important;
+  grid-template-columns: 238px minmax(0, 1fr) 300px !important;
+  grid-template-areas: "tools map inspector" !important;
+  gap: 7px !important;
+  align-items: stretch !important;
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage
+.operations-panel {
+  grid-area: tools !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  border: 1px solid var(--v2-border) !important;
+  border-radius: 8px !important;
+  background: var(--v2-panel) !important;
+  box-shadow: 0 2px 8px rgba(31,54,65,.06) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage
+.location-map {
+  grid-area: map !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  border: 1px solid #c9d7dd !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 10px rgba(31,54,65,.08) !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-inspector {
+  grid-area: inspector !important;
+  width: auto !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  padding: 10px !important;
+  border: 1px solid var(--v2-border) !important;
+  border-radius: 8px !important;
+  background: var(--v2-panel) !important;
+  box-shadow: 0 2px 8px rgba(31,54,65,.06) !important;
+  overflow-y: auto !important;
+}
+
+/* Inspector becomes dense equipment telemetry panel */
+.unified-disaster-board.is-field-mode .field-command-inspector > header {
+  padding-bottom: 8px !important;
+  margin-bottom: 7px !important;
+  border-bottom: 1px solid #e4ebee !important;
+}
+
+.unified-disaster-board.is-field-mode .field-command-inspector > header strong {
+  font-size: 15px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-twin-status,
+.unified-disaster-board.is-field-mode .field-seq-summary,
+.unified-disaster-board.is-field-mode .field-success-gate,
+.unified-disaster-board.is-field-mode .field-event-log {
+  border: 1px solid #e0e8eb !important;
+  border-radius: 7px !important;
+  box-shadow: none !important;
+  background: #fbfcfc !important;
+}
+
+/* GIS is the visual priority */
+.unified-disaster-board.is-field-mode .location-map .maplibregl-map,
+.unified-disaster-board.is-field-mode .location-map .maplibregl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Bottom operational deck: RTSP + event timeline */
+.unified-disaster-board.is-field-mode .field-command-footer {
+  min-height: 112px !important;
+  height: 112px !important;
+  max-height: 112px !important;
+  gap: 7px !important;
+  padding: 0 !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck {
+  min-height: 0 !important;
+  height: 112px !important;
+  max-height: 112px !important;
+  border: 1px solid var(--v2-border) !important;
+  border-radius: 8px !important;
+  background: var(--v2-panel) !important;
+  overflow: hidden !important;
+}
+
+/* Operational controls should look like controls, not AI mockup cards */
+.unified-disaster-board.is-field-mode button,
+.unified-disaster-board.is-field-mode select {
+  box-shadow: none;
+}
+
+.unified-disaster-board.is-field-mode .asset-registry-open,
+.unified-disaster-board.is-field-mode .requirements-open,
+.unified-disaster-board.is-field-mode .asset-status-open {
+  min-height: 30px !important;
+  border-radius: 6px !important;
+  font-weight: 700 !important;
+}
+
+/* Keep DEMO / PREVIEW / LIVE provenance unmistakable */
+.unified-disaster-board.is-field-mode .demo-mode-badge,
+.unified-disaster-board.is-field-mode .field-mode-badge {
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+/* Wide control-room target */
+@media (min-width: 1700px) {
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.field-command-stage
+  .live-location-layout {
+    grid-template-columns: 250px minmax(0, 1fr) 320px !important;
+  }
+}
+
+/* Laptop fallback */
+@media (max-width: 1450px) {
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.field-command-stage
+  .live-location-layout {
+    grid-template-columns: 210px minmax(0, 1fr) 270px !important;
+  }
+}
+
+
+/* =========================================================
+   COMMAND CENTER V2 - FINAL DENSITY
+   2026-09-18
+   ========================================================= */
+
+/* Main stage: readable left / GIS priority / dense inspector */
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage
+.live-location-layout {
+  grid-template-columns: 250px minmax(0, 1fr) 310px !important;
+  gap: 8px !important;
+}
+
+/* Left operations panel: stop over-compression */
+.unified-disaster-board.is-field-mode
+.dashboard-map-stage.field-command-stage
+.operations-panel {
+  width: 250px !important;
+  min-width: 250px !important;
+}
+
+.unified-disaster-board.is-field-mode
+.operations-panel button,
+.unified-disaster-board.is-field-mode
+.operations-panel select {
+  font-size: 11px !important;
+}
+
+.unified-disaster-board.is-field-mode
+.operations-panel small {
+  font-size: 9px !important;
+  line-height: 1.25 !important;
+}
+
+/* Right equipment inspector */
+.unified-disaster-board.is-field-mode .field-command-inspector {
+  width: 310px !important;
+  min-width: 310px !important;
+  padding: 10px !important;
+  font-size: 10px !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-command-inspector section {
+  margin-bottom: 7px !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-command-inspector p,
+.unified-disaster-board.is-field-mode
+.field-command-inspector small {
+  line-height: 1.2 !important;
+}
+
+/* Footer becomes a real command-center lower deck */
+.unified-disaster-board.is-field-mode .field-command-footer {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.65fr) minmax(380px, 1fr) !important;
+  gap: 8px !important;
+
+  height: 118px !important;
+  min-height: 118px !important;
+  max-height: 118px !important;
+}
+
+.unified-disaster-board.is-field-mode .field-video-deck,
+.unified-disaster-board.is-field-mode .field-timeline-deck {
+  height: 118px !important;
+  min-height: 118px !important;
+  max-height: 118px !important;
+
+  border: 1px solid #d8e2e8 !important;
+  border-radius: 8px !important;
+  background: rgba(255,255,255,.98) !important;
+  overflow: hidden !important;
+  box-shadow: 0 2px 7px rgba(31,54,65,.05) !important;
+}
+
+/* RTSP four-channel strip */
+.unified-disaster-board.is-field-mode
+.field-video-deck > div {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0,1fr)) !important;
+  gap: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-deck article {
+  min-width: 0 !important;
+  border-radius: 6px !important;
+}
+
+/* Timeline dense like an operations log */
+.unified-disaster-board.is-field-mode
+.field-timeline-deck ol {
+  overflow-y: auto !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-timeline-deck li {
+  min-height: 18px !important;
+  font-size: 9px !important;
+}
+
+/* Preserve map as the dominant visual surface */
+.unified-disaster-board.is-field-mode .location-map {
+  min-width: 0 !important;
+}
+
+/* 1920-ish workstation */
+@media (min-width: 1700px) {
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.field-command-stage
+  .live-location-layout {
+    grid-template-columns: 260px minmax(0, 1fr) 320px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.field-command-stage
+  .operations-panel {
+    width: 260px !important;
+    min-width: 260px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-inspector {
+    width: 320px !important;
+    min-width: 320px !important;
+  }
+}
+
+/* Smaller company laptop */
+@media (max-width: 1450px) {
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.field-command-stage
+  .live-location-layout {
+    grid-template-columns: 220px minmax(0, 1fr) 270px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.field-command-stage
+  .operations-panel {
+    width: 220px !important;
+    min-width: 220px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .field-command-inspector {
+    width: 270px !important;
+    min-width: 270px !important;
+  }
+}
+
+
+/* COMMAND CENTER V2 - LEFT PANEL READABILITY HOTFIX */
+
+@media (min-width: 1700px) {
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.field-command-stage
+  .live-location-layout {
+    grid-template-columns: 300px minmax(0, 1fr) 320px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+  .dashboard-map-stage.field-command-stage
+  .operations-panel {
+    width: 300px !important;
+    min-width: 300px !important;
+  }
+}
+
+.unified-disaster-board.is-field-mode
+.operations-panel button {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+}
+
+.unified-disaster-board.is-field-mode
+.operations-panel button span,
+.unified-disaster-board.is-field-mode
+.operations-panel button strong {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+}
+
