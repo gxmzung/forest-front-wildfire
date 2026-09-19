@@ -1149,3 +1149,48 @@
   }
 }
 
+
+/* 2026-09-19 operational polish:
+   keep KPI mode badge fully visible in the narrow field panel. */
+.performance-kpi-heading {
+  min-width: 0;
+}
+
+.performance-kpi-heading > span.demo,
+.performance-kpi-heading > span.live {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: max-content;
+  max-width: none;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+/* 2026-09-19 narrow field-panel badge fix */
+.unified-disaster-board.is-field-mode .performance-kpi-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.unified-disaster-board.is-field-mode .performance-kpi-heading > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.unified-disaster-board.is-field-mode .performance-kpi-heading > span.demo,
+.unified-disaster-board.is-field-mode .performance-kpi-heading > span.live {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 34px;
+  max-width: none;
+  padding: 2px 5px;
+  overflow: visible;
+  white-space: nowrap;
+  font-size: 8px;
+  line-height: 1;
+}
