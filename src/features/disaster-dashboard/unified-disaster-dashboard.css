@@ -4163,3 +4163,155 @@
   }
   .unified-disaster-board.is-field-mode .field-command-stage .location-map { grid-column: 2; }
 }
+/* =========================================================
+   DISPLAY PROFILE
+   COMMAND CENTER : 64-inch x 9 / dense operations
+   FIELD VEHICLE  : single monitor / map priority
+   ========================================================= */
+
+.unified-disaster-board.display-profile-command-center {
+  --display-profile-density: 1;
+}
+
+.unified-disaster-board.display-profile-field-vehicle {
+  --display-profile-density: 0;
+}
+
+/* Vehicle monitor: keep only field-critical surfaces around the map. */
+.unified-disaster-board.display-profile-field-vehicle .field-kpi-strip {
+  flex-basis: 54px;
+  min-height: 54px;
+  gap: 6px;
+}
+
+.unified-disaster-board.display-profile-field-vehicle .field-kpi-context {
+  display: none;
+}
+
+.unified-disaster-board.display-profile-field-vehicle .field-command-stage .live-location-layout {
+  grid-template-columns: 68px minmax(0, 1fr) 260px !important;
+  gap: 6px;
+}
+
+.unified-disaster-board.display-profile-field-vehicle .field-command-stage .operations-panel,
+.unified-disaster-board.display-profile-field-vehicle .field-command-stage .operations-panel.is-collapsed {
+  width: 68px !important;
+}
+
+.unified-disaster-board.display-profile-field-vehicle .field-command-stage .operation-drawer {
+  display: none;
+}
+
+.unified-disaster-board.display-profile-field-vehicle .field-command-stage .map-status-pill {
+  left: 82px !important;
+}
+
+.unified-disaster-board.display-profile-field-vehicle .field-command-inspector {
+  font-size: 90%;
+}
+
+.unified-disaster-board.display-profile-field-vehicle .field-command-footer {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.unified-disaster-board.display-profile-field-vehicle .field-timeline-deck {
+  display: none;
+}
+
+@media (max-width: 1180px) {
+  .unified-disaster-board.display-profile-field-vehicle .field-command-stage .live-location-layout {
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle .field-command-stage .operations-panel,
+  .unified-disaster-board.display-profile-field-vehicle .field-command-stage .operations-panel.is-collapsed {
+    width: 52px !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle .field-command-inspector {
+    display: none;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle .field-command-stage .location-map {
+    grid-column: 2;
+  }
+}
+/* field-vehicle-layout-final
+   FIELD_VEHICLE keeps only GIS + critical field status. */
+@media (min-width: 1181px) {
+  .unified-disaster-board.display-profile-field-vehicle {
+    grid-template-rows: auto auto minmax(0, 1fr) !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .dashboard-map-stage.field-command-stage {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .dashboard-map-stage.field-command-stage
+    .live-location-panel {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .dashboard-map-stage.field-command-stage
+    .live-location-layout {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 260px !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 6px !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .dashboard-map-stage.field-command-stage
+    .operations-panel {
+    display: none !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .dashboard-map-stage.field-command-stage
+    .location-map {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .dashboard-map-stage.field-command-stage
+    .field-command-inspector {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 260px !important;
+    min-width: 260px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .field-command-footer {
+    display: none !important;
+  }
+}
