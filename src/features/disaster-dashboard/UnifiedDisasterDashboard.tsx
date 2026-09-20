@@ -4,6 +4,7 @@ import { externalDisasterApi, loadDashboardDisasterAssetsCached, loadEventOvervi
 import { forestApi } from "../../http-api/forest-api";
 import { isLocalE2EMode, LOCAL_E2E_EVENT } from "../../http-api/local-e2e";
 import { fieldCoreStatusLabel, fieldEvent, isFieldPreviewMode, isLocalFieldMode } from "../../http-api/field-mode";
+import SemanticMissionPocPanel from "./SemanticMissionPocPanel";
 import LivePositionMap from "./LivePositionMap";
 import MapTimelinePlayer, { type MapTimelineSnapshot } from "./MapTimelinePlayer";
 import {
@@ -1721,7 +1722,12 @@ export default function UnifiedDisasterDashboard() {
             <span>{localFieldMode ? (fieldPreviewMode ? "DEMO DATA · NOT FLIGHT" : "MD1000 · MAVLink v2 · SYNTHETIC OFF") : localE2EMode ? "LOCAL E2E · 실기체 아님" : demoMode ? "DEMO · 모의 관제" : "LIVE · 운영 데이터"}</span>
           </aside>
         </section>
-        <section className={`dashboard-map-stage${commandShellMode ? " field-command-stage" : " asset-panel-collapsed"}`} aria-label="지도 중심 통합 상황판">
+<section className={`dashboard-map-stage${commandShellMode ? " field-command-stage" : " asset-panel-collapsed"}`} aria-label="?? ?? ?? ???">
+          {demoMode && (
+            <div className="semantic-mission-poc-overlay">
+              <SemanticMissionPocPanel />
+            </div>
+          )}
           <section className="live-location-panel" aria-label="실시간 현장 위치">
             {!demoMode && overview.liveDroneTelemetry && <div
               className="telemetry-connection-status"
