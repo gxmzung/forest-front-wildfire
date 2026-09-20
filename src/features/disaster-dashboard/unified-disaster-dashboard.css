@@ -4315,3 +4315,97 @@
     display: none !important;
   }
 }
+/* field-vehicle-force-layout */
+@media (min-width: 1181px) {
+  .unified-disaster-board.display-profile-field-vehicle {
+    grid-template-rows: auto auto minmax(0, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .dashboard-map-stage {
+    grid-column: 1 / -1 !important;
+    grid-row: 3 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .dashboard-map-stage .live-location-panel {
+    position: absolute !important;
+    inset: 0 !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .field-command-stage .live-location-layout {
+    position: absolute !important;
+    inset: 0 !important;
+    display: grid !important;
+    grid-template-columns: 260px minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    gap: 6px !important;
+    width: auto !important;
+    height: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .field-command-stage .operations-panel,
+  .unified-disaster-board.display-profile-field-vehicle
+    .field-command-stage .operation-drawer {
+    display: none !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .field-command-stage .field-command-inspector {
+    display: flex !important;
+    position: relative !important;
+    inset: auto !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 260px !important;
+    min-width: 260px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    overflow: auto !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .field-command-stage .location-map {
+    position: relative !important;
+    inset: auto !important;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    border-radius: 9px !important;
+    overflow: hidden !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .field-command-footer {
+    display: none !important;
+  }
+
+  .unified-disaster-board.display-profile-field-vehicle
+    .field-command-stage .map-status-pill {
+    left: 274px !important;
+  }
+}
