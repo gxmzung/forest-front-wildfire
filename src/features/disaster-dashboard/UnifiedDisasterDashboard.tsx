@@ -21,6 +21,11 @@ import { applyTelemetrySafetyRules, TelemetryStreamClient, type TelemetryStreamS
 import { calculatePacketSequence, calculateTelemetryMetrics, classifyLinkHealth, type TelemetrySample } from "./operationalEvidence";
 import { evaluateFieldApiHealth, fieldApiHealthLabel, formatLastSuccessAge } from "./fieldApiHealth";
 import { PROJECT_ENHANCED_TARGET } from "./officialRfpGaps";
+import {
+  displayProfileClassName,
+  getDisplayProfileConfig,
+  parseDisplayProfile,
+} from "./displayProfile";
 import "./unified-disaster-dashboard.css";
 import "./field-header-hotfix.css";
 
@@ -646,6 +651,9 @@ function districtCenter(...names: unknown[]): [number, number] | null {
 }
 
 export default function UnifiedDisasterDashboard() {
+  const displayProfile = parseDisplayProfile(window.location.search);
+  const displayConfig = getDisplayProfileConfig(displayProfile);
+  const displayClassName = displayProfileClassName(displayProfile);
   const demoScenario = demoScenarioFromLocation();
   const [events, setEvents] = useState<ForestEvent[]>([]);
   const [selectedId, setSelectedId] = useState("");
@@ -1653,7 +1661,7 @@ export default function UnifiedDisasterDashboard() {
   }, [refreshEvents]);
 
   return (
-    <main className={`unified-disaster-board${commandShellMode ? " is-field-mode" : ""}`} aria-label="산림 재난 통합 현황">
+<main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}`} aria-label="?? ?? ?? ??">
       {error && <p className="unified-disaster-error" role="status"><strong>데이터 갱신 지연</strong><span>{error}</span><small>{overview ? "마지막 정상 데이터를 유지합니다." : "연결을 다시 확인하고 있습니다."}</small></p>}
       {!overview && (
         <section className="dashboard-readiness" aria-live="polite">
@@ -2139,8 +2147,8 @@ export default function UnifiedDisasterDashboard() {
             data-active-pulses={Object.values(changedUntil).filter((until) => until > Date.now()).length}
           ><i /> 사건 데이터 변화 감지 · 갱신 주기의 30% 동안 테두리 강조</div>
         </section>
-        {commandShellMode && <section className="field-command-footer" aria-label="현장 영상 및 이벤트 타임라인">
-          <div className="field-video-deck">
+{commandShellMode && (displayConfig.showVideoDeck || displayConfig.showEventTimeline) && <section className="field-command-footer" aria-label="?? ?? ? ??? ????">
+          {displayConfig.showVideoDeck && <div className="field-video-deck">
             <header><strong>실시간 영상</strong><small>{fieldPreviewMode ? "미리보기 4채널" : "RTSP 연결 상태"}</small></header>
             <div>
               {[
@@ -2208,8 +2216,8 @@ export default function UnifiedDisasterDashboard() {
                 </article>;
               })}
             </div>
-          </div>
-          <div className="field-timeline-deck">
+          </div>}
+          {displayConfig.showEventTimeline && <div className="field-timeline-deck">
             <header><strong>주요 이벤트 타임라인</strong><span><i data-tone="comm" />통신</span><span><i data-tone="asset" />장비</span><span><i data-tone="alert" />경보</span></header>
             <ol>
               {fieldPreviewMode && <>
@@ -2221,7 +2229,7 @@ export default function UnifiedDisasterDashboard() {
               {!fieldPreviewMode && liveLocations.slice(0, 4).map((location) => <li key={locationKey(location)}><time>{new Date(location.observedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}</time><i data-tone="asset" /><strong>{location.label}</strong><span>{location.status} · 최근 수신 {relativeTime(location.observedAt)}</span></li>)}
               {!fieldPreviewMode && liveLocations.length === 0 && <li className="empty"><span>실기체 이벤트 수신 대기</span></li>}
             </ol>
-          </div>
+          </div>}
         </section>}
         </>
       )}
