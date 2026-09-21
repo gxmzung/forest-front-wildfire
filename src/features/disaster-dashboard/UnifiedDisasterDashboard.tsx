@@ -18,6 +18,8 @@ import RequirementsReadinessModal from "./RequirementsReadinessModal";
 import { createDemoOverview, DEMO_EVENT, DEMO_SCENARIOS, demoScenarioFromLocation } from "./demoOverview";
 import { applyTelemetrySafetyRules, TelemetryStreamClient, type TelemetryStreamStatus } from "./telemetryStream";
 import { calculatePacketSequence, calculateTelemetryMetrics, classifyLinkHealth, type TelemetrySample } from "./operationalEvidence";
+import { encodeSemanticMissionMock } from "./semanticMissionEncoder";
+import { decideSemanticFallback } from "./semanticFallback";
 import { PROJECT_ENHANCED_TARGET } from "./officialRfpGaps";
 import "./unified-disaster-dashboard.css";
 import "./field-header-hotfix.css";
@@ -1470,6 +1472,40 @@ export default function UnifiedDisasterDashboard() {
         fieldPrimaryDrone.expectedTelemetryIntervalSec ?? 3,
       )
     : null;
+  /*
+   * SEMANTIC FALLBACK PoC
+   *
+   * MOCK packets are created only for preview/demo visualization.
+   * LIVE operation never fabricates predicted operational data.
+   */
+  const semanticFallbackPacket = fieldPreviewMode && fieldPrimaryDrone
+    ? encodeSemanticMissionMock({
+        incidentId: selectedId ?? "preview-incident",
+        assetId: fieldPrimaryDrone.id,
+        observedAt: new Date().toISOString(),
+        sourceBytes: 256_000,
+        position: {
+          longitude: fieldPrimaryDrone.longitude,
+          latitude: fieldPrimaryDrone.latitude,
+          altitudeM: fieldPrimaryDrone.altitude ?? undefined,
+        },
+        fire: {
+          detected: true,
+          confidence: 0.68,
+          riskLevel: "POC",
+        },
+      })
+    : null;
+
+  const semanticFallbackDecision = decideSemanticFallback(
+    fieldPreviewMode ? "DISCONNECTED" : (fieldLinkHealth ?? "DISCONNECTED"),
+    semanticFallbackPacket,
+    new Date(),
+  );
+
+  const semanticFallbackActive =
+    semanticFallbackDecision.mode === "SEMANTIC_POC";
+
   const fieldTwinState = fieldPreviewMode
     ? "PREVIEW"
     : fieldPrimaryDrone == null
@@ -1818,6 +1854,54 @@ export default function UnifiedDisasterDashboard() {
                   <strong>{fieldFreshnessLabel}</strong>
                   <span>{fieldFreshnessDetail}</span>
                 </div>
+
+                {semanticFallbackActive && (
+                  <section
+                    className="semantic-fallback-poc"
+                    aria-label="Semantic AI PoC fallback status"
+                  >
+                    <header>
+                      <div>
+                        <strong>SEMANTIC AI ? PoC</strong>
+                        <small>Communication-loss fallback visualization</small>
+                      </div>
+                      <span>EXPERIMENTAL</span>
+                    </header>
+
+                    <div className="semantic-fallback-badges">
+                      <b>MOCK</b>
+                      <b>PREDICTED</b>
+                      <b>NOT LIVE VIDEO</b>
+                    </div>
+
+                    <div className="semantic-fallback-grid">
+                      <article>
+                        <small>Fallback Mode</small>
+                        <strong>{semanticFallbackDecision.mode}</strong>
+                      </article>
+                      <article>
+                        <small>Semantic State</small>
+                        <strong>{semanticFallbackDecision.semanticState}</strong>
+                      </article>
+                      <article>
+                        <small>Source</small>
+                        <strong>{semanticFallbackDecision.packet?.source ?? "-"}</strong>
+                      </article>
+                      <article>
+                        <small>Confidence</small>
+                        <strong>
+                          {semanticFallbackDecision.packet?.observations[0]
+                            ? `${Math.round(semanticFallbackDecision.packet.observations[0].confidence * 100)}%`
+                            : "-"}
+                        </strong>
+                      </article>
+                    </div>
+
+                    <footer>
+                      LAST OBSERVED ? predicted visualization is not observed operational data
+                    </footer>
+                  </section>
+                )}
 
                 <section
                   className="field-success-gate"

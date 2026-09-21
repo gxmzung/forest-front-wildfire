@@ -3350,3 +3350,89 @@ body,
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
+
+/* SEMANTIC_FALLBACK_POC_20260921 */
+.semantic-fallback-poc {
+  margin: 10px 0;
+  padding: 12px;
+  border: 1px solid rgba(217, 154, 35, 0.48);
+  border-radius: 10px;
+  background: rgba(255, 248, 224, 0.94);
+}
+
+.semantic-fallback-poc > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.semantic-fallback-poc > header div {
+  display: grid;
+  gap: 2px;
+}
+
+.semantic-fallback-poc > header strong {
+  font-size: 13px;
+}
+
+.semantic-fallback-poc > header small,
+.semantic-fallback-poc > footer {
+  font-size: 10px;
+  opacity: 0.72;
+}
+
+.semantic-fallback-poc > header > span {
+  padding: 3px 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.semantic-fallback-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 10px 0;
+}
+
+.semantic-fallback-badges b {
+  padding: 3px 6px;
+  border-radius: 5px;
+  background: rgba(217, 154, 35, 0.14);
+  font-size: 9px;
+  letter-spacing: 0.03em;
+}
+
+.semantic-fallback-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.semantic-fallback-grid article {
+  display: grid;
+  gap: 2px;
+  padding: 7px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.semantic-fallback-grid small {
+  font-size: 9px;
+  opacity: 0.68;
+}
+
+.semantic-fallback-grid strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+}
+
+.semantic-fallback-poc > footer {
+  margin-top: 9px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
