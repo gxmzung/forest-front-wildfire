@@ -17,7 +17,7 @@ import VideoPlayback from "./VideoPlayback";
 import RequirementsReadinessModal from "./RequirementsReadinessModal";
 import { createDemoOverview, DEMO_EVENT, DEMO_SCENARIOS, demoScenarioFromLocation } from "./demoOverview";
 import { applyTelemetrySafetyRules, TelemetryStreamClient, type TelemetryStreamStatus } from "./telemetryStream";
-import { calculatePacketSequence, calculateTelemetryMetrics, type TelemetrySample } from "./operationalEvidence";
+import { calculatePacketSequence, calculateTelemetryMetrics, classifyLinkHealth, type TelemetrySample } from "./operationalEvidence";
 import { PROJECT_ENHANCED_TARGET } from "./officialRfpGaps";
 import "./unified-disaster-dashboard.css";
 import "./field-header-hotfix.css";
@@ -1463,13 +1463,20 @@ export default function UnifiedDisasterDashboard() {
   const fieldTelemetryAgeSec = fieldPrimaryDrone?.observedAt
     ? Math.max(0, Math.floor((Date.now() - new Date(fieldPrimaryDrone.observedAt).getTime()) / 1000))
     : null;
+  const fieldLinkHealth = fieldPrimaryDrone?.observedAt
+    ? classifyLinkHealth(
+        fieldPrimaryDrone.observedAt,
+        new Date(),
+        fieldPrimaryDrone.expectedTelemetryIntervalSec ?? 3,
+      )
+    : null;
   const fieldTwinState = fieldPreviewMode
     ? "PREVIEW"
     : fieldPrimaryDrone == null
       ? "WAITING"
-      : fieldTelemetryAgeSec != null && fieldTelemetryAgeSec < 10
+      : fieldLinkHealth === "CONNECTED"
         ? "LIVE"
-        : fieldTelemetryAgeSec != null && fieldTelemetryAgeSec < 30
+        : fieldLinkHealth === "DELAYED"
           ? "STALE"
           : "OFFLINE";
   const fieldTwinLabel = fieldTwinState === "LIVE"
@@ -1503,9 +1510,9 @@ export default function UnifiedDisasterDashboard() {
       ? "PREVIEW"
       : fieldTelemetryAgeSec == null
         ? "WAITING"
-        : fieldTelemetryAgeSec < 10
+        : fieldLinkHealth === "CONNECTED"
           ? "LIVE"
-          : fieldTelemetryAgeSec < 30
+          : fieldLinkHealth === "DELAYED"
             ? "STALE"
             : "OFFLINE";
 

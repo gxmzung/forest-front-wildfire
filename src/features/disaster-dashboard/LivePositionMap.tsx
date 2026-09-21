@@ -6,6 +6,7 @@ import "./command-center-visuals.css";
 import "./dashboard-responsive-tv.css";
 import type { ApiRecord, NetworkTopology } from "../../http-api";
 import type { LiveLocation } from "./UnifiedDisasterDashboard";
+import { classifyLinkHealth } from "./operationalEvidence";
 
 type Props = {
   locations: LiveLocation[];
@@ -488,7 +489,7 @@ const wildfireOutlineLayerIds = new Set([
   "communication-shadows",
 ]);
 
-const DEFAULT_EXPECTED_TELEMETRY_INTERVAL_MS = 30_000;
+
 
 type TopologyEdge = {
   from: LiveLocation;
@@ -500,13 +501,12 @@ function topologyLinkState(edge: TopologyEdge, referenceTimeMs: number) {
   const explicitFailure = [edge.from.status, edge.to.status].some((status) => /신호 없음|고장|FAILED|SIGNAL_LOST/i.test(status));
   if (explicitFailure) return "disconnected";
   const endpointState = (location: LiveLocation) => {
-    const age = referenceTimeMs - Date.parse(location.observedAt || "0");
-    const expectedInterval = location.expectedTelemetryIntervalSec
-      ? location.expectedTelemetryIntervalSec * 1_000
-      : DEFAULT_EXPECTED_TELEMETRY_INTERVAL_MS;
-    if (!Number.isFinite(age) || age > expectedInterval * 3) return 2;
-    if (age > expectedInterval * 1.5) return 1;
-    return 0;
+    const health = classifyLinkHealth(
+      location.observedAt,
+      new Date(referenceTimeMs),
+      location.expectedTelemetryIntervalSec ?? 3,
+    );
+    return health === "DISCONNECTED" ? 2 : health === "DELAYED" ? 1 : 0;
   };
   const state = Math.max(endpointState(edge.from), endpointState(edge.to));
   return state === 2 ? "disconnected" : state === 1 ? "delayed" : "active";
