@@ -26,31 +26,53 @@ const servers = [
 ];
 
 async function readServer(server: typeof servers[number]): Promise<ServerState> {
-  try {
-    const [healthResponse, telemetryResponse] = await Promise.all([
-      fetch(`${server.baseUrl}/health`, { cache: "no-store" }),
-      fetch(`${server.baseUrl}/telemetry`, { cache: "no-store" }),
-    ]);
-    if (!healthResponse.ok || !telemetryResponse.ok) throw new Error(`HTTP ${healthResponse.status}/${telemetryResponse.status}`);
-    const health = await healthResponse.json() as { status?: string };
-    const telemetry = await telemetryResponse.json() as { data?: Telemetry[] };
-    return {
-      key: server.key,
-      label: server.label,
-      port: server.port,
-      online: health.status === "ok" || health.status === "degraded",
-      telemetry: telemetry.data?.[0] ?? null,
-    };
-  } catch (error) {
-    return {
-      key: server.key,
-      label: server.label,
-      port: server.port,
-      online: false,
-      telemetry: null,
-      error: error instanceof Error ? error.message : String(error),
-    };
+  const [healthResult, telemetryResult] = await Promise.allSettled([
+    fetch(`${server.baseUrl}/health`, { cache: "no-store" }),
+    fetch(`${server.baseUrl}/telemetry`, { cache: "no-store" }),
+  ]);
+
+  let online = false;
+  let telemetry: Telemetry | null = null;
+  const errors: string[] = [];
+
+  if (healthResult.status === "fulfilled") {
+    if (healthResult.value.ok) {
+      try {
+        const health = await healthResult.value.json() as { status?: string };
+        online = health.status === "ok" || health.status === "degraded";
+      } catch {
+        errors.push("health response parse failed");
+      }
+    } else {
+      errors.push(`health HTTP ${healthResult.value.status}`);
+    }
+  } else {
+    errors.push(`health ${healthResult.reason instanceof Error ? healthResult.reason.message : String(healthResult.reason)}`);
   }
+
+  if (telemetryResult.status === "fulfilled") {
+    if (telemetryResult.value.ok) {
+      try {
+        const payload = await telemetryResult.value.json() as { data?: Telemetry[] };
+        telemetry = payload.data?.[0] ?? null;
+      } catch {
+        errors.push("telemetry response parse failed");
+      }
+    } else {
+      errors.push(`telemetry HTTP ${telemetryResult.value.status}`);
+    }
+  } else {
+    errors.push(`telemetry ${telemetryResult.reason instanceof Error ? telemetryResult.reason.message : String(telemetryResult.reason)}`);
+  }
+
+  return {
+    key: server.key,
+    label: server.label,
+    port: server.port,
+    online,
+    telemetry,
+    error: errors.length > 0 ? errors.join(" / ") : undefined,
+  };
 }
 
 function coordinate(item: Telemetry | null, index: number) {
