@@ -212,8 +212,11 @@ export class TelemetryStreamClient {
       if (this.watchdogTimer != null) window.clearInterval(this.watchdogTimer);
       this.watchdogTimer = window.setInterval(() => {
         if (!isTelemetryStreamStale(this.lastMessageAt, Date.now())) return;
+
+        // Telemetry silence means the data is stale, not that the
+        // WebSocket transport itself is disconnected. Keep the socket
+        // alive so the next telemetry frame can recover the stream.
         this.options.onStatus("ERROR");
-        this.socket?.close();
       }, 1_000);
     };
     this.socket.onmessage = (event) => {
@@ -234,18 +237,37 @@ export class TelemetryStreamClient {
   }
 
   private scheduleReconnect() {
-    if (this.stopped) return;
+    if (this.stopped || this.reconnectTimer != null) return;
+
     this.attempts += 1;
     this.options.onStatus("RECONNECTING");
-    const delay = Math.min(30_000, 1_000 * 2 ** Math.min(this.attempts - 1, 5));
-    this.reconnectTimer = window.setTimeout(() => this.connect(), delay);
+
+    const delay = Math.min(
+      30_000,
+      1_000 * 2 ** Math.min(this.attempts - 1, 5),
+    );
+
+    this.reconnectTimer = window.setTimeout(() => {
+      this.reconnectTimer = null;
+      if (!this.stopped) this.connect();
+    }, delay);
   }
 
   stop() {
     this.stopped = true;
-    if (this.reconnectTimer != null) window.clearTimeout(this.reconnectTimer);
-    if (this.watchdogTimer != null) window.clearInterval(this.watchdogTimer);
-    this.socket?.close();
+
+    if (this.reconnectTimer != null) {
+      window.clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
+    if (this.watchdogTimer != null) {
+      window.clearInterval(this.watchdogTimer);
+      this.watchdogTimer = null;
+    }
+
+    const socket = this.socket;
     this.socket = null;
+    socket?.close();
   }
 }

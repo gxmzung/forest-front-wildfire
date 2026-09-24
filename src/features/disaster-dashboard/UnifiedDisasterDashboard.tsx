@@ -1129,13 +1129,29 @@ export default function UnifiedDisasterDashboard() {
       .then(() => active && setError(null))
       .catch((caught: unknown) => active && setError(caught instanceof Error ? caught.message : "현황 조회 실패"));
     void refresh();
+
+    const localE2ETelemetryEnabled =
+      localE2EMode && Boolean(import.meta.env.VITE_TELEMETRY_WS_URL?.trim());
+
+    if (localE2ETelemetryEnabled) {
+      return () => { active = false; };
+    }
+
     const timer = window.setInterval(refresh, POLL_INTERVAL_MS);
     return () => { active = false; window.clearInterval(timer); };
-  }, [demoMode, refreshOverview, selectedId]);
+  }, [demoMode, localE2EMode, refreshOverview, selectedId]);
 
   useEffect(() => {
     const url = import.meta.env.VITE_TELEMETRY_WS_URL?.trim();
-    if (demoMode || localE2EMode || localFieldMode || !url || !selectedId) {
+    const localE2ETelemetryEnabled = localE2EMode && Boolean(url);
+
+    if (
+      demoMode ||
+      localFieldMode ||
+      (localE2EMode && !localE2ETelemetryEnabled) ||
+      !url ||
+      !selectedId
+    ) {
       setTelemetryStreamStatus("DISABLED");
       return;
     }
@@ -1144,7 +1160,9 @@ export default function UnifiedDisasterDashboard() {
       eventId: selectedId,
       onStatus: setTelemetryStreamStatus,
       onMessage: (message) => {
-        setOverview((current) => current ? applyTelemetrySafetyRules(current, message) : current);
+        setOverview((current) =>
+          current ? applyTelemetrySafetyRules(current, message) : current
+        );
         setTelemetrySamples((current) => [...current, {
           assetId: message.assetId,
           entityType: message.entityType,
@@ -1426,7 +1444,7 @@ export default function UnifiedDisasterDashboard() {
       { id: "availability", label: "네트워크 가용률", value: availability, unit: "%", target: PROJECT_ENHANCED_TARGET.availabilityPct, direction: "MIN" as const, icon: "LINK" },
     ].map((item) => ({ ...item, state: fieldKpiState(item.value, item.target, item.direction) }));
   }, [overview, telemetrySamples]);
-  const fieldPrimaryDrone = localFieldMode
+  const fieldPrimaryDrone = (localFieldMode || localE2EMode)
     ? (fieldPreviewMode ? fieldScenarioLocations : liveLocations)
         .find((location) => resourceGroupOf(location) === "UAV") ?? null
     : null;
