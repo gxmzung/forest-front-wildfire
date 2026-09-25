@@ -1,5 +1,5 @@
 import { LiveDroneTelemetryReader, mergeDroneTwins } from "./live-drone-twin";
-import { emptyE2EOverview, isLocalE2EMode, LOCAL_E2E_REGISTERED_ASSETS } from "./local-e2e";
+import { emptyE2EOverview, isLocalE2EMode, LOCAL_E2E_REGISTERED_ASSETS, LOCAL_E2E_VIDEO_CHANNELS } from "./local-e2e";
 import { createFieldPreviewOverview, emptyFieldOverview, fieldRegisteredAssets, isFieldPreviewMode, isLocalFieldMode } from "./field-mode";
 const liveDroneReader = new LiveDroneTelemetryReader();
 import { dashboardApi, httpApi } from "./client";
@@ -270,9 +270,15 @@ export const forestApi = {
     ),
 
   videoChannels: (assetId: string) =>
-    httpApi<DataResponse<ApiRecord[]>>(
-      `/api/v1/assets/${encodeURIComponent(assetId)}/video-channels`,
-    ),
+    isLocalE2EMode()
+      ? Promise.resolve<DataResponse<ApiRecord[]>>({
+          data: assetId === "e2e-md1000-canonical-uuid"
+            ? LOCAL_E2E_VIDEO_CHANNELS
+            : [],
+        })
+      : httpApi<DataResponse<ApiRecord[]>>(
+          `/api/v1/assets/${encodeURIComponent(assetId)}/video-channels`,
+        ),
 
   registerVideoChannel: (
     assetId: string,
