@@ -1485,7 +1485,7 @@ export default function UnifiedDisasterDashboard() {
     };
   }, [fieldPrimaryDrone?.id, fieldPreviewMode]);
 
-  const fieldPrimaryAsset = localFieldMode && fieldPrimaryDrone
+  const fieldPrimaryAsset = (localFieldMode || localE2EMode) && fieldPrimaryDrone
     ? overview?.assets.find((asset) =>
         String(asset.assetId ?? "") === fieldPrimaryDrone.id
         || String(asset.assetCode ?? "") === fieldPrimaryDrone.sourceAssetId
