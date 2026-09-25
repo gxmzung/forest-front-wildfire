@@ -1,6 +1,11 @@
 import Hls from "hls.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { resolveBrowserPlaybackUri } from "./videoPlaybackUri";
+import {
+  playbackStateLabel,
+  stateAfterFatalError,
+  type VideoPlaybackState,
+} from "./videoPlaybackState";
 
 type VideoPlaybackProps = {
   streamUri?: string | null;
@@ -8,6 +13,7 @@ type VideoPlaybackProps = {
   verificationStatus?: string | null;
   label?: string;
   className?: string;
+  onPlaybackStateChange?: (state: VideoPlaybackState) => void;
 };
 
 type PlaybackKind = "HLS" | "NATIVE" | "EMPTY";
@@ -35,6 +41,7 @@ export default function VideoPlayback({
   verificationStatus,
   label = "영상",
   className = "",
+  onPlaybackStateChange,
 }: VideoPlaybackProps) {
   const sourceUri = streamUri?.trim() ?? "";
 
@@ -49,15 +56,32 @@ export default function VideoPlayback({
   );
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const retryAttemptsRef = useRef(0);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [playbackError, setPlaybackError] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [playbackState, setPlaybackState] =
+    useState<VideoPlaybackState>("CONNECTING");
+
+  const updatePlaybackState = (state: VideoPlaybackState) => {
+    setPlaybackState(state);
+    onPlaybackStateChange?.(state);
+  };
 
   const verified = verificationStatus === "REACHABLE";
 
   useEffect(() => {
+    retryAttemptsRef.current = 0;
+
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+
     setPlaybackError(false);
     setPlaying(false);
+    updatePlaybackState("CONNECTING");
   }, [playbackUri]);
 
   useEffect(() => {
@@ -97,9 +121,63 @@ export default function VideoPlayback({
       backBufferLength: 30,
     });
 
+    const clearRetryTimer = () => {
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
+    };
+
+    const markLive = () => {
+      clearRetryTimer();
+      retryAttemptsRef.current = 0;
+      setPlaybackError(false);
+      updatePlaybackState("LIVE");
+    };
+
+    const scheduleRecovery = (recover: () => void) => {
+      clearRetryTimer();
+
+      const decision = stateAfterFatalError(
+        retryAttemptsRef.current,
+      );
+
+      retryAttemptsRef.current = decision.nextAttempt;
+      setPlaying(false);
+      updatePlaybackState(decision.state);
+
+      if (!decision.retry) {
+        setPlaybackError(true);
+
+        retryTimerRef.current = setTimeout(() => {
+          retryTimerRef.current = null;
+          retryAttemptsRef.current = 0;
+          setPlaybackError(false);
+          updatePlaybackState("RECONNECTING");
+
+          if (hls.media) {
+            recover();
+          }
+        }, 15000);
+
+        return;
+      }
+
+      setPlaybackError(false);
+
+      retryTimerRef.current = setTimeout(() => {
+        retryTimerRef.current = null;
+
+        if (hls.media) {
+          recover();
+        }
+      }, decision.delayMs);
+    };
+
     hls.attachMedia(video);
 
     hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+      updatePlaybackState("CONNECTING");
       hls.loadSource(playbackUri);
     });
 
@@ -111,26 +189,35 @@ export default function VideoPlayback({
       });
     });
 
+    hls.on(Hls.Events.FRAG_BUFFERED, () => {
+      if (!video.paused && video.readyState >= 2) {
+        markLive();
+      }
+    });
+
     hls.on(Hls.Events.ERROR, (_event, data) => {
       if (!data.fatal) {
         return;
       }
 
       if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-        hls.startLoad();
+        scheduleRecovery(() => hls.startLoad());
         return;
       }
 
       if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
-        hls.recoverMediaError();
+        scheduleRecovery(() => hls.recoverMediaError());
         return;
       }
 
+      clearRetryTimer();
+      setPlaying(false);
       setPlaybackError(true);
-      hls.destroy();
+      updatePlaybackState("OFFLINE");
     });
 
     return () => {
+      clearRetryTimer();
       hls.destroy();
     };
   }, [enabled, kind, playbackUri]);
@@ -163,25 +250,44 @@ export default function VideoPlayback({
           playsInline
           controls
           onPlaying={() => {
+            retryAttemptsRef.current = 0;
             setPlaying(true);
             setPlaybackError(false);
+            updatePlaybackState("LIVE");
           }}
           onWaiting={() => setPlaying(false)}
           onCanPlay={() => setPlaybackError(false)}
-          onError={() => setPlaybackError(true)}
+          onError={() => {
+            setPlaying(false);
+            setPlaybackError(true);
+            updatePlaybackState("OFFLINE");
+          }}
         />
 
         {!playing && !playbackError && (
-          <div className="video-playback__status">
-            <strong>{verified ? "VIDEO READY" : "VIDEO"}</strong>
-            <span>{label} · HLS 스트림 연결 중</span>
+          <div
+            className="video-playback__status"
+            data-playback-state={playbackState}
+          >
+            <strong>{playbackStateLabel(playbackState)}</strong>
+            <span>
+              {label} ·{" "}
+              {playbackState === "RECONNECTING"
+                ? `영상 재연결 시도 ${retryAttemptsRef.current}/5`
+                : verified
+                  ? "HLS 스트림 연결 중"
+                  : "영상 스트림 확인 중"}
+            </span>
           </div>
         )}
 
         {playbackError && (
-          <div className="video-playback__error">
-            <strong>PLAYBACK ERROR</strong>
-            <span>{label} · HLS 브라우저 재생 실패</span>
+          <div
+            className="video-playback__error"
+            data-playback-state={playbackState}
+          >
+            <strong>{playbackStateLabel(playbackState)}</strong>
+            <span>{label} · 15초 후 자동 재연결 재시도</span>
           </div>
         )}
       </div>

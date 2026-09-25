@@ -15,6 +15,7 @@ import {
 
 import DroneVideoModal from "./DroneVideoModal";
 import VideoPlayback from "./VideoPlayback";
+import type { VideoPlaybackState } from "./videoPlaybackState";
 import RequirementsReadinessModal from "./RequirementsReadinessModal";
 import { createDemoOverview, DEMO_EVENT, DEMO_SCENARIOS, demoScenarioFromLocation } from "./demoOverview";
 import { applyTelemetrySafetyRules, TelemetryStreamClient, type TelemetryStreamStatus } from "./telemetryStream";
@@ -690,6 +691,8 @@ export default function UnifiedDisasterDashboard() {
   // channel configuration registered for the primary UAV.
   const [fieldVideoChannels, setFieldVideoChannels] = useState<ApiRecord[]>([]);
   const [fieldVideoLoading, setFieldVideoLoading] = useState(false);
+  const [fieldVideoPlaybackStates, setFieldVideoPlaybackStates] =
+    useState<Record<string, VideoPlaybackState>>({});
   const [timeline, setTimeline] = useState<EventTimeline | null>(null);
   const [timelineIndex, setTimelineIndex] = useState<number | null>(null);
   const [timelinePlaying, setTimelinePlaying] = useState(false);
@@ -2167,29 +2170,40 @@ export default function UnifiedDisasterDashboard() {
                 const rtspReady = Boolean(streamUri) && enabled;
                 const reachable = rtspReady && verification === "REACHABLE";
 
+                const playbackState = fieldVideoPlaybackStates[code];
+
                 const stateLabel = fieldPreviewMode
                   ? "DEMO"
-                  : fieldVideoLoading
-                    ? "CHECK"
-                    : reachable
-                      ? "RTSP READY"
-                      : rtspReady
-                        ? "RTSP"
-                        : "WAIT";
+                  : playbackState
+                    ? playbackState
+                    : fieldVideoLoading
+                      ? "CHECK"
+                      : reachable
+                        ? "CONNECTING"
+                        : rtspReady
+                          ? "RTSP"
+                          : "WAIT";
 
                 const detailLabel = fieldPreviewMode
                   ? "DEMO · 실제 영상 미연결"
-                  : reachable
-                    ? "RTSP 연결 확인 · 브라우저 변환 대기"
-                    : rtspReady
-                      ? "RTSP 등록 · 연결 확인 필요"
-                      : "영상 소스 연결 대기";
+                  : playbackState === "LIVE"
+                    ? "실시간 영상 재생 중"
+                    : playbackState === "RECONNECTING"
+                      ? "영상 연결 복구 시도 중"
+                      : playbackState === "OFFLINE"
+                        ? "영상 소스 응답 없음 · 자동 재연결 대기"
+                        : reachable
+                          ? "RTSP 확인됨 · HLS 재생 연결 중"
+                          : rtspReady
+                            ? "RTSP 등록 · 연결 확인 필요"
+                            : "영상 소스 연결 대기";
 
                 return <article
                   key={label}
                   className={`field-video-channel field-video-channel-${index + 1}`}
                   data-preview={fieldPreviewMode ? "true" : undefined}
                   data-stream-ready={reachable ? "true" : undefined}
+                  data-playback-state={playbackState}
                 >
                   <div className="field-video-preview">
                     {fieldPreviewMode ? (
@@ -2205,6 +2219,18 @@ export default function UnifiedDisasterDashboard() {
                           verificationStatus={verification}
                           label={label}
                           className="field-video-playback"
+                          onPlaybackStateChange={(state) => {
+                            setFieldVideoPlaybackStates((previous) => {
+                              if (previous[code] === state) {
+                                return previous;
+                              }
+
+                              return {
+                                ...previous,
+                                [code]: state,
+                              };
+                            });
+                          }}
                         />
                         <span className="field-video-badge">{`CH${index + 1}`}</span>
                         <span className="field-video-live">{stateLabel}</span>
