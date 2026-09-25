@@ -2170,7 +2170,9 @@ export default function UnifiedDisasterDashboard() {
                 const rtspReady = Boolean(streamUri) && enabled;
                 const reachable = rtspReady && verification === "REACHABLE";
 
-                const playbackState = fieldVideoPlaybackStates[code];
+                const playbackState = rtspReady
+                  ? fieldVideoPlaybackStates[code]
+                  : undefined;
 
                 const stateLabel = fieldPreviewMode
                   ? "DEMO"
