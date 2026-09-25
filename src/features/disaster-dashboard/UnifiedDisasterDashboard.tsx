@@ -5,6 +5,8 @@ import { forestApi } from "../../http-api/forest-api";
 import { isLocalE2EMode, LOCAL_E2E_EVENT } from "../../http-api/local-e2e";
 import { fieldCoreStatusLabel, fieldEvent, isFieldPreviewMode, isLocalFieldMode } from "../../http-api/field-mode";
 import SemanticMissionPocPanel from "./SemanticMissionPocPanel";
+import { decideSemanticFallback } from "./semanticFallback";
+import { encodeSemanticMissionMock } from "./semanticMissionEncoder";
 import LivePositionMap from "./LivePositionMap";
 import MapTimelinePlayer, { type MapTimelineSnapshot } from "./MapTimelinePlayer";
 import {
@@ -986,7 +988,13 @@ export default function UnifiedDisasterDashboard() {
   const refreshOverview = useCallback(async () => {
     const selected = events.find((event) => event.eventId === selectedId);
     if (!selected) return;
-    const result = await loadEventOverview(selected);
+
+    const result = fieldPreviewMode
+      ? {
+          ...createDemoOverview(),
+          event: selected,
+        }
+      : await loadEventOverview(selected);
     const polledTelemetrySamples = result.assets
       .map((asset) => telemetrySampleFromLiveAsset(asset))
       .filter((sample): sample is TelemetrySample => sample !== null);
@@ -1044,7 +1052,7 @@ export default function UnifiedDisasterDashboard() {
     );
     setOverview(result);
     setLastUpdatedAt(new Date());
-  }, [events, selectedId]);
+  }, [events, fieldPreviewMode, selectedId]);
 
   useEffect(() => {
     previousLocationsRef.current = null;
@@ -1503,6 +1511,42 @@ export default function UnifiedDisasterDashboard() {
         fieldPrimaryDrone.expectedTelemetryIntervalSec ?? 3,
       )
     : null;
+
+  /*
+   * Semantic Mission fallback PoC
+   *
+   * MOCK packet is generated only in preview mode.
+   * LIVE operation never fabricates predicted operational data.
+   */
+  const semanticFallbackPacket = fieldPreviewMode && fieldPrimaryDrone
+    ? encodeSemanticMissionMock({
+        incidentId: selectedId ?? "preview-incident",
+        assetId: fieldPrimaryDrone.id,
+        observedAt: new Date().toISOString(),
+        sourceBytes: 256_000,
+        position: {
+          longitude: fieldPrimaryDrone.longitude,
+          latitude: fieldPrimaryDrone.latitude,
+          altitudeM: fieldPrimaryDrone.altitude ?? undefined,
+        },
+        fire: {
+          detected: true,
+          confidence: 0.68,
+          riskLevel: "POC",
+        },
+      })
+    : null;
+
+  const semanticFallbackDecision = decideSemanticFallback(
+    fieldPreviewMode
+      ? "DISCONNECTED"
+      : (fieldLinkHealth ?? "DISCONNECTED"),
+    semanticFallbackPacket,
+    new Date(),
+  );
+
+  const semanticFallbackActive =
+    semanticFallbackDecision.mode === "SEMANTIC_POC";
   const fieldTwinState = fieldPreviewMode
     ? "PREVIEW"
     : fieldPrimaryDrone == null
@@ -1870,6 +1914,57 @@ export default function UnifiedDisasterDashboard() {
                   <strong>{fieldFreshnessLabel}</strong>
                   <span>{fieldFreshnessDetail}</span>
                 </div>
+
+                {semanticFallbackActive && (
+                  <section
+                    className="semantic-fallback-poc"
+                    aria-label="Semantic AI PoC fallback status"
+                  >
+                    <header>
+                      <div>
+                        <strong>SEMANTIC AI · PoC</strong>
+                        <small>통신 단절 fallback 시각화</small>
+                      </div>
+                      <span>EXPERIMENTAL</span>
+                    </header>
+
+                    <div className="semantic-fallback-badges">
+                      <b>MOCK</b>
+                      <b>PREDICTED</b>
+                      <b>NOT LIVE VIDEO</b>
+                    </div>
+
+                    <div className="semantic-fallback-grid">
+                      <article>
+                        <small>Fallback Mode</small>
+                        <strong>{semanticFallbackDecision.mode}</strong>
+                      </article>
+                      <article>
+                        <small>Semantic State</small>
+                        <strong>{semanticFallbackDecision.semanticState}</strong>
+                      </article>
+                      <article>
+                        <small>Source</small>
+                        <strong>{semanticFallbackDecision.packet?.source ?? "-"}</strong>
+                      </article>
+                      <article>
+                        <small>Confidence</small>
+                        <strong>
+                          {semanticFallbackDecision.packet?.observations[0]
+                            ? `${Math.round(
+                                semanticFallbackDecision.packet.observations[0]
+                                  .confidence * 100,
+                              )}%`
+                            : "-"}
+                        </strong>
+                      </article>
+                    </div>
+
+                    <footer>
+                      마지막 관측 기반 예측 표시 · 실제 LIVE 영상 또는 관측 데이터가 아닙니다.
+                    </footer>
+                  </section>
+                )}
 
                 <section
                   className="field-success-gate"
