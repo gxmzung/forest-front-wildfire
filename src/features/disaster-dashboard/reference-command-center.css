@@ -3419,3 +3419,130 @@ body,
 .field-api-health[data-state="recovering"] > i {
   background: #2563eb;
 }
+
+/* Video playback operational state */
+.unified-disaster-board.is-field-mode
+.field-video-channel[data-playback-state="LIVE"] {
+  border: 1px solid rgba(28, 157, 111, .78) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(28, 157, 111, .12),
+    0 0 10px rgba(28, 157, 111, .12) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel[data-playback-state="RECONNECTING"] {
+  border: 1px solid rgba(230, 164, 52, .92) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(230, 164, 52, .18),
+    0 0 12px rgba(230, 164, 52, .18) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel[data-playback-state="OFFLINE"] {
+  border: 1px solid rgba(211, 65, 57, .9) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(211, 65, 57, .16),
+    0 0 12px rgba(211, 65, 57, .14) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel[data-playback-state="CONNECTING"]
+.field-video-live {
+  background: rgba(60, 112, 150, .92) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel[data-playback-state="LIVE"]
+.field-video-live {
+  background: rgba(15, 126, 87, .94) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel[data-playback-state="RECONNECTING"]
+.field-video-live {
+  background: rgba(196, 126, 18, .96) !important;
+  color: #fff !important;
+  animation: field-video-reconnecting-pulse 1.15s ease-in-out infinite;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel[data-playback-state="OFFLINE"]
+.field-video-live {
+  background: rgba(183, 50, 45, .96) !important;
+  color: #fff !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel[data-playback-state="RECONNECTING"]
+.field-video-caption {
+  background: rgba(105, 75, 22, .97) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.field-video-channel[data-playback-state="OFFLINE"]
+.field-video-caption {
+  background: rgba(92, 37, 34, .97) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.video-playback__status,
+.unified-disaster-board.is-field-mode
+.video-playback__error {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 4 !important;
+  display: grid !important;
+  place-content: center !important;
+  justify-items: center !important;
+  gap: 4px !important;
+  padding: 12px !important;
+  text-align: center !important;
+  color: #fff !important;
+  background: rgba(8, 21, 27, .72) !important;
+  backdrop-filter: blur(2px);
+}
+
+.unified-disaster-board.is-field-mode
+.video-playback__status[data-playback-state="RECONNECTING"] {
+  background: rgba(83, 59, 15, .76) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.video-playback__error[data-playback-state="OFFLINE"] {
+  background: rgba(76, 23, 22, .8) !important;
+}
+
+.unified-disaster-board.is-field-mode
+.video-playback__status strong,
+.unified-disaster-board.is-field-mode
+.video-playback__error strong {
+  font-size: 11px !important;
+  letter-spacing: .04em;
+}
+
+.unified-disaster-board.is-field-mode
+.video-playback__status span,
+.unified-disaster-board.is-field-mode
+.video-playback__error span {
+  font-size: 8px !important;
+  color: rgba(255,255,255,.82) !important;
+}
+
+@keyframes field-video-reconnecting-pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(230, 164, 52, .45);
+  }
+  50% {
+    opacity: .68;
+    box-shadow: 0 0 0 4px rgba(230, 164, 52, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .unified-disaster-board.is-field-mode
+  .field-video-channel[data-playback-state="RECONNECTING"]
+  .field-video-live {
+    animation: none !important;
+  }
+}
