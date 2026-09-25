@@ -1426,14 +1426,17 @@ export default function UnifiedDisasterDashboard() {
       { id: "availability", label: "네트워크 가용률", value: availability, unit: "%", target: PROJECT_ENHANCED_TARGET.availabilityPct, direction: "MIN" as const, icon: "LINK" },
     ].map((item) => ({ ...item, state: fieldKpiState(item.value, item.target, item.direction) }));
   }, [overview, telemetrySamples]);
-  const fieldPrimaryDrone = localFieldMode
-    ? (fieldPreviewMode ? fieldScenarioLocations : liveLocations)
+  const fieldPrimaryDrone = (localFieldMode || localE2EMode)
+    ? (localFieldMode && fieldPreviewMode ? fieldScenarioLocations : liveLocations)
         .find((location) => resourceGroupOf(location) === "UAV") ?? null
     : null;
+  const fieldVideoAssetId = fieldPrimaryDrone?.id
+    ?? (localE2EMode ? "e2e-md1000-canonical-uuid" : null);
+
   useEffect(() => {
     let active = true;
 
-    if (!fieldPrimaryDrone || fieldPreviewMode) {
+    if (!fieldVideoAssetId || fieldPreviewMode) {
       setFieldVideoChannels([]);
       setFieldVideoLoading(false);
       return () => { active = false; };
@@ -1443,7 +1446,7 @@ export default function UnifiedDisasterDashboard() {
       setFieldVideoLoading(true);
 
       try {
-        const result = await forestApi.videoChannels(fieldPrimaryDrone.id);
+        const result = await forestApi.videoChannels(fieldVideoAssetId);
 
         if (active) {
           setFieldVideoChannels(Array.isArray(result.data) ? result.data : []);
@@ -1465,9 +1468,9 @@ export default function UnifiedDisasterDashboard() {
       active = false;
       window.clearInterval(timer);
     };
-  }, [fieldPrimaryDrone?.id, fieldPreviewMode]);
+  }, [fieldVideoAssetId, fieldPreviewMode]);
 
-  const fieldPrimaryAsset = localFieldMode && fieldPrimaryDrone
+  const fieldPrimaryAsset = (localFieldMode || localE2EMode) && fieldPrimaryDrone
     ? overview?.assets.find((asset) =>
         String(asset.assetId ?? "") === fieldPrimaryDrone.id
         || String(asset.assetCode ?? "") === fieldPrimaryDrone.sourceAssetId

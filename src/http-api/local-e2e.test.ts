@@ -24,6 +24,26 @@ it("local E2E mode requires both compile-time opt-in and query opt-in", () => {
   expect(isLocalE2EMode()).toBe(false);
 });
 
+it("local E2E video channel exposes the synthetic MD1000 RTSP fixture only for the canonical asset", async () => {
+  vi.stubEnv("VITE_LOCAL_E2E_ENABLED", "1");
+  (globalThis as { window?: unknown }).window = { location: { search: "?e2e=1" } };
+
+  const result = await forestApi.videoChannels("e2e-md1000-canonical-uuid");
+
+  expect(result.data).toHaveLength(1);
+  expect(result.data[0]).toMatchObject({
+    videoChannelId: "e2e-md1000-main-video",
+    assetId: "e2e-md1000-canonical-uuid",
+    streamUri: "rtsp://127.0.0.1:8554/md1000",
+    enabled: true,
+    verificationStatus: "REACHABLE",
+    synthetic: true,
+  });
+
+  const unrelated = await forestApi.videoChannels("different-asset");
+  expect(unrelated.data).toEqual([]);
+});
+
 it("local E2E overview uses fixture registration but real Core telemetry rows", async () => {
   vi.stubEnv("VITE_LOCAL_E2E_ENABLED", "1");
   (globalThis as { window?: unknown }).window = { location: { search: "?e2e=1" } };

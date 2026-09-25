@@ -33,6 +33,20 @@ export const LOCAL_E2E_REGISTERED_ASSETS: ApiRecord[] = [
   },
 ];
 
+export const LOCAL_E2E_VIDEO_CHANNELS: ApiRecord[] = [
+  {
+    videoChannelId: "e2e-md1000-main-video",
+    assetId: "e2e-md1000-canonical-uuid",
+    channelCode: "MAIN",
+    channelName: "MD1000 E2E 광학",
+    streamUri: "rtsp://127.0.0.1:8554/md1000",
+    enabled: true,
+    verificationStatus: "REACHABLE",
+    synthetic: true,
+    evidenceScope: "LOCAL_BROWSER_E2E",
+  },
+];
+
 export function isLocalE2EMode(): boolean {
   if (import.meta.env.VITE_LOCAL_E2E_ENABLED !== "1" || typeof window === "undefined") return false;
   return new URLSearchParams(window.location.search).get("e2e") === "1";
