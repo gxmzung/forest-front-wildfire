@@ -1711,7 +1711,7 @@ export default function UnifiedDisasterDashboard() {
   }, [refreshEvents]);
 
   return (
-<main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}`} aria-label="?? ?? ?? ??">
+<main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}`} aria-label="산림재난 통합상황판">
       {error && <p className="unified-disaster-error" role="status"><strong>데이터 갱신 지연</strong><span>{error}</span><small>{overview ? "마지막 정상 데이터를 유지합니다." : "연결을 다시 확인하고 있습니다."}</small></p>}
       {!overview && (
         <section className="dashboard-readiness" aria-live="polite">
@@ -1812,7 +1812,7 @@ export default function UnifiedDisasterDashboard() {
             )}
           </aside>
         </section>
-<section className={`dashboard-map-stage${commandShellMode ? " field-command-stage" : " asset-panel-collapsed"}`} aria-label="?? ?? ?? ???">
+<section className={`dashboard-map-stage${commandShellMode ? " field-command-stage" : " asset-panel-collapsed"}`} aria-label="재난 현장 통합 지도">
           {demoMode && (
             <div className="semantic-mission-poc-overlay">
               <SemanticMissionPocPanel />
@@ -2248,7 +2248,7 @@ export default function UnifiedDisasterDashboard() {
             data-active-pulses={Object.values(changedUntil).filter((until) => until > Date.now()).length}
           ><i /> 사건 데이터 변화 감지 · 갱신 주기의 30% 동안 테두리 강조</div>
         </section>
-{commandShellMode && (displayConfig.showVideoDeck || displayConfig.showEventTimeline) && <section className="field-command-footer" aria-label="?? ?? ? ??? ????">
+{commandShellMode && (displayConfig.showVideoDeck || displayConfig.showEventTimeline) && <section className="field-command-footer" aria-label="현장 영상 및 이벤트 타임라인">
           {displayConfig.showVideoDeck && <div className="field-video-deck">
             <header><strong>실시간 영상</strong><small>{fieldPreviewMode ? "미리보기 4채널" : "RTSP 연결 상태"}</small></header>
             <div>
