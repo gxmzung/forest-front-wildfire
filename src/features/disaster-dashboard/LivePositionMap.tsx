@@ -766,8 +766,8 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
       map.setPaintProperty("osm", "raster-contrast", mutedBasemap ? 0.2 : 0);
       map.setPaintProperty("osm", "raster-brightness-max", mutedBasemap ? 0.94 : 1);
     };
-    if (map.isStyleLoaded()) apply(); else map.once("load", apply);
-    return () => { map.off("load", apply); };
+    if (map.isStyleLoaded()) apply(); else map.once("styledata", apply);
+    return () => { map.off("styledata", apply); };
   }, [mutedBasemap]);
 
   useEffect(() => {
@@ -829,10 +829,10 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
     };
 
     if (map.isStyleLoaded()) apply();
-    else map.once("load", apply);
+    else map.once("styledata", apply);
 
     return () => {
-      map.off("load", apply);
+      map.off("styledata", apply);
     };
   }, [terrain3d, wildfireDemo]);
 
