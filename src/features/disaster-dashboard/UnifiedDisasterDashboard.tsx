@@ -1835,8 +1835,50 @@ export default function UnifiedDisasterDashboard() {
             </article>
           ))}
           <aside className="field-kpi-context">
-            <b>{localFieldMode ? (fieldPreviewMode ? "FIELD 화면 미리보기" : "실기체 통신 감시") : "현장 통신 우선"}</b>
-            <span>{localFieldMode ? (fieldPreviewMode ? "DEMO DATA · NOT FLIGHT" : "MD1000 · MAVLink v2 · SYNTHETIC OFF") : localE2EMode ? "LOCAL E2E · 실기체 아님" : demoMode ? "DEMO · 모의 관제" : "LIVE · 운영 데이터"}</span>
+            <b>
+              {localFieldMode
+                ? fieldPreviewMode
+                  ? "FIELD 화면 미리보기"
+                  : "실기체 통신 감시"
+                : localE2EMode
+                  ? "E2E 통신 검증"
+                  : demoMode
+                    ? "모의 관제 통신"
+                    : "현장 통신 상태"}
+            </b>
+
+            <span>
+              {localFieldMode
+                ? fieldPreviewMode
+                  ? "DEMO DATA · NOT FLIGHT"
+                  : "MD1000 · MAVLink v2"
+                : localE2EMode
+                  ? "LOCAL E2E · 실기체 아님"
+                  : demoMode
+                    ? "DEMO · 모의 관제"
+                    : "LIVE · 운영 데이터"}
+            </span>
+
+            <small
+              className="field-kpi-mode-chip"
+              data-mode={
+                localFieldMode && !fieldPreviewMode
+                  ? "physical"
+                  : localE2EMode
+                    ? "synthetic"
+                    : demoMode || fieldPreviewMode
+                      ? "demo"
+                      : "live"
+              }
+            >
+              {localFieldMode && !fieldPreviewMode
+                ? "SYNTHETIC OFF"
+                : localE2EMode
+                  ? "SYNTHETIC E2E"
+                  : demoMode || fieldPreviewMode
+                    ? "DEMO DATA"
+                    : "LIVE DATA"}
+            </small>
             {!demoMode && (
               <div
                 className="field-api-health"

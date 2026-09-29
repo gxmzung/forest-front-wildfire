@@ -736,6 +736,7 @@ export function OperationsPanel({
                 </div>
 
                 <span
+                  className="fieldlink-bridge-status"
                   data-state={
                     fieldLinkAlertError
                       ? "error"
@@ -743,12 +744,19 @@ export function OperationsPanel({
                         ? "online"
                         : "idle"
                   }
+                  title={
+                    fieldLinkAlertError
+                      ? "FieldLink 연결 확인 필요"
+                      : fieldLinkAlertSummary
+                        ? "FieldLink 연결됨"
+                        : "FieldLink PIN 입력 필요"
+                  }
                 >
                   {fieldLinkAlertError
-                    ? "연결 확인 필요"
+                    ? "오류"
                     : fieldLinkAlertSummary
                       ? "연결됨"
-                      : "PIN 대기"}
+                      : "PIN 필요"}
                 </span>
               </header>
 
@@ -815,11 +823,17 @@ export function OperationsPanel({
                 </div>
               </div>
 
-              {fieldLinkAlertError && (
-                <small className="fieldlink-alert-error">
-                  {fieldLinkAlertError}
-                </small>
-              )}
+              <small
+                className={`fieldlink-bridge-hint${
+                  fieldLinkAlertError ? " is-error" : ""
+                }`}
+              >
+                {fieldLinkAlertError
+                  ? `연결 상태: ${fieldLinkAlertError}`
+                  : fieldLinkAlertSummary
+                    ? "경보 전달 및 현장 확인 상태를 추적합니다."
+                    : "현장 PIN 입력 후 연결 확인을 눌러주세요."}
+              </small>
             </section>
             {activeAlerts.length === 0 && <p className="operation-empty-state"><b>현재 활성 경보 없음</b><span>정상 상태입니다.</span></p>}
             {activeAlerts.slice(0, 12).map((alert) => {

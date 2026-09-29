@@ -705,3 +705,446 @@
   margin-top: 7px;
   color: #b63737;
 }
+
+
+/* =========================================================
+   FIELDLINK ALERT BRIDGE NARROW PANEL FIX
+   ========================================================= */
+
+.fieldlink-alert-bridge {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.fieldlink-alert-bridge > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+  width: 100%;
+}
+
+.fieldlink-alert-bridge > header > div {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.fieldlink-alert-bridge > header strong,
+.fieldlink-alert-bridge > header small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fieldlink-bridge-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+  min-width: 48px;
+  max-width: 68px;
+  min-height: 24px;
+
+  padding: 0 7px;
+
+  border-radius: 999px;
+
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.fieldlink-bridge-status[data-state="online"] {
+  color: #137354;
+  background: #e7f6ef;
+  border: 1px solid #a4dac5;
+}
+
+.fieldlink-bridge-status[data-state="idle"] {
+  color: #65736e;
+  background: #f2f5f4;
+  border: 1px solid #d6dfdc;
+}
+
+.fieldlink-bridge-status[data-state="error"] {
+  color: #b83c38;
+  background: #fff0ee;
+  border: 1px solid #efb6b2;
+}
+
+.fieldlink-auth-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 68px;
+  gap: 6px;
+  width: 100%;
+}
+
+.fieldlink-auth-row input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.fieldlink-auth-row button {
+  width: 68px;
+  min-width: 0;
+  padding: 7px 4px;
+  box-sizing: border-box;
+
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.fieldlink-kpi-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+}
+
+.fieldlink-kpi-grid > div {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.fieldlink-kpi-grid span,
+.fieldlink-kpi-grid strong {
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.fieldlink-bridge-hint {
+  display: block;
+
+  max-width: 100%;
+  margin-top: 7px;
+
+  color: #697873;
+
+  font-size: 9px;
+  line-height: 1.35;
+
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.fieldlink-bridge-hint.is-error {
+  color: #b83c38;
+}
+
+
+/* =========================================================
+   TOP COMMAND HEADER FINAL LAYOUT FIX
+   - remove E2E badge/action overlap
+   - keep registry / requirement actions visible
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode .map-command-header {
+  display: grid !important;
+
+  grid-template-columns:
+    auto
+    minmax(260px, 1fr)
+    auto
+    auto !important;
+
+  grid-template-areas:
+    "brand event actions summary" !important;
+
+  align-items: center !important;
+  column-gap: 12px !important;
+
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* 로고 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .service-brand {
+  grid-area: brand !important;
+
+  display: flex !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+
+  white-space: nowrap;
+}
+
+/* 사건 선택 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .event-selector {
+  grid-area: event !important;
+
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+/* E2E/DEMO 뱃지가 액션 버튼 밑으로 들어가던 원인 제거 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  > .demo-mode-badge:not(.field-mode-badge) {
+  display: none !important;
+}
+
+/* 가운데 주요 액션 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .command-primary-actions {
+  grid-area: actions !important;
+
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 8px !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  overflow: hidden !important;
+  z-index: 5 !important;
+}
+
+/* 기존 field-header-hotfix의 display:none을 최종적으로 해제 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .command-primary-actions
+  .asset-registry-open,
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .command-primary-actions
+  .requirements-open {
+  display: inline-flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  position: static !important;
+
+  flex: 0 0 auto !important;
+
+  min-width: 118px !important;
+  height: 34px !important;
+  padding: 0 14px !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+
+  margin: 0 !important;
+}
+
+/* 우측 요약 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .header-summary {
+  grid-area: summary !important;
+
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+
+  justify-self: end !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  gap: 5px !important;
+
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+/* 현재 상단에서 중복되는 부가 항목은 숨김 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .header-event-state,
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .asset-status-open,
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .last-updated,
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .field-preview-toggle {
+  display: none !important;
+}
+
+/* 중간 폭 */
+@media (max-width: 1500px) {
+  .unified-disaster-board.is-field-mode .map-command-header {
+    grid-template-columns:
+      auto
+      minmax(220px, 1fr)
+      auto
+      auto !important;
+
+    column-gap: 8px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .map-command-header
+    .service-brand small {
+    display: none !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .map-command-header
+    .command-primary-actions
+    .asset-registry-open,
+  .unified-disaster-board.is-field-mode
+    .map-command-header
+    .command-primary-actions
+    .requirements-open {
+    min-width: 104px !important;
+    padding: 0 10px !important;
+  }
+}
+
+
+/* =========================================================
+   FIELD KPI CONTEXT MODE LABEL FIX
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+
+  gap: 3px !important;
+
+  min-width: 0 !important;
+  padding: 7px 9px !important;
+
+  overflow: hidden !important;
+}
+
+/* 기존 CSS pseudo SYNTHETIC OFF 제거 */
+.unified-disaster-board.is-field-mode
+  .field-kpi-context::after {
+  display: none !important;
+  content: none !important;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context > b {
+  display: block;
+
+  max-width: 100%;
+
+  color: #174f43;
+
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.1;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context > span {
+  display: block;
+
+  max-width: 100%;
+  margin: 0 !important;
+
+  font-size: 7px;
+  line-height: 1.15;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context
+  .field-api-health {
+  max-width: 100%;
+  min-width: 0;
+
+  padding: 4px 7px;
+
+  font-size: 9px;
+
+  overflow: hidden;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context
+  .field-api-health > span,
+.unified-disaster-board.is-field-mode
+  .field-kpi-context
+  .field-api-health > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-kpi-mode-chip {
+  display: inline-flex;
+
+  align-items: center;
+
+  width: max-content;
+  max-width: 100%;
+
+  margin-top: 1px;
+
+  padding: 2px 6px;
+
+  border: 1px solid #c8d8d2;
+  border-radius: 999px;
+
+  background: #fff;
+
+  color: #61736c;
+
+  font-size: 7px;
+  font-weight: 850;
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.field-kpi-mode-chip[data-mode="physical"] {
+  color: #086047;
+  border-color: #a7ccbf;
+  background: #eff9f5;
+}
+
+.field-kpi-mode-chip[data-mode="synthetic"] {
+  color: #16608a;
+  border-color: #9cc9df;
+  background: #eff8fc;
+}
+
+.field-kpi-mode-chip[data-mode="demo"] {
+  color: #94620b;
+  border-color: #e0c585;
+  background: #fff9e8;
+}
