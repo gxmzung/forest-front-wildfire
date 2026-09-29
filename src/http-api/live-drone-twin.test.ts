@@ -42,6 +42,8 @@ const row = {
 
   batteryPct: 78,
 
+  packetLossPct: 1.5,
+
   // Core Dashboard API의 현재 응답
   positioningMethod: "RTK",
 
@@ -58,6 +60,21 @@ const row = {
 
     horizontalAccuracy: 0.35,
     verticalAccuracy: 0.65,
+
+    linkQuality: {
+      mavlinkVersion: 2,
+      mavlinkSystemId: 1,
+      mavlinkComponentId: 1,
+      mavlinkSequence: 42,
+      mavlinkMessageId: 33,
+      windowExpected: 100,
+      windowReceived: 98,
+      windowLost: 2,
+      packetLossPct: 1.5,
+      periodAvgMs: 64.01,
+      periodP95Ms: 78,
+      periodMaxMs: 82,
+    },
   },
 };
 
@@ -95,6 +112,8 @@ describe("live drone twin", () => {
 
         batteryPct: 78,
 
+        packetLossPct: 1.5,
+
         positioningMethod:
           "RTK_FIXED",
 
@@ -125,6 +144,21 @@ describe("live drone twin", () => {
 
           verticalAccuracy:
             0.65,
+
+          linkQuality: {
+            mavlinkVersion: 2,
+            mavlinkSystemId: 1,
+            mavlinkComponentId: 1,
+            mavlinkSequence: 42,
+            mavlinkMessageId: 33,
+            windowExpected: 100,
+            windowReceived: 98,
+            windowLost: 2,
+            packetLossPct: 1.5,
+            periodAvgMs: 64.01,
+            periodP95Ms: 78,
+            periodMaxMs: 82,
+          },
         },
       });
     },

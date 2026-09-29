@@ -53,6 +53,9 @@ export function DroneTwinDetail({
   const attrs =
     (asset.attributes ?? {}) as ApiRecord;
 
+  const linkQuality =
+    (attrs.linkQuality ?? {}) as ApiRecord;
+
   if (
     asset.sourceSystem !== "GCS_UPLINK"
   ) {
@@ -206,6 +209,71 @@ export function DroneTwinDetail({
           {" / "}
           {String(
             attrs.componentId ?? "수신 전",
+          )}
+        </dd>
+      </div>
+
+      <div>
+        <dt>패킷 손실</dt>
+        <dd>
+          {value(
+            asset.packetLossPct ??
+              linkQuality.packetLossPct,
+            "%",
+            2,
+          )}
+        </dd>
+      </div>
+
+      <div>
+        <dt>MAVLink SEQ</dt>
+        <dd>
+          {String(
+            linkQuality.mavlinkSequence ??
+              "수신 전",
+          )}
+        </dd>
+      </div>
+
+      <div>
+        <dt>SEQ 수신 / 손실 / 예상</dt>
+        <dd>
+          {String(
+            linkQuality.windowReceived ??
+              "수신 전",
+          )}
+          {" / "}
+          {String(
+            linkQuality.windowLost ??
+              "수신 전",
+          )}
+          {" / "}
+          {String(
+            linkQuality.windowExpected ??
+              "수신 전",
+          )}
+        </dd>
+      </div>
+
+      <div>
+        <dt>수신주기 AVG / P95 / MAX</dt>
+        <dd>
+          {value(
+            linkQuality.periodAvgMs,
+            "ms",
+            1,
+          )}
+          {" / "}
+          {value(
+            linkQuality.periodP95Ms,
+            "ms",
+            1,
+          )}
+          {" / "}
+          {value(
+            linkQuality.periodMaxMs,
+            "ms",
+            1,
           )}
         </dd>
       </div>

@@ -210,6 +210,9 @@ export function mergeDroneTwins(
       batteryPct:
         value.batteryPct,
 
+      packetLossPct:
+        value.packetLossPct,
+
       positioningMethod:
         normalizedPositioningMethod(value),
 
