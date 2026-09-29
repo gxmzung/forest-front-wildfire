@@ -1148,3 +1148,131 @@
   border-color: #e0c585;
   background: #fff9e8;
 }
+
+/* =========================================================
+   FIELD KPI CONTEXT FINAL COMPACT FIX
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context {
+  display: grid !important;
+  grid-template-rows: auto auto !important;
+  align-content: center !important;
+  gap: 5px !important;
+
+  min-width: 0 !important;
+  min-height: 0 !important;
+
+  padding: 6px 9px !important;
+
+  overflow: hidden !important;
+}
+
+/* 기존 span/grid/absolute 규칙 완전 무효화 */
+.unified-disaster-board.is-field-mode
+  .field-kpi-context > *,
+.unified-disaster-board.is-field-mode
+  .field-kpi-context span,
+.unified-disaster-board.is-field-mode
+  .field-kpi-context b,
+.unified-disaster-board.is-field-mode
+  .field-kpi-context small {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  margin: 0 !important;
+}
+
+.field-kpi-context-title {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.field-kpi-context-title b {
+  display: block !important;
+
+  max-width: 100%;
+
+  color: #174f43 !important;
+
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  line-height: 1.15 !important;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-kpi-context-status {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+
+  min-width: 0;
+  overflow: hidden;
+}
+
+.field-kpi-mode-chip {
+  flex: 0 0 auto !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+
+  height: 18px !important;
+  padding: 0 6px !important;
+
+  border-radius: 999px;
+
+  font-size: 7px !important;
+  line-height: 1 !important;
+
+  white-space: nowrap !important;
+}
+
+.field-kpi-context-status .field-api-health {
+  flex: 0 1 auto !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  height: 18px !important;
+
+  padding: 0 7px !important;
+  margin: 0 !important;
+
+  border-radius: 999px !important;
+
+  overflow: hidden !important;
+}
+
+.field-kpi-context-status
+  .field-api-health span {
+  min-width: 0;
+
+  font-size: 7px !important;
+  line-height: 1 !important;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-kpi-context-status
+  .field-api-health i {
+  flex: 0 0 auto;
+
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context::after {
+  display: none !important;
+  content: none !important;
+}

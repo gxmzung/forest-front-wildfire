@@ -1835,64 +1835,62 @@ export default function UnifiedDisasterDashboard() {
             </article>
           ))}
           <aside className="field-kpi-context">
-            <b>
-              {localFieldMode
-                ? fieldPreviewMode
-                  ? "FIELD 화면 미리보기"
-                  : "실기체 통신 감시"
-                : localE2EMode
-                  ? "E2E 통신 검증"
-                  : demoMode
-                    ? "모의 관제 통신"
-                    : "현장 통신 상태"}
-            </b>
-
-            <span>
-              {localFieldMode
-                ? fieldPreviewMode
-                  ? "DEMO DATA · NOT FLIGHT"
-                  : "MD1000 · MAVLink v2"
-                : localE2EMode
-                  ? "LOCAL E2E · 실기체 아님"
-                  : demoMode
-                    ? "DEMO · 모의 관제"
-                    : "LIVE · 운영 데이터"}
-            </span>
-
-            <small
-              className="field-kpi-mode-chip"
-              data-mode={
-                localFieldMode && !fieldPreviewMode
-                  ? "physical"
+            <div className="field-kpi-context-title">
+              <b>
+                {localFieldMode
+                  ? fieldPreviewMode
+                    ? "FIELD 화면 미리보기"
+                    : "실기체 통신 감시"
                   : localE2EMode
-                    ? "synthetic"
-                    : demoMode || fieldPreviewMode
-                      ? "demo"
-                      : "live"
+                    ? "E2E 통신 검증"
+                    : demoMode
+                      ? "모의 관제 통신"
+                      : "현장 통신 상태"}
+              </b>
+            </div>
+
+            <div
+              className="field-kpi-context-status"
+              title={
+                localE2EMode
+                  ? "LOCAL E2E · 실기체가 아닌 synthetic 검증"
+                  : localFieldMode && !fieldPreviewMode
+                    ? "MD1000 실기체 · MAVLink v2"
+                    : undefined
               }
             >
-              {localFieldMode && !fieldPreviewMode
-                ? "SYNTHETIC OFF"
-                : localE2EMode
-                  ? "SYNTHETIC E2E"
-                  : demoMode || fieldPreviewMode
-                    ? "DEMO DATA"
-                    : "LIVE DATA"}
-            </small>
-            {!demoMode && (
-              <div
-                className="field-api-health"
-                data-state={fieldApiHealth.toLowerCase()}
-                title={fieldApiLastSuccessText}
-                role="status"
+              <small
+                className="field-kpi-mode-chip"
+                data-mode={
+                  localFieldMode && !fieldPreviewMode
+                    ? "physical"
+                    : localE2EMode
+                      ? "synthetic"
+                      : demoMode || fieldPreviewMode
+                        ? "demo"
+                        : "live"
+                }
               >
-                <i />
-                <span>{fieldApiHealthText}</span>
-                {fieldApiHealth !== "ONLINE" && (
-                  <small>{fieldApiLastSuccessText}</small>
-                )}
-              </div>
-            )}
+                {localFieldMode && !fieldPreviewMode
+                  ? "SYNTHETIC OFF"
+                  : localE2EMode
+                    ? "SYNTHETIC E2E"
+                    : demoMode || fieldPreviewMode
+                      ? "DEMO DATA"
+                      : "LIVE DATA"}
+              </small>
+              {!demoMode && (
+                <div
+                  className="field-api-health"
+                  data-state={fieldApiHealth.toLowerCase()}
+                  title={fieldApiLastSuccessText}
+                  role="status"
+                >
+                  <i />
+                  <span>{fieldApiHealthText}</span>
+                </div>
+              )}
+            </div>
           </aside>
         </section>
 <section className={`dashboard-map-stage${commandShellMode ? " field-command-stage" : " asset-panel-collapsed"}`} aria-label="?? ?? ?? ???">
