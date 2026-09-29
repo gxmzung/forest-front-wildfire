@@ -33,6 +33,26 @@ export const LOCAL_E2E_REGISTERED_ASSETS: ApiRecord[] = [
   },
 ];
 
+export const LOCAL_E2E_NETWORK_SETTINGS: ApiRecord = {
+  assetId: "e2e-md1000-canonical-uuid",
+  deviceIp: "127.0.0.1",
+  mavlinkForwarding: {
+    protocol: "UDP",
+    targetHost: "127.0.0.1",
+    targetPort: 14551,
+  },
+  synthetic: true,
+  evidenceScope: "LOCAL_BROWSER_E2E",
+};
+
+export const LOCAL_E2E_CONNECTION_PROBE: ApiRecord = {
+  success: true,
+  elapsedMs: 1,
+  detail: "LOCAL E2E synthetic probe",
+  synthetic: true,
+  evidenceScope: "LOCAL_BROWSER_E2E",
+};
+
 export const LOCAL_E2E_VIDEO_CHANNELS: ApiRecord[] = [
   {
     videoChannelId: "e2e-md1000-main-video",

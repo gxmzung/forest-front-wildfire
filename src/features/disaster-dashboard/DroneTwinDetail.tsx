@@ -135,7 +135,8 @@ export function DroneTwinDetail({
         <dt>수평 / 수직 정확도</dt>
         <dd>
           {value(
-            asset.horizontalAccuracyM,
+            asset.horizontalAccuracyM ??
+              attrs.horizontalAccuracy,
             "m",
             2,
           )}
@@ -187,9 +188,15 @@ export function DroneTwinDetail({
       <div>
         <dt>MAVLink</dt>
         <dd>
-          {attrs.mavlinkVersion == null
+          {(
+            attrs.mavlinkVersion ??
+            linkQuality.mavlinkVersion
+          ) == null
             ? "수신 전"
-            : `v${attrs.mavlinkVersion}`}
+            : `v${
+                attrs.mavlinkVersion ??
+                linkQuality.mavlinkVersion
+              }`}
           {" · "}
           {attrs.mavlinkSigned === true
             ? attrs.mavlinkSignatureVerified ===
@@ -204,11 +211,15 @@ export function DroneTwinDetail({
         <dt>System / Component</dt>
         <dd>
           {String(
-            attrs.systemId ?? "수신 전",
+            attrs.systemId ??
+              linkQuality.mavlinkSystemId ??
+              "수신 전",
           )}
           {" / "}
           {String(
-            attrs.componentId ?? "수신 전",
+            attrs.componentId ??
+              linkQuality.mavlinkComponentId ??
+              "수신 전",
           )}
         </dd>
       </div>

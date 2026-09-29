@@ -1,0 +1,554 @@
+/* FIELD INTERACTION / LAYOUT P0
+   2026-09-29
+   - inspector tabs become real controls
+   - drawer stays above map interaction layer
+   - inspector content scrolls instead of clipping
+   - field grid may shrink safely
+*/
+
+.unified-disaster-board.is-field-mode,
+.unified-disaster-board.is-field-mode * {
+  box-sizing: border-box;
+}
+
+/* -------------------------------------------------------
+   Main field grid
+------------------------------------------------------- */
+
+.unified-disaster-board.is-field-mode
+  .field-command-stage
+  .live-location-layout {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns:
+    clamp(250px, 18vw, 330px)
+    minmax(0, 1fr)
+    clamp(270px, 18vw, 318px) !important;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-command-stage
+  .location-map {
+  min-width: 0;
+  min-height: 0;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-command-stage
+  .live-location-panel {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* -------------------------------------------------------
+   Left operation rail / drawer
+------------------------------------------------------- */
+
+/* Previous -1 z-index could put the visible drawer behind
+   the map's pointer target. */
+.unified-disaster-board.is-field-mode .operations-panel {
+  pointer-events: auto;
+}
+
+.unified-disaster-board.is-field-mode .operation-drawer {
+  z-index: 4 !important;
+  pointer-events: auto !important;
+}
+
+.unified-disaster-board.is-field-mode .operations-panel > nav button,
+.unified-disaster-board.is-field-mode .operation-drawer button,
+.unified-disaster-board.is-field-mode .layer-control-list button {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.unified-disaster-board.is-field-mode
+  .operations-panel > nav button:focus-visible,
+.unified-disaster-board.is-field-mode
+  .operation-drawer button:focus-visible {
+  outline: 2px solid #0b8f70;
+  outline-offset: -2px;
+}
+
+/* -------------------------------------------------------
+   Right inspector
+------------------------------------------------------- */
+
+.field-command-inspector {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.field-command-inspector > header,
+.field-inspector-identity,
+.field-inspector-tabs {
+  flex: 0 0 auto;
+}
+
+.field-inspector-tabs {
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.field-inspector-tabs button {
+  appearance: none;
+  min-width: 0;
+  min-height: 38px;
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
+  border-right: 1px solid #e4ece9;
+  border-radius: 0;
+  background: #fafcfb;
+  color: #71847d;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.field-inspector-tabs button:last-child {
+  border-right: 0;
+}
+
+.field-inspector-tabs button:hover {
+  color: #075f4c;
+  background: #f0f7f4;
+}
+
+.field-inspector-tabs button.active,
+.field-inspector-tabs button[aria-selected="true"] {
+  color: #075f4c;
+  background: #eaf6f1;
+  box-shadow: inset 0 -2px 0 #0b725b;
+}
+
+.field-inspector-tabs button:focus-visible {
+  position: relative;
+  z-index: 2;
+  outline: 2px solid #0b8f70;
+  outline-offset: -2px;
+}
+
+.field-inspector-pane {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.field-quality-pane {
+  display: block;
+}
+
+/* -------------------------------------------------------
+   Detail tab
+------------------------------------------------------- */
+
+.field-twin-detail {
+  margin: 0;
+  padding: 8px 10px 14px;
+}
+
+.field-twin-detail > div {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.9fr) minmax(0, 1.1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 7px 2px;
+  border-bottom: 1px solid #edf2f0;
+}
+
+.field-twin-detail dt {
+  color: #71847d;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.field-twin-detail dd {
+  min-width: 0;
+  margin: 0;
+  color: #24483d;
+  font-size: 9px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.field-inspector-empty {
+  display: grid;
+  gap: 7px;
+  place-content: center;
+  min-height: 180px;
+  padding: 20px;
+  text-align: center;
+}
+
+.field-inspector-empty strong {
+  color: #31584c;
+  font-size: 11px;
+}
+
+.field-inspector-empty span {
+  color: #7b8d87;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+/* -------------------------------------------------------
+   Video tab
+------------------------------------------------------- */
+
+.field-inspector-video-pane {
+  padding: 12px;
+}
+
+.field-video-tab-summary {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid #dbe8e3;
+  border-radius: 7px;
+  background: #f8fbfa;
+}
+
+.field-video-tab-summary span,
+.field-video-tab-summary small {
+  color: #74877f;
+  font-size: 9px;
+}
+
+.field-video-tab-summary strong {
+  color: #234b3f;
+  font-size: 13px;
+}
+
+.field-open-video-button {
+  width: 100%;
+  min-height: 38px;
+  margin-top: 10px;
+  border: 1px solid #0b725b;
+  border-radius: 6px;
+  background: #0b725b;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.field-open-video-button:hover:not(:disabled) {
+  background: #075f4c;
+}
+
+.field-open-video-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.field-video-wait {
+  margin: 10px 0 0;
+  color: #7a8d86;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+/* -------------------------------------------------------
+   Footer / overflow containment
+------------------------------------------------------- */
+
+.field-command-footer,
+.field-video-strip,
+.field-timeline-deck {
+  min-width: 0;
+  min-height: 0;
+}
+
+.field-command-footer {
+  overflow: hidden;
+}
+
+/* -------------------------------------------------------
+   Responsive field mode
+------------------------------------------------------- */
+
+@media (max-width: 1500px) {
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .live-location-layout {
+    grid-template-columns:
+      clamp(220px, 17vw, 290px)
+      minmax(0, 1fr)
+      clamp(250px, 20vw, 292px) !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .live-location-layout {
+    grid-template-columns:
+      68px
+      minmax(0, 1fr)
+      minmax(250px, 280px) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .field-command-inspector {
+    display: none;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .live-location-layout {
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+  }
+}
+
+/* =========================================================
+   FIELD UI P1 POLISH
+   2026-09-29
+   ========================================================= */
+
+/* 전체 3열 비율 안정화 */
+@media (min-width: 1501px) {
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .live-location-layout {
+    grid-template-columns:
+      300px
+      minmax(620px, 1fr)
+      340px !important;
+    gap: 8px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .operations-panel {
+    width: 300px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .operation-drawer {
+    width: 232px !important;
+  }
+}
+
+/* 오른쪽 inspector 가독성 */
+.field-command-inspector {
+  font-size: 100% !important;
+  border: 1px solid #d6e3de;
+}
+
+.field-command-inspector > header {
+  min-height: 58px;
+  padding: 10px 12px;
+}
+
+.field-command-inspector > header small {
+  font-size: 9px;
+}
+
+.field-command-inspector > header strong {
+  font-size: 14px;
+}
+
+.field-inspector-identity {
+  padding: 11px 12px;
+}
+
+.field-inspector-identity span {
+  font-size: 9px;
+}
+
+.field-inspector-identity b {
+  font-size: 14px;
+}
+
+.field-inspector-identity small {
+  font-size: 9px;
+}
+
+/* 탭: 클릭 영역 + sticky */
+.field-inspector-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: 42px;
+}
+
+.field-inspector-tabs button {
+  min-height: 42px;
+  font-size: 10px;
+  letter-spacing: -0.01em;
+}
+
+/* 통신 품질 카드 */
+.field-seq-summary {
+  padding: 10px 11px;
+}
+
+.field-seq-summary header span {
+  font-size: 10px;
+}
+
+.field-seq-summary header small {
+  font-size: 8px;
+}
+
+.field-seq-grid {
+  gap: 6px;
+}
+
+.field-seq-grid article {
+  min-width: 0;
+  padding: 8px;
+}
+
+.field-seq-grid article small {
+  font-size: 8px;
+}
+
+.field-seq-grid article strong {
+  font-size: 13px;
+}
+
+/* 진단 항목 */
+.field-link-diagnostics {
+  padding: 4px 11px 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+
+.field-link-diagnostics > div {
+  min-width: 0;
+  padding: 7px 0;
+}
+
+.field-link-diagnostics dt {
+  font-size: 8px;
+}
+
+.field-link-diagnostics dd {
+  min-width: 0;
+  font-size: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 오른쪽 패널 스크롤 */
+.field-inspector-pane {
+  scrollbar-width: thin;
+  scrollbar-color: #b7cbc3 transparent;
+}
+
+.field-inspector-pane::-webkit-scrollbar {
+  width: 6px;
+}
+
+.field-inspector-pane::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #b7cbc3;
+}
+
+/* 왼쪽 drawer */
+.operation-drawer {
+  max-width: min(320px, calc(100vw - 720px));
+}
+
+.operations-panel-body {
+  scrollbar-width: thin;
+}
+
+.operations-panel-body button {
+  cursor: pointer;
+}
+
+/* 지도 버튼 클릭영역 */
+.basemap-switch {
+  z-index: 80 !important;
+  pointer-events: auto !important;
+}
+
+.basemap-switch button {
+  min-height: 34px;
+  padding: 0 13px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* 지도 UI가 패널 뒤에 숨지 않게 */
+.maplibregl-control-container {
+  pointer-events: none;
+}
+
+.maplibregl-control-container button,
+.maplibregl-control-container a {
+  pointer-events: auto;
+}
+
+/* 하단 영역 높이 조금 확보 */
+.unified-disaster-board.is-field-mode {
+  grid-template-rows:
+    auto
+    auto
+    minmax(0, 1fr)
+    150px !important;
+}
+
+.field-command-footer {
+  min-height: 150px;
+  max-height: 150px;
+}
+
+.field-video-strip,
+.field-timeline-deck {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 영상 카드 글씨 눌림 완화 */
+.field-video-strip article {
+  min-width: 0;
+}
+
+.field-video-strip article strong,
+.field-video-strip article span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 좌우 패널 때문에 map canvas 계산 깨지는 것 방지 */
+.live-basemap,
+.live-basemap .maplibregl-map,
+.live-basemap .maplibregl-canvas-container,
+.live-basemap .maplibregl-canvas {
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+
+/* 중간 해상도 */
+@media (max-width: 1500px) and (min-width: 1181px) {
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .live-location-layout {
+    grid-template-columns:
+      260px
+      minmax(520px, 1fr)
+      300px !important;
+  }
+
+  .field-command-inspector {
+    font-size: 95% !important;
+  }
+}
+
