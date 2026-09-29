@@ -1,6 +1,6 @@
 import { nmsSummary, receivedNumber } from "./nmsSummary";
 import { OFFICIAL_RFP_BASELINE, PROJECT_ENHANCED_TARGET } from "./officialRfpGaps";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ApiRecord, EventOverview } from "../../http-api";
 import type { LiveLocation, ResourceGroup } from "./UnifiedDisasterDashboard";
 import { buildOperationalEvidence, buildPacketLossQualityAlerts, classifyLinkHealth, type TelemetrySample } from "./operationalEvidence";
@@ -8,6 +8,11 @@ import type { TelemetryStreamStatus } from "./telemetryStream";
 import { createAlertAudit, transitionAlert, type AlertWorkflowAction, type AlertWorkflowStatus } from "./alertWorkflow";
 import PerformanceKpiPanel from "./PerformanceKpiPanel";
 import NetworkSequenceQualityPanel from "./NetworkSequenceQualityPanel";
+import {
+  deliverFieldLinkAlert,
+  getFieldLinkAlertSummary,
+  type FieldLinkAlertSummary,
+} from "../../http-api/fieldlink-api";
 
 export type PanelTab = "layers" | "alerts" | "networks" | "reports" | "kpis" | "integrations";
 
@@ -139,8 +144,234 @@ export function OperationsPanel({
   const fieldResource = locations.find(x => `${x.kind}-${x.id}` === fieldResourceKey);
   const nms = nmsSummary(overview.networks, overview.assets);
   const [collapsed, setCollapsed] = useState(false);
+
+  const fieldLinkUrl =
+    typeof window === "undefined"
+      ? "http://127.0.0.1:18080"
+      : `${window.location.protocol}//${window.location.hostname}:18080`;
+
+  const [fieldLinkStatus, setFieldLinkStatus] =
+    useState<"checking" | "online" | "offline">("checking");
+
+  useEffect(() => {
+    let disposed = false;
+
+    const checkFieldLink = async () => {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(
+        () => controller.abort(),
+        1500,
+      );
+
+      try {
+        await fetch(`${fieldLinkUrl}/health`, {
+          method: "GET",
+          mode: "no-cors",
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!disposed) {
+          setFieldLinkStatus("online");
+        }
+      } catch {
+        if (!disposed) {
+          setFieldLinkStatus("offline");
+        }
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    };
+
+    void checkFieldLink();
+
+    const interval = window.setInterval(
+      checkFieldLink,
+      5000,
+    );
+
+    return () => {
+      disposed = true;
+      window.clearInterval(interval);
+    };
+  }, [fieldLinkUrl]);
+  const [fieldLinkPin, setFieldLinkPin] = useState("");
+  const [fieldLinkAlertSummary, setFieldLinkAlertSummary] =
+    useState<FieldLinkAlertSummary | null>(null);
+  const [fieldLinkAlertError, setFieldLinkAlertError] =
+    useState("");
+  const [fieldLinkSendingId, setFieldLinkSendingId] =
+    useState("");
+
   const [alertOverrides, setAlertOverrides] = useState<Record<string, AlertWorkflowStatus>>({});
   const [alertAudit, setAlertAudit] = useState<Array<ReturnType<typeof createAlertAudit>>>([]);
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const saved =
+      window.sessionStorage.getItem(
+        "fieldlink.command.pin",
+      ) ?? "";
+
+    setFieldLinkPin(saved);
+  }, []);
+
+  useEffect(() => {
+    if (!fieldLinkPin) {
+      setFieldLinkAlertSummary(null);
+      return;
+    }
+
+    let disposed = false;
+
+    const refresh = async () => {
+      try {
+        const summary =
+          await getFieldLinkAlertSummary(
+            fieldLinkUrl,
+            fieldLinkPin,
+          );
+
+        if (!disposed) {
+          setFieldLinkAlertSummary(summary);
+          setFieldLinkAlertError("");
+        }
+      } catch (error) {
+        if (!disposed) {
+          setFieldLinkAlertError(
+            error instanceof Error
+              ? error.message
+              : "FIELDLINK_ERROR",
+          );
+        }
+      }
+    };
+
+    void refresh();
+
+    const interval =
+      window.setInterval(
+        refresh,
+        5000,
+      );
+
+    return () => {
+      disposed = true;
+      window.clearInterval(interval);
+    };
+  }, [fieldLinkPin, fieldLinkUrl]);
+
+  const refreshFieldLinkAlertSummary =
+    async () => {
+      if (!fieldLinkPin) {
+        setFieldLinkAlertError(
+          "현장 PIN을 입력해주세요.",
+        );
+        return;
+      }
+
+      try {
+        const summary =
+          await getFieldLinkAlertSummary(
+            fieldLinkUrl,
+            fieldLinkPin,
+          );
+
+        setFieldLinkAlertSummary(summary);
+        setFieldLinkAlertError("");
+      } catch (error) {
+        setFieldLinkAlertError(
+          error instanceof Error
+            ? error.message
+            : "FIELDLINK_ERROR",
+        );
+      }
+    };
+
+  const handleFieldLinkAlertSend =
+    async (alert: ApiRecord) => {
+      if (!fieldLinkPin) {
+        setFieldLinkAlertError(
+          "현장 PIN을 입력해주세요.",
+        );
+        return;
+      }
+
+      const alertId =
+        value(
+          alert,
+          ["alertId", "id"],
+          `FIELD-${Date.now()}`,
+        );
+
+      const rawSeverity =
+        value(
+          alert,
+          ["severity", "severityCode"],
+          "WARNING",
+        ).toUpperCase();
+
+      const severity:
+        | "INFO"
+        | "WATCH"
+        | "WARNING"
+        | "CRITICAL" =
+        ["CRITICAL", "SEVERE", "HIGH"]
+          .includes(rawSeverity)
+          ? "CRITICAL"
+          : ["CAUTION", "WATCH"]
+              .includes(rawSeverity)
+            ? "WATCH"
+            : rawSeverity === "INFO" ||
+                rawSeverity === "NORMAL"
+              ? "INFO"
+              : "WARNING";
+
+      setFieldLinkSendingId(alertId);
+
+      try {
+        await deliverFieldLinkAlert(
+          fieldLinkUrl,
+          fieldLinkPin,
+          {
+            sourceAlertId: alertId,
+            severity,
+            title: value(
+              alert,
+              ["title", "alertType", "type"],
+              "현장 경보",
+            ),
+            message: value(
+              alert,
+              ["message", "description"],
+              "현장 경보가 발령되었습니다.",
+            ),
+            source: "INTEGRATED_COMMAND",
+          },
+        );
+
+        setFieldLinkAlertError("");
+
+        const summary =
+          await getFieldLinkAlertSummary(
+            fieldLinkUrl,
+            fieldLinkPin,
+          );
+
+        setFieldLinkAlertSummary(summary);
+      } catch (error) {
+        setFieldLinkAlertError(
+          error instanceof Error
+            ? error.message
+            : "FIELDLINK_ERROR",
+        );
+      } finally {
+        setFieldLinkSendingId("");
+      }
+    };
+
   const externalIntegrationLoading = Object.values(
     externalIntegrationStatus,
   ).some((state) => state.status === "loading");
@@ -350,6 +581,41 @@ export function OperationsPanel({
             <i>{tab.icon}</i><span>{tab.label}</span>{tab.id === "alerts" && activeAlerts.length > 0 ? <b>{activeAlerts.length}</b> : null}
           </button>
         ))}
+
+        <button
+          type="button"
+          className="fieldlink-launch-button"
+          aria-label="현장 메신저 새 창으로 열기"
+          title={`FieldLink · ${fieldLinkUrl}`}
+          onClick={() => {
+            window.open(
+              fieldLinkUrl,
+              "fieldlink-lan-messenger",
+              "noopener,noreferrer",
+            );
+          }}
+        >
+          <i aria-hidden="true">✉</i>
+          <span>현장 메신저</span>
+
+          <b
+            className={`fieldlink-status fieldlink-status-${fieldLinkStatus}`}
+            aria-label={
+              fieldLinkStatus === "online"
+                ? "FieldLink 온라인"
+                : fieldLinkStatus === "offline"
+                  ? "FieldLink 오프라인"
+                  : "FieldLink 상태 확인 중"
+            }
+            title={
+              fieldLinkStatus === "online"
+                ? "FieldLink 온라인"
+                : fieldLinkStatus === "offline"
+                  ? "FieldLink 오프라인"
+                  : "상태 확인 중"
+            }
+          />
+        </button>
       </nav>
       <button className="operation-collapse" type="button" onClick={() => setCollapsed((current) => !current)} aria-expanded={!collapsed} aria-label={collapsed ? "운영 패널 펼치기" : "운영 패널 접기"}>{collapsed ? "›" : "‹"}</button>
       {!collapsed && <section className="operation-drawer">
@@ -459,6 +725,102 @@ export function OperationsPanel({
             </section>}
 
           {activeTab === "alerts" && <section className="operations-records" aria-label="활성 경보" aria-live="polite">
+            <section
+              className="fieldlink-alert-bridge"
+              aria-label="FieldLink 현장 전달"
+            >
+              <header>
+                <div>
+                  <strong>FieldLink 현장 전달</strong>
+                  <small>ALERT-03 · KPI-03</small>
+                </div>
+
+                <span
+                  data-state={
+                    fieldLinkAlertError
+                      ? "error"
+                      : fieldLinkAlertSummary
+                        ? "online"
+                        : "idle"
+                  }
+                >
+                  {fieldLinkAlertError
+                    ? "연결 확인 필요"
+                    : fieldLinkAlertSummary
+                      ? "연결됨"
+                      : "PIN 대기"}
+                </span>
+              </header>
+
+              <div className="fieldlink-auth-row">
+                <input
+                  type="password"
+                  value={fieldLinkPin}
+                  placeholder="현장 PIN"
+                  aria-label="FieldLink 현장 PIN"
+                  autoComplete="off"
+                  onChange={(event) => {
+                    const next =
+                      event.target.value;
+
+                    setFieldLinkPin(next);
+
+                    if (
+                      typeof window !==
+                      "undefined"
+                    ) {
+                      window.sessionStorage.setItem(
+                        "fieldlink.command.pin",
+                        next,
+                      );
+                    }
+                  }}
+                />
+
+                <button
+                  type="button"
+                  onClick={
+                    refreshFieldLinkAlertSummary
+                  }
+                >
+                  연결 확인
+                </button>
+              </div>
+
+              <div className="fieldlink-kpi-grid">
+                <div>
+                  <span>전달</span>
+                  <strong>
+                    {fieldLinkAlertSummary
+                      ?.delivered ?? "-"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>확인</span>
+                  <strong>
+                    {fieldLinkAlertSummary
+                      ?.acknowledged ?? "-"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>성공률</span>
+                  <strong>
+                    {fieldLinkAlertSummary
+                      ?.successRatePct == null
+                      ? "-"
+                      : `${fieldLinkAlertSummary.successRatePct}%`}
+                  </strong>
+                </div>
+              </div>
+
+              {fieldLinkAlertError && (
+                <small className="fieldlink-alert-error">
+                  {fieldLinkAlertError}
+                </small>
+              )}
+            </section>
             {activeAlerts.length === 0 && <p className="operation-empty-state"><b>현재 활성 경보 없음</b><span>정상 상태입니다.</span></p>}
             {activeAlerts.slice(0, 12).map((alert) => {
               const severity = value(alert, ["severity", "severityCode"], "WARNING");
@@ -467,6 +829,26 @@ export function OperationsPanel({
                 <div><strong>{value(alert, ["title", "alertType", "type"], "현장 경보")}</strong><span>{label(severity)}</span></div>
                 <p>{value(alert, ["message", "description"], "상세 내용이 없습니다.")}</p>
                 <small>{label(value(alert, ["status"], "OPEN"))} · {occurredAt(alert, ["issuedAt", "createdAt"])} · 발령 {value(alert, ["issuerOrgCode"], "기관 미상")}</small>
+
+                <button
+                  type="button"
+                  className="fieldlink-alert-send"
+                  disabled={
+                    !fieldLinkPin ||
+                    fieldLinkSendingId ===
+                      alertKey
+                  }
+                  onClick={() =>
+                    void handleFieldLinkAlertSend(
+                      alert,
+                    )
+                  }
+                >
+                  {fieldLinkSendingId ===
+                  alertKey
+                    ? "FieldLink 전달 중"
+                    : "FieldLink 전달"}
+                </button>
                 {demoAlertWorkflow && <div className="demo-alert-actions">
                   <button type="button" disabled={value(alert, ["status"]) === "ACKNOWLEDGED"} onClick={() => handleAlertAction(alertKey, value(alert, ["status"], "ACTIVE"), "ACKNOWLEDGE")}>경보 확인</button>
                   <button type="button" onClick={() => handleAlertAction(alertKey, value(alert, ["status"], "ACTIVE"), "RESOLVE")}>조치 후 해제</button>

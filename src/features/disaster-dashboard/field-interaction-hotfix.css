@@ -552,3 +552,156 @@
   }
 }
 
+
+/* =========================================================
+   FIELDLINK LAN MESSENGER LAUNCHER
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode
+  .operations-panel
+  .fieldlink-launch-button {
+  position: relative;
+  border-top: 1px solid #dfe9e5;
+}
+
+.unified-disaster-board.is-field-mode
+  .operations-panel
+  .fieldlink-launch-button i {
+  font-style: normal;
+  font-size: 14px;
+}
+
+.unified-disaster-board.is-field-mode
+  .operations-panel
+  .fieldlink-launch-button:hover {
+  background: #edf7f3;
+  color: #075f4c;
+}
+
+.unified-disaster-board.is-field-mode
+  .operations-panel
+  .fieldlink-launch-button::after {
+  content: "↗";
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  font-size: 7px;
+  opacity: 0.55;
+}
+
+
+/* =========================================================
+   FIELDLINK ALERT / ACK BRIDGE
+   ========================================================= */
+
+.fieldlink-alert-bridge {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #d8e6e1;
+  border-radius: 10px;
+  background: #f8fbfa;
+}
+
+.fieldlink-alert-bridge > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.fieldlink-alert-bridge > header div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fieldlink-alert-bridge > header small {
+  font-size: 10px;
+  opacity: 0.65;
+}
+
+.fieldlink-alert-bridge > header > span {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.fieldlink-alert-bridge
+  > header
+  > span[data-state="online"] {
+  color: #15805d;
+}
+
+.fieldlink-alert-bridge
+  > header
+  > span[data-state="error"] {
+  color: #c23c3c;
+}
+
+.fieldlink-auth-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+}
+
+.fieldlink-auth-row input {
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid #cad8d3;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.fieldlink-auth-row button,
+.fieldlink-alert-send {
+  border: 1px solid #12805f;
+  border-radius: 7px;
+  padding: 7px 9px;
+  background: #fff;
+  color: #09634b;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fieldlink-alert-send {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.fieldlink-alert-send:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.fieldlink-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.fieldlink-kpi-grid > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 7px 4px;
+  border-radius: 7px;
+  background: #fff;
+  border: 1px solid #e0eae6;
+}
+
+.fieldlink-kpi-grid span {
+  font-size: 10px;
+  opacity: 0.65;
+}
+
+.fieldlink-kpi-grid strong {
+  margin-top: 2px;
+  font-size: 14px;
+}
+
+.fieldlink-alert-error {
+  display: block;
+  margin-top: 7px;
+  color: #b63737;
+}
