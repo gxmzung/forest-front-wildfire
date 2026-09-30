@@ -7,6 +7,10 @@ import "./dashboard-responsive-tv.css";
 import type { ApiRecord, NetworkTopology } from "../../http-api";
 import type { LiveLocation } from "./UnifiedDisasterDashboard";
 import { classifyLinkHealth } from "./operationalEvidence";
+import {
+  buildTerrainAnalysis,
+  type TerrainAnalysisResult,
+} from "./terrainAnalysis";
 
 type Props = {
   locations: LiveLocation[];
@@ -722,6 +726,25 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
   const [terrain3d, setTerrain3d] = useState(false);
   const [riskHeatmap, setRiskHeatmap] = useState(false);
   const [terrainElevationM, setTerrainElevationM] = useState<number | null>(null);
+
+  const [
+    terrainAnalysis,
+    setTerrainAnalysis,
+  ] = useState<
+    TerrainAnalysisResult | null
+  >(null);
+
+  const terrainAnalysisRequested =
+    visibleLayerIds.has(
+      "slope-gradients",
+    ) ||
+    visibleLayerIds.has(
+      "viewsheds",
+    ) ||
+    visibleLayerIds.has(
+      "communication-shadows",
+    );
+
   const fallbackTerrainConfig = resolveTerrainConfig(import.meta.env);
   const terrainConfig = wildfireDemo ? DEOKSUNG_DEM : fallbackTerrainConfig;
   const [tileDegraded, setTileDegraded] = useState(false);
@@ -846,6 +869,503 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
     map.on("mousemove", handleMove);
     return () => { map.off("mousemove", handleMove); };
   }, [terrain3d]);
+
+  useEffect(() => {
+    const map =
+      mapRef.current;
+
+    if (
+      !map ||
+      !eventCenter ||
+      !terrainAnalysisRequested
+    ) {
+      setTerrainAnalysis(
+        null,
+      );
+
+      return;
+    }
+
+    let disposed =
+      false;
+
+    let timer:
+      number | null =
+      null;
+
+    const analysisLayerIds = [
+      "slope-gradients",
+      "viewsheds",
+      "communication-shadows",
+    ] as const;
+
+    const ensureSource = (
+      sourceId: string,
+      data:
+        GeoJSON.FeatureCollection,
+    ) => {
+      const source =
+        map.getSource(
+          sourceId,
+        ) as
+          | GeoJSONSource
+          | undefined;
+
+      if (source) {
+        source.setData(
+          data,
+        );
+
+        return;
+      }
+
+      map.addSource(
+        sourceId,
+        {
+          type:
+            "geojson",
+
+          data,
+        },
+      );
+    };
+
+    const ensureLayers =
+      (
+        result:
+          TerrainAnalysisResult,
+      ) => {
+        ensureSource(
+          "dem-analysis-slope",
+          result.slopeGeoJson,
+        );
+
+        ensureSource(
+          "dem-analysis-viewshed",
+          result.viewshedGeoJson,
+        );
+
+        ensureSource(
+          "dem-analysis-shadow",
+          result.shadowGeoJson,
+        );
+
+        if (
+          !map.getLayer(
+            "dem-analysis-slope-fill",
+          )
+        ) {
+          map.addLayer({
+            id:
+              "dem-analysis-slope-fill",
+
+            type:
+              "fill",
+
+            source:
+              "dem-analysis-slope",
+
+            paint: {
+              "fill-color": [
+                "interpolate",
+                ["linear"],
+                ["get", "slopeDeg"],
+                0,
+                "#dbe9d2",
+                15,
+                "#e5d179",
+                25,
+                "#d99957",
+                35,
+                "#c95d48",
+                45,
+                "#8c3030",
+              ],
+
+              "fill-opacity":
+                0.38,
+
+              "fill-outline-color":
+                "rgba(83,51,38,0.16)",
+            },
+          });
+        }
+
+        if (
+          !map.getLayer(
+            "dem-analysis-viewshed-fill",
+          )
+        ) {
+          map.addLayer({
+            id:
+              "dem-analysis-viewshed-fill",
+
+            type:
+              "fill",
+
+            source:
+              "dem-analysis-viewshed",
+
+            paint: {
+              "fill-color":
+                "#d8bd38",
+
+              "fill-opacity":
+                0.20,
+
+              "fill-outline-color":
+                "rgba(122,98,12,0.20)",
+            },
+          });
+        }
+
+        if (
+          !map.getLayer(
+            "dem-analysis-shadow-fill",
+          )
+        ) {
+          map.addLayer({
+            id:
+              "dem-analysis-shadow-fill",
+
+            type:
+              "fill",
+
+            source:
+              "dem-analysis-shadow",
+
+            paint: {
+              "fill-color":
+                "#364655",
+
+              "fill-opacity":
+                0.30,
+
+              "fill-outline-color":
+                "rgba(24,34,43,0.25)",
+            },
+          });
+        }
+
+        map.setLayoutProperty(
+          "dem-analysis-slope-fill",
+          "visibility",
+          visibleLayerIds.has(
+            "slope-gradients",
+          )
+            ? "visible"
+            : "none",
+        );
+
+        map.setLayoutProperty(
+          "dem-analysis-viewshed-fill",
+          "visibility",
+          visibleLayerIds.has(
+            "viewsheds",
+          )
+            ? "visible"
+            : "none",
+        );
+
+        map.setLayoutProperty(
+          "dem-analysis-shadow-fill",
+          "visibility",
+          visibleLayerIds.has(
+            "communication-shadows",
+          )
+            ? "visible"
+            : "none",
+        );
+
+        /*
+         * DEMO에 남아 있는 예전 reference polygon은
+         * 실제 DEM 계산 레이어와 혼합하지 않는다.
+         */
+        for (
+          const layerId of
+          analysisLayerIds
+        ) {
+          const oldLayer =
+            `domain-layer-${layerId}`;
+
+          if (
+            map.getLayer(
+              oldLayer,
+            )
+          ) {
+            map.setLayoutProperty(
+              oldLayer,
+              "visibility",
+              "none",
+            );
+          }
+        }
+      };
+
+    const run =
+      () => {
+        if (
+          disposed ||
+          !map.getSource(
+            "terrain-dem",
+          )
+        ) {
+          return;
+        }
+
+        /*
+         * 2D 화면에서도 분석 자체는 DEM을 사용해야 하므로
+         * terrain source를 1배율로 활성화한다.
+         *
+         * 3D 버튼 사용 시 기존 terrain effect가
+         * 더 높은 exaggeration을 적용한다.
+         */
+        if (
+          !map.getTerrain()
+        ) {
+          map.setTerrain({
+            source:
+              "terrain-dem",
+
+            exaggeration:
+              1,
+          });
+        }
+
+        const elevationAt =
+          (
+            longitude:
+              number,
+            latitude:
+              number,
+          ) => {
+            /*
+             * MapLibre queryTerrainElevation은
+             * 현재 terrain exaggeration이 적용된 값을 반환한다.
+             *
+             * DEM-03/05 계산에는 실제 DEM 해발고도가 필요하므로
+             * 현재 exaggeration을 제거해 원고도를 복원한다.
+             */
+            const exaggeratedElevation =
+              map.queryTerrainElevation({
+                lng:
+                  longitude,
+
+                lat:
+                  latitude,
+              });
+
+            if (
+              !Number.isFinite(
+                exaggeratedElevation,
+              )
+            ) {
+              return null;
+            }
+
+            const terrain =
+              map.getTerrain();
+
+            const exaggeration =
+              terrain &&
+              typeof terrain.exaggeration ===
+                "number" &&
+              Number.isFinite(
+                terrain.exaggeration,
+              ) &&
+              terrain.exaggeration > 0
+                ? terrain.exaggeration
+                : 1;
+
+            return (
+              Number(
+                exaggeratedElevation,
+              ) /
+              exaggeration
+            );
+          };
+
+        const communicationCategories =
+          new Set([
+            "FIXED_RELAY",
+            "MOBILE_RELAY",
+            "RTK_BASE_LPWA_GATEWAY",
+            "PRIVATE_5G_NTN_GATEWAY",
+            "LTE_GATEWAY",
+            "TVWS_BASE_STATION",
+            "GCS",
+            "COMMAND_VEHICLE",
+          ]);
+
+        const observer =
+          locations.find(
+            (location) =>
+              location.registeredToEvent &&
+              communicationCategories.has(
+                location.category,
+              ),
+          ) ??
+          locations.find(
+            (location) =>
+              location.registeredToEvent &&
+              [
+                "UAV",
+                "MAIN_RELAY_DRONE",
+                "SERVICE_RELAY_DRONE",
+              ].includes(
+                location.category,
+              ),
+          );
+
+        const result =
+          buildTerrainAnalysis({
+            center:
+              eventCenter,
+
+            radiusM:
+              900,
+
+            /*
+             * 기본 NGII DEM이 90m이므로
+             * 과도한 보간을 피하기 위해
+             * 120m 분석 셀을 사용한다.
+             */
+            cellSizeM:
+              120,
+
+            elevationAt,
+
+            observer:
+              observer
+                ? {
+                    id:
+                      observer.id,
+
+                    longitude:
+                      observer.longitude,
+
+                    latitude:
+                      observer.latitude,
+
+                    altitudeM:
+                      observer.altitude,
+
+                    heightAboveGroundM:
+                      [
+                        "UAV",
+                        "MAIN_RELAY_DRONE",
+                        "SERVICE_RELAY_DRONE",
+                      ].includes(
+                        observer.category,
+                      )
+                        ? 80
+                        : 8,
+                  }
+                : {
+                    id:
+                      "EVENT-CENTER",
+
+                    longitude:
+                      eventCenter[0],
+
+                    latitude:
+                      eventCenter[1],
+
+                    heightAboveGroundM:
+                      10,
+                  },
+
+            slopeWarningDeg:
+              25,
+
+            losSamples:
+              10,
+
+            targetHeightAboveGroundM:
+              1.7,
+
+            clearanceM:
+              1,
+          });
+
+        if (
+          disposed
+        ) {
+          return;
+        }
+
+        /*
+         * DEM 타일이 아직 로드되지 않은 경우
+         * 가짜 결과를 만들지 않고 다음 idle을 기다린다.
+         */
+        if (
+          result.sampledCells ===
+          0
+        ) {
+          setTerrainAnalysis(
+            null,
+          );
+
+          return;
+        }
+
+        setTerrainAnalysis(
+          result,
+        );
+
+        ensureLayers(
+          result,
+        );
+      };
+
+    const schedule =
+      () => {
+        if (
+          timer != null
+        ) {
+          window.clearTimeout(
+            timer,
+          );
+        }
+
+        timer =
+          window.setTimeout(
+            run,
+            120,
+          );
+      };
+
+    map.on(
+      "idle",
+      schedule,
+    );
+
+    schedule();
+
+    return () => {
+      disposed =
+        true;
+
+      map.off(
+        "idle",
+        schedule,
+      );
+
+      if (
+        timer != null
+      ) {
+        window.clearTimeout(
+          timer,
+        );
+      }
+    };
+  }, [
+    eventCenter,
+    locations,
+    terrainAnalysisRequested,
+    terrain3d,
+    visibleLayerIds,
+  ]);
 
   useEffect(() => {
     const map = mapRef.current;
