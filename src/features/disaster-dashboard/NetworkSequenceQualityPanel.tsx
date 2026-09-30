@@ -158,8 +158,8 @@ export default function NetworkSequenceQualityPanel({
     >
       <header className="network-seq-card-header">
         <div>
-          <strong>장비별 통신품질</strong>
-          <small>최근 100 SEQ · 수신/유실/Packet Loss</small>
+          <strong>MAVLink/GCS 통신품질</strong>
+          <small>MAVLink 최근 100 SEQ · 보조 품질지표</small>
         </div>
         <b>
           {measuredRows.length > 0

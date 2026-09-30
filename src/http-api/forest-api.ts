@@ -1,4 +1,5 @@
 import { LiveDroneTelemetryReader, mergeDroneTwins } from "./live-drone-twin";
+import type { SlenoNetworkQuality } from "./sleno-quality";
 import {
   emptyE2EOverview,
   isLocalE2EMode,
@@ -213,6 +214,17 @@ export const forestApi = {
 
   dashboardDroneTelemetry: (eventId: string) =>
     dashboardApi<DataResponse<ApiRecord[]>>(`/api/v1/dashboard/telemetry/drones?eventId=${encodeURIComponent(eventId)}`, {signal: AbortSignal.timeout(2500)}),
+
+  slenoNetworkQuality: (limit = 1000) =>
+    dashboardApi<DataResponse<SlenoNetworkQuality>>(
+      `/api/v1/dashboard/network-quality/sleno?limit=${limit}`,
+      {
+        signal:
+          AbortSignal.timeout(
+            2500,
+          ),
+      },
+    ),
 
   dashboardDisasterAssets: (disasterId: string) =>
     dashboardApi<DashboardDisasterAssetsResponse>(

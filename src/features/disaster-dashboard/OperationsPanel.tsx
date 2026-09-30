@@ -8,6 +8,7 @@ import type { TelemetryStreamStatus } from "./telemetryStream";
 import { createAlertAudit, transitionAlert, type AlertWorkflowAction, type AlertWorkflowStatus } from "./alertWorkflow";
 import PerformanceKpiPanel from "./PerformanceKpiPanel";
 import NetworkSequenceQualityPanel from "./NetworkSequenceQualityPanel";
+import SlenoNetworkQualityPanel from "./SlenoNetworkQualityPanel";
 import {
   deliverFieldLinkAlert,
   getFieldLinkAlertSummary,
@@ -1006,6 +1007,7 @@ export function OperationsPanel({
             <p className="operation-readonly-note">DEMO 조치는 브라우저 세션에서만 유지됩니다. 운영 저장은 명령센터 권한 및 감사 이력 API 연계 후 사용합니다.</p>
           </section>}
           {activeTab === "networks" && <section className="operations-records" aria-label="통신망 상태">
+            <SlenoNetworkQualityPanel />
 
             <article
               className="network-detail-card net01-path-monitor"
