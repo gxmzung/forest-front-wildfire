@@ -1,0 +1,1835 @@
+/* FIELD INTERACTION / LAYOUT P0
+   2026-09-29
+   - inspector tabs become real controls
+   - drawer stays above map interaction layer
+   - inspector content scrolls instead of clipping
+   - field grid may shrink safely
+*/
+
+.unified-disaster-board.is-field-mode,
+.unified-disaster-board.is-field-mode * {
+  box-sizing: border-box;
+}
+
+/* -------------------------------------------------------
+   Main field grid
+------------------------------------------------------- */
+
+.unified-disaster-board.is-field-mode
+  .field-command-stage
+  .live-location-layout {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns:
+    clamp(250px, 18vw, 330px)
+    minmax(0, 1fr)
+    clamp(270px, 18vw, 318px) !important;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-command-stage
+  .location-map {
+  min-width: 0;
+  min-height: 0;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-command-stage
+  .live-location-panel {
+  min-width: 0;
+  min-height: 0;
+}
+
+/* -------------------------------------------------------
+   Left operation rail / drawer
+------------------------------------------------------- */
+
+/* Previous -1 z-index could put the visible drawer behind
+   the map's pointer target. */
+.unified-disaster-board.is-field-mode .operations-panel {
+  pointer-events: auto;
+}
+
+.unified-disaster-board.is-field-mode .operation-drawer {
+  z-index: 4 !important;
+  pointer-events: auto !important;
+}
+
+.unified-disaster-board.is-field-mode .operations-panel > nav button,
+.unified-disaster-board.is-field-mode .operation-drawer button,
+.unified-disaster-board.is-field-mode .layer-control-list button {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.unified-disaster-board.is-field-mode
+  .operations-panel > nav button:focus-visible,
+.unified-disaster-board.is-field-mode
+  .operation-drawer button:focus-visible {
+  outline: 2px solid #0b8f70;
+  outline-offset: -2px;
+}
+
+/* -------------------------------------------------------
+   Right inspector
+------------------------------------------------------- */
+
+.field-command-inspector {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.field-command-inspector > header,
+.field-inspector-identity,
+.field-inspector-tabs {
+  flex: 0 0 auto;
+}
+
+.field-inspector-tabs {
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.field-inspector-tabs button {
+  appearance: none;
+  min-width: 0;
+  min-height: 38px;
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
+  border-right: 1px solid #e4ece9;
+  border-radius: 0;
+  background: #fafcfb;
+  color: #71847d;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.field-inspector-tabs button:last-child {
+  border-right: 0;
+}
+
+.field-inspector-tabs button:hover {
+  color: #075f4c;
+  background: #f0f7f4;
+}
+
+.field-inspector-tabs button.active,
+.field-inspector-tabs button[aria-selected="true"] {
+  color: #075f4c;
+  background: #eaf6f1;
+  box-shadow: inset 0 -2px 0 #0b725b;
+}
+
+.field-inspector-tabs button:focus-visible {
+  position: relative;
+  z-index: 2;
+  outline: 2px solid #0b8f70;
+  outline-offset: -2px;
+}
+
+.field-inspector-pane {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.field-quality-pane {
+  display: block;
+}
+
+/* -------------------------------------------------------
+   Detail tab
+------------------------------------------------------- */
+
+.field-twin-detail {
+  margin: 0;
+  padding: 8px 10px 14px;
+}
+
+.field-twin-detail > div {
+  display: grid;
+  grid-template-columns: minmax(92px, 0.9fr) minmax(0, 1.1fr);
+  gap: 8px;
+  align-items: start;
+  padding: 7px 2px;
+  border-bottom: 1px solid #edf2f0;
+}
+
+.field-twin-detail dt {
+  color: #71847d;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.field-twin-detail dd {
+  min-width: 0;
+  margin: 0;
+  color: #24483d;
+  font-size: 9px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.field-inspector-empty {
+  display: grid;
+  gap: 7px;
+  place-content: center;
+  min-height: 180px;
+  padding: 20px;
+  text-align: center;
+}
+
+.field-inspector-empty strong {
+  color: #31584c;
+  font-size: 11px;
+}
+
+.field-inspector-empty span {
+  color: #7b8d87;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+/* -------------------------------------------------------
+   Video tab
+------------------------------------------------------- */
+
+.field-inspector-video-pane {
+  padding: 12px;
+}
+
+.field-video-tab-summary {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid #dbe8e3;
+  border-radius: 7px;
+  background: #f8fbfa;
+}
+
+.field-video-tab-summary span,
+.field-video-tab-summary small {
+  color: #74877f;
+  font-size: 9px;
+}
+
+.field-video-tab-summary strong {
+  color: #234b3f;
+  font-size: 13px;
+}
+
+.field-open-video-button {
+  width: 100%;
+  min-height: 38px;
+  margin-top: 10px;
+  border: 1px solid #0b725b;
+  border-radius: 6px;
+  background: #0b725b;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.field-open-video-button:hover:not(:disabled) {
+  background: #075f4c;
+}
+
+.field-open-video-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.field-video-wait {
+  margin: 10px 0 0;
+  color: #7a8d86;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+/* -------------------------------------------------------
+   Footer / overflow containment
+------------------------------------------------------- */
+
+.field-command-footer,
+.field-video-strip,
+.field-timeline-deck {
+  min-width: 0;
+  min-height: 0;
+}
+
+.field-command-footer {
+  overflow: hidden;
+}
+
+/* -------------------------------------------------------
+   Responsive field mode
+------------------------------------------------------- */
+
+@media (max-width: 1500px) {
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .live-location-layout {
+    grid-template-columns:
+      clamp(220px, 17vw, 290px)
+      minmax(0, 1fr)
+      clamp(250px, 20vw, 292px) !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .live-location-layout {
+    grid-template-columns:
+      68px
+      minmax(0, 1fr)
+      minmax(250px, 280px) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .field-command-inspector {
+    display: none;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .live-location-layout {
+    grid-template-columns: 52px minmax(0, 1fr) !important;
+  }
+}
+
+/* =========================================================
+   FIELD UI P1 POLISH
+   2026-09-29
+   ========================================================= */
+
+/* 전체 3열 비율 안정화 */
+@media (min-width: 1501px) {
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .live-location-layout {
+    grid-template-columns:
+      300px
+      minmax(620px, 1fr)
+      340px !important;
+    gap: 8px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .operations-panel {
+    width: 300px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .operation-drawer {
+    width: 232px !important;
+  }
+}
+
+/* 오른쪽 inspector 가독성 */
+.field-command-inspector {
+  font-size: 100% !important;
+  border: 1px solid #d6e3de;
+}
+
+.field-command-inspector > header {
+  min-height: 58px;
+  padding: 10px 12px;
+}
+
+.field-command-inspector > header small {
+  font-size: 9px;
+}
+
+.field-command-inspector > header strong {
+  font-size: 14px;
+}
+
+.field-inspector-identity {
+  padding: 11px 12px;
+}
+
+.field-inspector-identity span {
+  font-size: 9px;
+}
+
+.field-inspector-identity b {
+  font-size: 14px;
+}
+
+.field-inspector-identity small {
+  font-size: 9px;
+}
+
+/* 탭: 클릭 영역 + sticky */
+.field-inspector-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  min-height: 42px;
+}
+
+.field-inspector-tabs button {
+  min-height: 42px;
+  font-size: 10px;
+  letter-spacing: -0.01em;
+}
+
+/* 통신 품질 카드 */
+.field-seq-summary {
+  padding: 10px 11px;
+}
+
+.field-seq-summary header span {
+  font-size: 10px;
+}
+
+.field-seq-summary header small {
+  font-size: 8px;
+}
+
+.field-seq-grid {
+  gap: 6px;
+}
+
+.field-seq-grid article {
+  min-width: 0;
+  padding: 8px;
+}
+
+.field-seq-grid article small {
+  font-size: 8px;
+}
+
+.field-seq-grid article strong {
+  font-size: 13px;
+}
+
+/* 진단 항목 */
+.field-link-diagnostics {
+  padding: 4px 11px 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 12px;
+}
+
+.field-link-diagnostics > div {
+  min-width: 0;
+  padding: 7px 0;
+}
+
+.field-link-diagnostics dt {
+  font-size: 8px;
+}
+
+.field-link-diagnostics dd {
+  min-width: 0;
+  font-size: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 오른쪽 패널 스크롤 */
+.field-inspector-pane {
+  scrollbar-width: thin;
+  scrollbar-color: #b7cbc3 transparent;
+}
+
+.field-inspector-pane::-webkit-scrollbar {
+  width: 6px;
+}
+
+.field-inspector-pane::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #b7cbc3;
+}
+
+/* 왼쪽 drawer */
+.operation-drawer {
+  max-width: min(320px, calc(100vw - 720px));
+}
+
+.operations-panel-body {
+  scrollbar-width: thin;
+}
+
+.operations-panel-body button {
+  cursor: pointer;
+}
+
+/* 지도 버튼 클릭영역 */
+.basemap-switch {
+  z-index: 80 !important;
+  pointer-events: auto !important;
+}
+
+.basemap-switch button {
+  min-height: 34px;
+  padding: 0 13px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+/* 지도 UI가 패널 뒤에 숨지 않게 */
+.maplibregl-control-container {
+  pointer-events: none;
+}
+
+.maplibregl-control-container button,
+.maplibregl-control-container a {
+  pointer-events: auto;
+}
+
+/* 하단 영역 높이 조금 확보 */
+.unified-disaster-board.is-field-mode {
+  grid-template-rows:
+    auto
+    auto
+    minmax(0, 1fr)
+    150px !important;
+}
+
+.field-command-footer {
+  min-height: 150px;
+  max-height: 150px;
+}
+
+.field-video-strip,
+.field-timeline-deck {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 영상 카드 글씨 눌림 완화 */
+.field-video-strip article {
+  min-width: 0;
+}
+
+.field-video-strip article strong,
+.field-video-strip article span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 좌우 패널 때문에 map canvas 계산 깨지는 것 방지 */
+.live-basemap,
+.live-basemap .maplibregl-map,
+.live-basemap .maplibregl-canvas-container,
+.live-basemap .maplibregl-canvas {
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+
+/* 중간 해상도 */
+@media (max-width: 1500px) and (min-width: 1181px) {
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .live-location-layout {
+    grid-template-columns:
+      260px
+      minmax(520px, 1fr)
+      300px !important;
+  }
+
+  .field-command-inspector {
+    font-size: 95% !important;
+  }
+}
+
+
+/* =========================================================
+   FIELDLINK LAN MESSENGER LAUNCHER
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode
+  .operations-panel
+  .fieldlink-launch-button {
+  position: relative;
+  border-top: 1px solid #dfe9e5;
+}
+
+.unified-disaster-board.is-field-mode
+  .operations-panel
+  .fieldlink-launch-button i {
+  font-style: normal;
+  font-size: 14px;
+}
+
+.unified-disaster-board.is-field-mode
+  .operations-panel
+  .fieldlink-launch-button:hover {
+  background: #edf7f3;
+  color: #075f4c;
+}
+
+.unified-disaster-board.is-field-mode
+  .operations-panel
+  .fieldlink-launch-button::after {
+  content: "↗";
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  font-size: 7px;
+  opacity: 0.55;
+}
+
+
+/* =========================================================
+   FIELDLINK ALERT / ACK BRIDGE
+   ========================================================= */
+
+.fieldlink-alert-bridge {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #d8e6e1;
+  border-radius: 10px;
+  background: #f8fbfa;
+}
+
+.fieldlink-alert-bridge > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+
+.fieldlink-alert-bridge > header div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fieldlink-alert-bridge > header small {
+  font-size: 10px;
+  opacity: 0.65;
+}
+
+.fieldlink-alert-bridge > header > span {
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.fieldlink-alert-bridge
+  > header
+  > span[data-state="online"] {
+  color: #15805d;
+}
+
+.fieldlink-alert-bridge
+  > header
+  > span[data-state="error"] {
+  color: #c23c3c;
+}
+
+.fieldlink-auth-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px;
+}
+
+.fieldlink-auth-row input {
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid #cad8d3;
+  border-radius: 7px;
+  background: #fff;
+}
+
+.fieldlink-auth-row button,
+.fieldlink-alert-send {
+  border: 1px solid #12805f;
+  border-radius: 7px;
+  padding: 7px 9px;
+  background: #fff;
+  color: #09634b;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.fieldlink-alert-send {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.fieldlink-alert-send:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.fieldlink-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.fieldlink-kpi-grid > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 7px 4px;
+  border-radius: 7px;
+  background: #fff;
+  border: 1px solid #e0eae6;
+}
+
+.fieldlink-kpi-grid span {
+  font-size: 10px;
+  opacity: 0.65;
+}
+
+.fieldlink-kpi-grid strong {
+  margin-top: 2px;
+  font-size: 14px;
+}
+
+.fieldlink-alert-error {
+  display: block;
+  margin-top: 7px;
+  color: #b63737;
+}
+
+
+/* =========================================================
+   FIELDLINK ALERT BRIDGE NARROW PANEL FIX
+   ========================================================= */
+
+.fieldlink-alert-bridge {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.fieldlink-alert-bridge > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+  width: 100%;
+}
+
+.fieldlink-alert-bridge > header > div {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.fieldlink-alert-bridge > header strong,
+.fieldlink-alert-bridge > header small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fieldlink-bridge-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  flex: 0 0 auto;
+  min-width: 48px;
+  max-width: 68px;
+  min-height: 24px;
+
+  padding: 0 7px;
+
+  border-radius: 999px;
+
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.fieldlink-bridge-status[data-state="online"] {
+  color: #137354;
+  background: #e7f6ef;
+  border: 1px solid #a4dac5;
+}
+
+.fieldlink-bridge-status[data-state="idle"] {
+  color: #65736e;
+  background: #f2f5f4;
+  border: 1px solid #d6dfdc;
+}
+
+.fieldlink-bridge-status[data-state="error"] {
+  color: #b83c38;
+  background: #fff0ee;
+  border: 1px solid #efb6b2;
+}
+
+.fieldlink-auth-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 68px;
+  gap: 6px;
+  width: 100%;
+}
+
+.fieldlink-auth-row input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.fieldlink-auth-row button {
+  width: 68px;
+  min-width: 0;
+  padding: 7px 4px;
+  box-sizing: border-box;
+
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.fieldlink-kpi-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+}
+
+.fieldlink-kpi-grid > div {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.fieldlink-kpi-grid span,
+.fieldlink-kpi-grid strong {
+  max-width: 100%;
+  white-space: nowrap;
+}
+
+.fieldlink-bridge-hint {
+  display: block;
+
+  max-width: 100%;
+  margin-top: 7px;
+
+  color: #697873;
+
+  font-size: 9px;
+  line-height: 1.35;
+
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+
+.fieldlink-bridge-hint.is-error {
+  color: #b83c38;
+}
+
+
+/* =========================================================
+   TOP COMMAND HEADER FINAL LAYOUT FIX
+   - remove E2E badge/action overlap
+   - keep registry / requirement actions visible
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode .map-command-header {
+  display: grid !important;
+
+  grid-template-columns:
+    auto
+    minmax(260px, 1fr)
+    auto
+    auto !important;
+
+  grid-template-areas:
+    "brand event actions summary" !important;
+
+  align-items: center !important;
+  column-gap: 12px !important;
+
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* 로고 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .service-brand {
+  grid-area: brand !important;
+
+  display: flex !important;
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+
+  white-space: nowrap;
+}
+
+/* 사건 선택 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .event-selector {
+  grid-area: event !important;
+
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+/* E2E/DEMO 뱃지가 액션 버튼 밑으로 들어가던 원인 제거 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  > .demo-mode-badge:not(.field-mode-badge) {
+  display: none !important;
+}
+
+/* 가운데 주요 액션 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .command-primary-actions {
+  grid-area: actions !important;
+
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 8px !important;
+  min-width: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  overflow: hidden !important;
+  z-index: 5 !important;
+}
+
+/* 기존 field-header-hotfix의 display:none을 최종적으로 해제 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .command-primary-actions
+  .asset-registry-open,
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .command-primary-actions
+  .requirements-open {
+  display: inline-flex !important;
+
+  align-items: center !important;
+  justify-content: center !important;
+
+  position: static !important;
+
+  flex: 0 0 auto !important;
+
+  min-width: 118px !important;
+  height: 34px !important;
+  padding: 0 14px !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+
+  margin: 0 !important;
+}
+
+/* 우측 요약 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .header-summary {
+  grid-area: summary !important;
+
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+
+  justify-self: end !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  gap: 5px !important;
+
+  min-width: 0 !important;
+  margin: 0 !important;
+}
+
+/* 현재 상단에서 중복되는 부가 항목은 숨김 */
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .header-event-state,
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .asset-status-open,
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .last-updated,
+.unified-disaster-board.is-field-mode
+  .map-command-header
+  .field-preview-toggle {
+  display: none !important;
+}
+
+/* 중간 폭 */
+@media (max-width: 1500px) {
+  .unified-disaster-board.is-field-mode .map-command-header {
+    grid-template-columns:
+      auto
+      minmax(220px, 1fr)
+      auto
+      auto !important;
+
+    column-gap: 8px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .map-command-header
+    .service-brand small {
+    display: none !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .map-command-header
+    .command-primary-actions
+    .asset-registry-open,
+  .unified-disaster-board.is-field-mode
+    .map-command-header
+    .command-primary-actions
+    .requirements-open {
+    min-width: 104px !important;
+    padding: 0 10px !important;
+  }
+}
+
+
+/* =========================================================
+   FIELD KPI CONTEXT MODE LABEL FIX
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+
+  gap: 3px !important;
+
+  min-width: 0 !important;
+  padding: 7px 9px !important;
+
+  overflow: hidden !important;
+}
+
+/* 기존 CSS pseudo SYNTHETIC OFF 제거 */
+.unified-disaster-board.is-field-mode
+  .field-kpi-context::after {
+  display: none !important;
+  content: none !important;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context > b {
+  display: block;
+
+  max-width: 100%;
+
+  color: #174f43;
+
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.1;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context > span {
+  display: block;
+
+  max-width: 100%;
+  margin: 0 !important;
+
+  font-size: 7px;
+  line-height: 1.15;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context
+  .field-api-health {
+  max-width: 100%;
+  min-width: 0;
+
+  padding: 4px 7px;
+
+  font-size: 9px;
+
+  overflow: hidden;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context
+  .field-api-health > span,
+.unified-disaster-board.is-field-mode
+  .field-kpi-context
+  .field-api-health > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-kpi-mode-chip {
+  display: inline-flex;
+
+  align-items: center;
+
+  width: max-content;
+  max-width: 100%;
+
+  margin-top: 1px;
+
+  padding: 2px 6px;
+
+  border: 1px solid #c8d8d2;
+  border-radius: 999px;
+
+  background: #fff;
+
+  color: #61736c;
+
+  font-size: 7px;
+  font-weight: 850;
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.field-kpi-mode-chip[data-mode="physical"] {
+  color: #086047;
+  border-color: #a7ccbf;
+  background: #eff9f5;
+}
+
+.field-kpi-mode-chip[data-mode="synthetic"] {
+  color: #16608a;
+  border-color: #9cc9df;
+  background: #eff8fc;
+}
+
+.field-kpi-mode-chip[data-mode="demo"] {
+  color: #94620b;
+  border-color: #e0c585;
+  background: #fff9e8;
+}
+
+/* =========================================================
+   FIELD KPI CONTEXT FINAL COMPACT FIX
+   ========================================================= */
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context {
+  display: grid !important;
+  grid-template-rows: auto auto !important;
+  align-content: center !important;
+  gap: 5px !important;
+
+  min-width: 0 !important;
+  min-height: 0 !important;
+
+  padding: 6px 9px !important;
+
+  overflow: hidden !important;
+}
+
+/* 기존 span/grid/absolute 규칙 완전 무효화 */
+.unified-disaster-board.is-field-mode
+  .field-kpi-context > *,
+.unified-disaster-board.is-field-mode
+  .field-kpi-context span,
+.unified-disaster-board.is-field-mode
+  .field-kpi-context b,
+.unified-disaster-board.is-field-mode
+  .field-kpi-context small {
+  position: static !important;
+  inset: auto !important;
+  transform: none !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  margin: 0 !important;
+}
+
+.field-kpi-context-title {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.field-kpi-context-title b {
+  display: block !important;
+
+  max-width: 100%;
+
+  color: #174f43 !important;
+
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  line-height: 1.15 !important;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-kpi-context-status {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+
+  min-width: 0;
+  overflow: hidden;
+}
+
+.field-kpi-mode-chip {
+  flex: 0 0 auto !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+
+  height: 18px !important;
+  padding: 0 6px !important;
+
+  border-radius: 999px;
+
+  font-size: 7px !important;
+  line-height: 1 !important;
+
+  white-space: nowrap !important;
+}
+
+.field-kpi-context-status .field-api-health {
+  flex: 0 1 auto !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+
+  width: auto !important;
+  min-width: 0 !important;
+  height: 18px !important;
+
+  padding: 0 7px !important;
+  margin: 0 !important;
+
+  border-radius: 999px !important;
+
+  overflow: hidden !important;
+}
+
+.field-kpi-context-status
+  .field-api-health span {
+  min-width: 0;
+
+  font-size: 7px !important;
+  line-height: 1 !important;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-kpi-context-status
+  .field-api-health i {
+  flex: 0 0 auto;
+
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.unified-disaster-board.is-field-mode
+  .field-kpi-context::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* =========================================================
+   NET-01 ACTUAL E2E PATH MONITOR
+   ========================================================= */
+
+.net01-path-monitor {
+  overflow: hidden;
+}
+
+.net01-path-monitor > p {
+  line-height: 1.4;
+}
+
+.net01-path-steps {
+  display: grid;
+  gap: 6px;
+
+  margin: 9px 0;
+}
+
+.net01-path-steps > section {
+  display: grid;
+
+  grid-template-columns:
+    8px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 7px;
+
+  min-width: 0;
+
+  padding: 7px 8px;
+
+  border: 1px solid #dde7e3;
+  border-radius: 8px;
+
+  background: #fbfdfc;
+}
+
+.net01-path-steps > section > i {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 999px;
+
+  background: #9ba9a4;
+}
+
+.net01-path-steps > section > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  min-width: 0;
+}
+
+.net01-path-steps > section strong {
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.net01-path-steps > section small {
+  max-width: 100%;
+
+  font-size: 8px;
+  line-height: 1.25;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.net01-path-steps > section > b {
+  font-size: 8px;
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.net01-path-steps
+  > section[data-state="LIVE"]
+  > i {
+  background: #15966a;
+  box-shadow:
+    0 0 0 2px rgba(21, 150, 106, 0.12);
+}
+
+.net01-path-steps
+  > section[data-state="LIVE"]
+  > b {
+  color: #137657;
+}
+
+.net01-path-steps
+  > section[data-state="STALE"]
+  > i {
+  background: #d99a25;
+}
+
+.net01-path-steps
+  > section[data-state="STALE"]
+  > b {
+  color: #9b6810;
+}
+
+.net01-path-steps
+  > section[data-state="OFFLINE"]
+  > i {
+  background: #d14b47;
+}
+
+.net01-path-steps
+  > section[data-state="OFFLINE"]
+  > b {
+  color: #b43b37;
+}
+
+.net01-path-metrics {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 5px !important;
+
+  margin: 8px 0 !important;
+}
+
+.net01-path-metrics > div {
+  min-width: 0;
+
+  padding: 6px;
+
+  border-radius: 7px;
+
+  background: #f6faf8;
+}
+
+.net01-path-metrics dt {
+  font-size: 8px;
+  opacity: 0.68;
+}
+
+.net01-path-metrics dd {
+  margin: 2px 0 0;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   NET-01 ACTUAL E2E PATH MONITOR
+   ========================================================= */
+
+.net01-path-monitor {
+  overflow: hidden;
+}
+
+.net01-path-monitor > p {
+  line-height: 1.4;
+}
+
+.net01-path-steps {
+  display: grid;
+  gap: 6px;
+
+  margin: 9px 0;
+}
+
+.net01-path-steps > section {
+  display: grid;
+
+  grid-template-columns:
+    8px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 7px;
+
+  min-width: 0;
+
+  padding: 7px 8px;
+
+  border: 1px solid #dde7e3;
+  border-radius: 8px;
+
+  background: #fbfdfc;
+}
+
+.net01-path-steps > section > i {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 999px;
+
+  background: #9ba9a4;
+}
+
+.net01-path-steps > section > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  min-width: 0;
+}
+
+.net01-path-steps > section strong {
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.net01-path-steps > section small {
+  max-width: 100%;
+
+  font-size: 8px;
+  line-height: 1.25;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.net01-path-steps > section > b {
+  font-size: 8px;
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.net01-path-steps
+  > section[data-state="LIVE"]
+  > i {
+  background: #15966a;
+  box-shadow:
+    0 0 0 2px rgba(21, 150, 106, 0.12);
+}
+
+.net01-path-steps
+  > section[data-state="LIVE"]
+  > b {
+  color: #137657;
+}
+
+.net01-path-steps
+  > section[data-state="STALE"]
+  > i {
+  background: #d99a25;
+}
+
+.net01-path-steps
+  > section[data-state="STALE"]
+  > b {
+  color: #9b6810;
+}
+
+.net01-path-steps
+  > section[data-state="OFFLINE"]
+  > i {
+  background: #d14b47;
+}
+
+.net01-path-steps
+  > section[data-state="OFFLINE"]
+  > b {
+  color: #b43b37;
+}
+
+.net01-path-metrics {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 5px !important;
+
+  margin: 8px 0 !important;
+}
+
+.net01-path-metrics > div {
+  min-width: 0;
+
+  padding: 6px;
+
+  border-radius: 7px;
+
+  background: #f6faf8;
+}
+
+.net01-path-metrics dt {
+  font-size: 8px;
+  opacity: 0.68;
+}
+
+.net01-path-metrics dd {
+  margin: 2px 0 0;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   NET-01 PATH MONITOR NARROW DRAWER FIX
+   ========================================================= */
+
+/* 기존 .network-detail-card > div 스타일보다 강하게 */
+article.network-detail-card.net01-path-monitor {
+  display: block !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* 설명 문구 */
+article.network-detail-card.net01-path-monitor > p {
+  display: block !important;
+  margin: 6px 0 8px !important;
+
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  font-size: 9px !important;
+  line-height: 1.35 !important;
+}
+
+/* 핵심: 4개 경로를 한 줄이 아닌 세로 4행으로 강제 */
+article.network-detail-card.net01-path-monitor
+  > .net01-path-steps {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  gap: 6px !important;
+  margin: 8px 0 !important;
+
+  align-items: stretch !important;
+  justify-content: stretch !important;
+
+  overflow: visible !important;
+}
+
+/* 기존 direct-child flex 규칙 무효화 */
+article.network-detail-card.net01-path-monitor
+  > .net01-path-steps
+  > section {
+  display: grid !important;
+
+  grid-template-columns:
+    7px
+    minmax(0, 1fr)
+    auto !important;
+
+  grid-template-rows: auto !important;
+
+  align-items: center !important;
+  justify-content: stretch !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  gap: 7px !important;
+
+  padding: 7px 8px !important;
+  margin: 0 !important;
+
+  border: 1px solid #dce8e3 !important;
+  border-radius: 7px !important;
+
+  background: #fbfdfc !important;
+
+  overflow: hidden !important;
+}
+
+/* 상태점 */
+article.network-detail-card.net01-path-monitor
+  .net01-path-steps
+  > section
+  > i {
+  display: block !important;
+
+  width: 7px !important;
+  height: 7px !important;
+
+  margin: 0 !important;
+
+  border-radius: 999px !important;
+}
+
+/* 가운데 텍스트 묶음 */
+article.network-detail-card.net01-path-monitor
+  .net01-path-steps
+  > section
+  > div {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+
+  min-width: 0 !important;
+  width: 100% !important;
+
+  gap: 2px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  overflow: hidden !important;
+}
+
+/* GCS → Uplink 등 */
+article.network-detail-card.net01-path-monitor
+  .net01-path-steps
+  > section
+  strong {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+
+  font-size: 9px !important;
+  font-weight: 850 !important;
+  line-height: 1.15 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 수신시간 / source */
+article.network-detail-card.net01-path-monitor
+  .net01-path-steps
+  > section
+  small {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+
+  font-size: 7px !important;
+  line-height: 1.2 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* LIVE / WAIT / STALE */
+article.network-detail-card.net01-path-monitor
+  .net01-path-steps
+  > section
+  > b {
+  display: block !important;
+
+  width: auto !important;
+  min-width: 30px !important;
+
+  margin: 0 !important;
+
+  font-size: 7px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+
+/* ---------------------------------------------------------
+   NET-01 metrics
+   --------------------------------------------------------- */
+
+article.network-detail-card.net01-path-monitor
+  > dl.net01-path-metrics {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr)) !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  gap: 5px !important;
+
+  margin: 8px 0 !important;
+}
+
+article.network-detail-card.net01-path-monitor
+  > dl.net01-path-metrics
+  > div {
+  display: block !important;
+
+  min-width: 0 !important;
+
+  margin: 0 !important;
+  padding: 6px !important;
+
+  border-radius: 6px !important;
+
+  background: #f3f8f6 !important;
+
+  overflow: hidden !important;
+}
+
+article.network-detail-card.net01-path-monitor
+  > dl.net01-path-metrics
+  dt {
+  display: block !important;
+
+  font-size: 7px !important;
+  line-height: 1.15 !important;
+
+  white-space: nowrap !important;
+}
+
+article.network-detail-card.net01-path-monitor
+  > dl.net01-path-metrics
+  dd {
+  display: block !important;
+
+  margin: 2px 0 0 !important;
+
+  font-size: 9px !important;
+  font-weight: 850 !important;
+  line-height: 1.15 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 하단 설명도 카드 밖으로 삐져나가지 않게 */
+article.network-detail-card.net01-path-monitor
+  > small {
+  display: block !important;
+
+  max-width: 100% !important;
+
+  margin-top: 5px !important;
+
+  font-size: 7px !important;
+  line-height: 1.35 !important;
+
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}

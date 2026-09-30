@@ -1,0 +1,218 @@
+.sleno-quality-card {
+  display: grid;
+  gap: 8px;
+
+  padding: 9px;
+
+  border: 1px solid #cfe2da;
+  border-left: 3px solid #11866a;
+  border-radius: 8px;
+
+  background: #fbfdfc;
+
+  overflow: hidden;
+}
+
+.sleno-quality-card > header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 6px;
+}
+
+.sleno-quality-card > header > div {
+  min-width: 0;
+}
+
+.sleno-quality-card > header strong,
+.sleno-quality-card > header small {
+  display: block;
+}
+
+.sleno-quality-card > header strong {
+  font-size: 11px;
+  color: #194f42;
+}
+
+.sleno-quality-card > header small {
+  margin-top: 2px;
+
+  font-size: 7px;
+  color: #71837d;
+}
+
+.sleno-quality-card > header > b {
+  flex: 0 0 auto;
+
+  padding: 3px 6px;
+
+  border: 1px solid #9ed5c0;
+  border-radius: 999px;
+
+  background: #eaf8f2;
+  color: #0b785b;
+
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+.sleno-summary-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 5px;
+}
+
+.sleno-summary-grid > span,
+.sleno-device-kpis > span {
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  padding: 5px 6px;
+
+  border-radius: 6px;
+
+  background: #f1f7f5;
+
+  color: #70817b;
+
+  font-size: 7px;
+}
+
+.sleno-summary-grid b,
+.sleno-device-kpis b {
+  margin-top: 2px;
+
+  color: #1d5143;
+
+  font-size: 9px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sleno-source-note {
+  color: #657a72;
+  font-size: 7px;
+  line-height: 1.3;
+}
+
+.sleno-device-list {
+  display: grid;
+  gap: 5px;
+}
+
+.sleno-device-list > p {
+  margin: 0;
+  padding: 8px;
+
+  color: #778881;
+  font-size: 8px;
+}
+
+.sleno-device {
+  border: 1px solid #dce7e3;
+  border-radius: 7px;
+
+  background: #fff;
+
+  overflow: hidden;
+}
+
+.sleno-device > summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 7px;
+
+  cursor: pointer;
+
+  list-style: none;
+}
+
+.sleno-device > summary::-webkit-details-marker {
+  display: none;
+}
+
+.sleno-device > summary span {
+  min-width: 0;
+}
+
+.sleno-device > summary strong,
+.sleno-device > summary small {
+  display: block;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sleno-device > summary strong {
+  font-size: 9px;
+  color: #204e42;
+}
+
+.sleno-device > summary small {
+  margin-top: 2px;
+  font-size: 7px;
+  color: #74857f;
+}
+
+.sleno-device > summary > b {
+  flex: 0 0 auto;
+
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+.sleno-device > summary > b[data-state="LIVE"] {
+  color: #07805e;
+}
+
+.sleno-device > summary > b[data-state="STALE"] {
+  color: #9b6810;
+}
+
+.sleno-device > summary > b[data-state="OFFLINE"] {
+  color: #b53e39;
+}
+
+.sleno-device-kpis {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 4px;
+
+  padding: 0 7px 7px;
+}
+
+.sleno-device-foot {
+  display: block;
+
+  padding: 0 7px 7px;
+
+  color: #71827c;
+
+  font-size: 7px;
+  line-height: 1.35;
+
+  overflow-wrap: anywhere;
+}
+
+.sleno-quality-error {
+  margin: 0;
+
+  color: #b53e39;
+  font-size: 8px;
+  line-height: 1.35;
+}

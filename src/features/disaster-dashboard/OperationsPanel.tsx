@@ -1,6 +1,6 @@
 import { nmsSummary, receivedNumber } from "./nmsSummary";
 import { OFFICIAL_RFP_BASELINE, PROJECT_ENHANCED_TARGET } from "./officialRfpGaps";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ApiRecord, EventOverview } from "../../http-api";
 import type { LiveLocation, ResourceGroup } from "./UnifiedDisasterDashboard";
 import { buildOperationalEvidence, buildPacketLossQualityAlerts, classifyLinkHealth, type TelemetrySample } from "./operationalEvidence";
@@ -8,6 +8,12 @@ import type { TelemetryStreamStatus } from "./telemetryStream";
 import { createAlertAudit, transitionAlert, type AlertWorkflowAction, type AlertWorkflowStatus } from "./alertWorkflow";
 import PerformanceKpiPanel from "./PerformanceKpiPanel";
 import NetworkSequenceQualityPanel from "./NetworkSequenceQualityPanel";
+import SlenoNetworkQualityPanel from "./SlenoNetworkQualityPanel";
+import {
+  deliverFieldLinkAlert,
+  getFieldLinkAlertSummary,
+  type FieldLinkAlertSummary,
+} from "../../http-api/fieldlink-api";
 
 export type PanelTab = "layers" | "alerts" | "networks" | "reports" | "kpis" | "integrations";
 
@@ -139,8 +145,234 @@ export function OperationsPanel({
   const fieldResource = locations.find(x => `${x.kind}-${x.id}` === fieldResourceKey);
   const nms = nmsSummary(overview.networks, overview.assets);
   const [collapsed, setCollapsed] = useState(false);
+
+  const fieldLinkUrl =
+    typeof window === "undefined"
+      ? "http://127.0.0.1:18080"
+      : `${window.location.protocol}//${window.location.hostname}:18080`;
+
+  const [fieldLinkStatus, setFieldLinkStatus] =
+    useState<"checking" | "online" | "offline">("checking");
+
+  useEffect(() => {
+    let disposed = false;
+
+    const checkFieldLink = async () => {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(
+        () => controller.abort(),
+        1500,
+      );
+
+      try {
+        await fetch(`${fieldLinkUrl}/health`, {
+          method: "GET",
+          mode: "no-cors",
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        if (!disposed) {
+          setFieldLinkStatus("online");
+        }
+      } catch {
+        if (!disposed) {
+          setFieldLinkStatus("offline");
+        }
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    };
+
+    void checkFieldLink();
+
+    const interval = window.setInterval(
+      checkFieldLink,
+      5000,
+    );
+
+    return () => {
+      disposed = true;
+      window.clearInterval(interval);
+    };
+  }, [fieldLinkUrl]);
+  const [fieldLinkPin, setFieldLinkPin] = useState("");
+  const [fieldLinkAlertSummary, setFieldLinkAlertSummary] =
+    useState<FieldLinkAlertSummary | null>(null);
+  const [fieldLinkAlertError, setFieldLinkAlertError] =
+    useState("");
+  const [fieldLinkSendingId, setFieldLinkSendingId] =
+    useState("");
+
   const [alertOverrides, setAlertOverrides] = useState<Record<string, AlertWorkflowStatus>>({});
   const [alertAudit, setAlertAudit] = useState<Array<ReturnType<typeof createAlertAudit>>>([]);
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const saved =
+      window.sessionStorage.getItem(
+        "fieldlink.command.pin",
+      ) ?? "";
+
+    setFieldLinkPin(saved);
+  }, []);
+
+  useEffect(() => {
+    if (!fieldLinkPin) {
+      setFieldLinkAlertSummary(null);
+      return;
+    }
+
+    let disposed = false;
+
+    const refresh = async () => {
+      try {
+        const summary =
+          await getFieldLinkAlertSummary(
+            fieldLinkUrl,
+            fieldLinkPin,
+          );
+
+        if (!disposed) {
+          setFieldLinkAlertSummary(summary);
+          setFieldLinkAlertError("");
+        }
+      } catch (error) {
+        if (!disposed) {
+          setFieldLinkAlertError(
+            error instanceof Error
+              ? error.message
+              : "FIELDLINK_ERROR",
+          );
+        }
+      }
+    };
+
+    void refresh();
+
+    const interval =
+      window.setInterval(
+        refresh,
+        5000,
+      );
+
+    return () => {
+      disposed = true;
+      window.clearInterval(interval);
+    };
+  }, [fieldLinkPin, fieldLinkUrl]);
+
+  const refreshFieldLinkAlertSummary =
+    async () => {
+      if (!fieldLinkPin) {
+        setFieldLinkAlertError(
+          "현장 PIN을 입력해주세요.",
+        );
+        return;
+      }
+
+      try {
+        const summary =
+          await getFieldLinkAlertSummary(
+            fieldLinkUrl,
+            fieldLinkPin,
+          );
+
+        setFieldLinkAlertSummary(summary);
+        setFieldLinkAlertError("");
+      } catch (error) {
+        setFieldLinkAlertError(
+          error instanceof Error
+            ? error.message
+            : "FIELDLINK_ERROR",
+        );
+      }
+    };
+
+  const handleFieldLinkAlertSend =
+    async (alert: ApiRecord) => {
+      if (!fieldLinkPin) {
+        setFieldLinkAlertError(
+          "현장 PIN을 입력해주세요.",
+        );
+        return;
+      }
+
+      const alertId =
+        value(
+          alert,
+          ["alertId", "id"],
+          `FIELD-${Date.now()}`,
+        );
+
+      const rawSeverity =
+        value(
+          alert,
+          ["severity", "severityCode"],
+          "WARNING",
+        ).toUpperCase();
+
+      const severity:
+        | "INFO"
+        | "WATCH"
+        | "WARNING"
+        | "CRITICAL" =
+        ["CRITICAL", "SEVERE", "HIGH"]
+          .includes(rawSeverity)
+          ? "CRITICAL"
+          : ["CAUTION", "WATCH"]
+              .includes(rawSeverity)
+            ? "WATCH"
+            : rawSeverity === "INFO" ||
+                rawSeverity === "NORMAL"
+              ? "INFO"
+              : "WARNING";
+
+      setFieldLinkSendingId(alertId);
+
+      try {
+        await deliverFieldLinkAlert(
+          fieldLinkUrl,
+          fieldLinkPin,
+          {
+            sourceAlertId: alertId,
+            severity,
+            title: value(
+              alert,
+              ["title", "alertType", "type"],
+              "현장 경보",
+            ),
+            message: value(
+              alert,
+              ["message", "description"],
+              "현장 경보가 발령되었습니다.",
+            ),
+            source: "INTEGRATED_COMMAND",
+          },
+        );
+
+        setFieldLinkAlertError("");
+
+        const summary =
+          await getFieldLinkAlertSummary(
+            fieldLinkUrl,
+            fieldLinkPin,
+          );
+
+        setFieldLinkAlertSummary(summary);
+      } catch (error) {
+        setFieldLinkAlertError(
+          error instanceof Error
+            ? error.message
+            : "FIELDLINK_ERROR",
+        );
+      } finally {
+        setFieldLinkSendingId("");
+      }
+    };
+
   const externalIntegrationLoading = Object.values(
     externalIntegrationStatus,
   ).some((state) => state.status === "loading");
@@ -190,6 +422,139 @@ export function OperationsPanel({
       lastReceivedAt: rows.map((row) => row.observedAt).filter(Boolean).sort((a, b) => Date.parse(b) - Date.parse(a))[0] ?? null,
     };
   }, [locations, lastUpdatedAt]);
+  const net01Location = useMemo(
+    () =>
+      locations
+        .filter(
+          (location) =>
+            Boolean(
+              location.pathEvidence
+                ?.coreReceivedAt,
+            ),
+        )
+        .sort(
+          (a, b) =>
+            Date.parse(
+              b.pathEvidence
+                ?.coreReceivedAt ?? "0",
+            ) -
+            Date.parse(
+              a.pathEvidence
+                ?.coreReceivedAt ?? "0",
+            ),
+        )[0] ?? null,
+    [locations],
+  );
+
+  const net01Evidence =
+    net01Location?.pathEvidence ?? null;
+
+  const net01CoreReceivedMs =
+    Date.parse(
+      net01Evidence?.coreReceivedAt ?? "",
+    );
+
+  const net01AgeSec =
+    Number.isFinite(net01CoreReceivedMs)
+      ? Math.max(
+          0,
+          Math.floor(
+            (
+              Date.now() -
+              net01CoreReceivedMs
+            ) / 1000,
+          ),
+        )
+      : null;
+
+  const net01BackendState =
+    net01AgeSec == null
+      ? "WAIT"
+      : net01AgeSec <= 10
+        ? "LIVE"
+        : net01AgeSec <= 60
+          ? "STALE"
+          : "OFFLINE";
+
+  const net01FrontAgeSec =
+    lastUpdatedAt
+      ? Math.max(
+          0,
+          Math.floor(
+            (
+              Date.now() -
+              lastUpdatedAt.getTime()
+            ) / 1000,
+          ),
+        )
+      : null;
+
+  const net01FrontState =
+    !net01Location
+      ? "WAIT"
+      : net01FrontAgeSec == null
+        ? "WAIT"
+        : net01FrontAgeSec <= 10
+          ? "LIVE"
+          : net01FrontAgeSec <= 60
+            ? "STALE"
+            : "OFFLINE";
+
+  const net01TimestampDiff = (
+    start: string | null | undefined,
+    end: string | null | undefined,
+  ) => {
+    const startMs = Date.parse(start ?? "");
+    const endMs = Date.parse(end ?? "");
+
+    return Number.isFinite(startMs) &&
+      Number.isFinite(endMs)
+      ? Math.max(0, endMs - startMs)
+      : null;
+  };
+
+  const net01UplinkProcessingMs =
+    net01TimestampDiff(
+      net01Evidence?.uplinkReceivedAt,
+      net01Evidence
+        ?.uplinkForwardStartedAt,
+    );
+
+  const net01HttpForwardMs =
+    net01TimestampDiff(
+      net01Evidence
+        ?.uplinkForwardStartedAt,
+      net01Evidence?.coreReceivedAt,
+    );
+
+  const net01BackendTotalMs =
+    net01TimestampDiff(
+      net01Evidence?.uplinkReceivedAt,
+      net01Evidence?.coreReceivedAt,
+    );
+
+  const net01Complete =
+    Boolean(
+      net01Evidence?.uplinkReceivedAt &&
+      net01Evidence
+        ?.uplinkForwardStartedAt &&
+      net01Evidence?.coreReceivedAt &&
+      net01Location,
+    );
+
+  const net01Status =
+    !net01Complete
+      ? "INACTIVE"
+      : net01BackendState === "LIVE" &&
+          net01FrontState === "LIVE"
+        ? "ACTIVE"
+        : net01BackendState ===
+              "OFFLINE" ||
+            net01FrontState ===
+              "OFFLINE"
+          ? "FAILED"
+          : "DEGRADED";
+
   const domainLayers = overview.event.disasterType === "LANDSLIDE"
     ? [
       { id: "slope-assessments", label: "산사태 위험면", description: "사면 위험·분석 결과" },
@@ -350,6 +715,41 @@ export function OperationsPanel({
             <i>{tab.icon}</i><span>{tab.label}</span>{tab.id === "alerts" && activeAlerts.length > 0 ? <b>{activeAlerts.length}</b> : null}
           </button>
         ))}
+
+        <button
+          type="button"
+          className="fieldlink-launch-button"
+          aria-label="현장 메신저 새 창으로 열기"
+          title={`FieldLink · ${fieldLinkUrl}`}
+          onClick={() => {
+            window.open(
+              fieldLinkUrl,
+              "fieldlink-lan-messenger",
+              "noopener,noreferrer",
+            );
+          }}
+        >
+          <i aria-hidden="true">✉</i>
+          <span>현장 메신저</span>
+
+          <b
+            className={`fieldlink-status fieldlink-status-${fieldLinkStatus}`}
+            aria-label={
+              fieldLinkStatus === "online"
+                ? "FieldLink 온라인"
+                : fieldLinkStatus === "offline"
+                  ? "FieldLink 오프라인"
+                  : "FieldLink 상태 확인 중"
+            }
+            title={
+              fieldLinkStatus === "online"
+                ? "FieldLink 온라인"
+                : fieldLinkStatus === "offline"
+                  ? "FieldLink 오프라인"
+                  : "상태 확인 중"
+            }
+          />
+        </button>
       </nav>
       <button className="operation-collapse" type="button" onClick={() => setCollapsed((current) => !current)} aria-expanded={!collapsed} aria-label={collapsed ? "운영 패널 펼치기" : "운영 패널 접기"}>{collapsed ? "›" : "‹"}</button>
       {!collapsed && <section className="operation-drawer">
@@ -459,6 +859,116 @@ export function OperationsPanel({
             </section>}
 
           {activeTab === "alerts" && <section className="operations-records" aria-label="활성 경보" aria-live="polite">
+            <section
+              className="fieldlink-alert-bridge"
+              aria-label="FieldLink 현장 전달"
+            >
+              <header>
+                <div>
+                  <strong>FieldLink 현장 전달</strong>
+                  <small>ALERT-03 · KPI-03</small>
+                </div>
+
+                <span
+                  className="fieldlink-bridge-status"
+                  data-state={
+                    fieldLinkAlertError
+                      ? "error"
+                      : fieldLinkAlertSummary
+                        ? "online"
+                        : "idle"
+                  }
+                  title={
+                    fieldLinkAlertError
+                      ? "FieldLink 연결 확인 필요"
+                      : fieldLinkAlertSummary
+                        ? "FieldLink 연결됨"
+                        : "FieldLink PIN 입력 필요"
+                  }
+                >
+                  {fieldLinkAlertError
+                    ? "오류"
+                    : fieldLinkAlertSummary
+                      ? "연결됨"
+                      : "PIN 필요"}
+                </span>
+              </header>
+
+              <div className="fieldlink-auth-row">
+                <input
+                  type="password"
+                  value={fieldLinkPin}
+                  placeholder="현장 PIN"
+                  aria-label="FieldLink 현장 PIN"
+                  autoComplete="off"
+                  onChange={(event) => {
+                    const next =
+                      event.target.value;
+
+                    setFieldLinkPin(next);
+
+                    if (
+                      typeof window !==
+                      "undefined"
+                    ) {
+                      window.sessionStorage.setItem(
+                        "fieldlink.command.pin",
+                        next,
+                      );
+                    }
+                  }}
+                />
+
+                <button
+                  type="button"
+                  onClick={
+                    refreshFieldLinkAlertSummary
+                  }
+                >
+                  연결 확인
+                </button>
+              </div>
+
+              <div className="fieldlink-kpi-grid">
+                <div>
+                  <span>전달</span>
+                  <strong>
+                    {fieldLinkAlertSummary
+                      ?.delivered ?? "-"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>확인</span>
+                  <strong>
+                    {fieldLinkAlertSummary
+                      ?.acknowledged ?? "-"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>성공률</span>
+                  <strong>
+                    {fieldLinkAlertSummary
+                      ?.successRatePct == null
+                      ? "-"
+                      : `${fieldLinkAlertSummary.successRatePct}%`}
+                  </strong>
+                </div>
+              </div>
+
+              <small
+                className={`fieldlink-bridge-hint${
+                  fieldLinkAlertError ? " is-error" : ""
+                }`}
+              >
+                {fieldLinkAlertError
+                  ? `연결 상태: ${fieldLinkAlertError}`
+                  : fieldLinkAlertSummary
+                    ? "경보 전달 및 현장 확인 상태를 추적합니다."
+                    : "현장 PIN 입력 후 연결 확인을 눌러주세요."}
+              </small>
+            </section>
             {activeAlerts.length === 0 && <p className="operation-empty-state"><b>현재 활성 경보 없음</b><span>정상 상태입니다.</span></p>}
             {activeAlerts.slice(0, 12).map((alert) => {
               const severity = value(alert, ["severity", "severityCode"], "WARNING");
@@ -467,6 +977,26 @@ export function OperationsPanel({
                 <div><strong>{value(alert, ["title", "alertType", "type"], "현장 경보")}</strong><span>{label(severity)}</span></div>
                 <p>{value(alert, ["message", "description"], "상세 내용이 없습니다.")}</p>
                 <small>{label(value(alert, ["status"], "OPEN"))} · {occurredAt(alert, ["issuedAt", "createdAt"])} · 발령 {value(alert, ["issuerOrgCode"], "기관 미상")}</small>
+
+                <button
+                  type="button"
+                  className="fieldlink-alert-send"
+                  disabled={
+                    !fieldLinkPin ||
+                    fieldLinkSendingId ===
+                      alertKey
+                  }
+                  onClick={() =>
+                    void handleFieldLinkAlertSend(
+                      alert,
+                    )
+                  }
+                >
+                  {fieldLinkSendingId ===
+                  alertKey
+                    ? "FieldLink 전달 중"
+                    : "FieldLink 전달"}
+                </button>
                 {demoAlertWorkflow && <div className="demo-alert-actions">
                   <button type="button" disabled={value(alert, ["status"]) === "ACKNOWLEDGED"} onClick={() => handleAlertAction(alertKey, value(alert, ["status"], "ACTIVE"), "ACKNOWLEDGE")}>경보 확인</button>
                   <button type="button" onClick={() => handleAlertAction(alertKey, value(alert, ["status"], "ACTIVE"), "RESOLVE")}>조치 후 해제</button>
@@ -477,6 +1007,185 @@ export function OperationsPanel({
             <p className="operation-readonly-note">DEMO 조치는 브라우저 세션에서만 유지됩니다. 운영 저장은 명령센터 권한 및 감사 이력 API 연계 후 사용합니다.</p>
           </section>}
           {activeTab === "networks" && <section className="operations-records" aria-label="통신망 상태">
+            <SlenoNetworkQualityPanel />
+
+            <article
+              className="network-detail-card net01-path-monitor"
+              data-status={net01Status}
+              aria-label="NET-01 실제 종단 통신 경로"
+            >
+              <div>
+                <strong>
+                  NET-01 실제 E2E 경로
+                </strong>
+
+                <span>
+                  {!net01Complete
+                    ? "증거 대기"
+                    : net01Status === "ACTIVE"
+                      ? "LIVE"
+                      : net01Status === "DEGRADED"
+                        ? "STALE"
+                        : "두절"}
+                </span>
+              </div>
+
+              <p>
+                GCS에서 수신된 MAVLink가
+                Uplink와 Core를 지나
+                현재 관제화면까지 도달한
+                실제 시각 증거입니다.
+              </p>
+
+              <div className="net01-path-steps">
+                <section
+                  data-state={net01BackendState}
+                >
+                  <i />
+                  <div>
+                    <strong>
+                      GCS → Uplink
+                    </strong>
+                    <small>
+                      {net01Evidence
+                        ?.uplinkReceivedAt
+                        ? `${relativeTime(
+                            net01Evidence
+                              .uplinkReceivedAt,
+                          )} · ${net01Evidence.uplinkSource ?? "UDP"}`
+                        : "UDP 수신 증거 없음"}
+                    </small>
+                  </div>
+                  <b>
+                    {net01BackendState}
+                  </b>
+                </section>
+
+                <section
+                  data-state={net01BackendState}
+                >
+                  <i />
+                  <div>
+                    <strong>
+                      Uplink → Core
+                    </strong>
+                    <small>
+                      {net01Evidence
+                        ?.coreReceivedAt
+                        ? `${relativeTime(
+                            net01Evidence
+                              .coreReceivedAt,
+                          )} · HTTP`
+                        : "Core 수신 증거 없음"}
+                    </small>
+                  </div>
+                  <b>
+                    {net01BackendState}
+                  </b>
+                </section>
+
+                <section
+                  data-state={net01FrontState}
+                >
+                  <i />
+                  <div>
+                    <strong>
+                      Core → Front
+                    </strong>
+                    <small>
+                      {lastUpdatedAt
+                        ? `${relativeTime(
+                            lastUpdatedAt.toISOString(),
+                          )} · Dashboard API`
+                        : "Frontend 수신 대기"}
+                    </small>
+                  </div>
+                  <b>
+                    {net01FrontState}
+                  </b>
+                </section>
+
+                <section
+                  data-state={
+                    fieldLinkStatus === "online"
+                      ? "LIVE"
+                      : fieldLinkStatus === "offline"
+                        ? "OFFLINE"
+                        : "WAIT"
+                  }
+                >
+                  <i />
+                  <div>
+                    <strong>
+                      Front → FieldLink
+                    </strong>
+                    <small>
+                      현장 전달 보조 경로 ·
+                      HTTP :18080
+                    </small>
+                  </div>
+                  <b>
+                    {fieldLinkStatus === "online"
+                      ? "LIVE"
+                      : fieldLinkStatus === "offline"
+                        ? "OFFLINE"
+                        : "WAIT"}
+                  </b>
+                </section>
+              </div>
+
+              <dl className="net01-path-metrics">
+                <div>
+                  <dt>Uplink 처리</dt>
+                  <dd>
+                    {net01UplinkProcessingMs ==
+                    null
+                      ? "-"
+                      : `${net01UplinkProcessingMs} ms`}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>HTTP 전달</dt>
+                  <dd>
+                    {net01HttpForwardMs == null
+                      ? "-"
+                      : `${net01HttpForwardMs} ms`}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>백엔드 구간</dt>
+                  <dd>
+                    {net01BackendTotalMs == null
+                      ? "-"
+                      : `${net01BackendTotalMs} ms`}
+                  </dd>
+                </div>
+
+                <div>
+                  <dt>UDP 크기</dt>
+                  <dd>
+                    {net01Evidence
+                      ?.uplinkBytes == null
+                      ? "-"
+                      : `${net01Evidence.uplinkBytes} B`}
+                  </dd>
+                </div>
+              </dl>
+
+              <small>
+                {net01Location
+                  ? `자산 ${net01Location.id} · ${net01Evidence?.transport ?? "전송방식 미수신"}`
+                  : "실제 telemetry pathEvidence 수신 대기"}
+              </small>
+
+              <small>
+                FieldLink는 NET-01 원 경로의
+                필수 판정 대상이 아닌 현장
+                전달 확장 경로입니다.
+              </small>
+            </article>
             <article className="network-detail-card">
               <div><strong>NMS / 전원·BMS 요약</strong><span>{overview.domainDetail?.mode === "SIMULATION" ? "DEMO 수신값" : "수신값 조회"}</span></div>
               <p>{nms.networksReceived ? `정상망 ${nms.active} · 성능저하 ${nms.degraded} · 장애 ${nms.failed} · 미확인 ${nms.unknown}` : "통신망 상태 미수신"}</p>

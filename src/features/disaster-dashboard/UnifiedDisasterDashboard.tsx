@@ -31,6 +31,7 @@ import {
 } from "./displayProfile";
 import "./unified-disaster-dashboard.css";
 import "./field-header-hotfix.css";
+import "./field-interaction-hotfix.css";
 
 const POLL_INTERVAL_MS = 1_000;
 const DEFAULT_CHANGE_HIGHLIGHT_MS = POLL_INTERVAL_MS * 0.3;
@@ -170,6 +171,15 @@ export type LiveLocation = {
   groundSpeedMps: number | null;
   headingDeg: number | null;
   registeredToEvent: boolean;
+
+  pathEvidence: {
+    uplinkReceivedAt: string | null;
+    uplinkForwardStartedAt: string | null;
+    uplinkSource: string | null;
+    uplinkBytes: number | null;
+    transport: string | null;
+    coreReceivedAt: string | null;
+  } | null;
 };
 
 function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"]): LiveLocation | null {
@@ -185,6 +195,50 @@ function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"])
   const specifications = item.specifications && typeof item.specifications === "object"
     ? item.specifications as Record<string, unknown>
     : {};
+
+  const rawPathEvidence =
+    attributes.pathEvidence &&
+    typeof attributes.pathEvidence === "object" &&
+    !Array.isArray(attributes.pathEvidence)
+      ? attributes.pathEvidence as Record<string, unknown>
+      : null;
+
+  const pathBytes =
+    Number(rawPathEvidence?.uplinkBytes);
+
+  const pathEvidence = rawPathEvidence
+    ? {
+        uplinkReceivedAt:
+          rawPathEvidence.uplinkReceivedAt == null
+            ? null
+            : String(rawPathEvidence.uplinkReceivedAt),
+
+        uplinkForwardStartedAt:
+          rawPathEvidence.uplinkForwardStartedAt == null
+            ? null
+            : String(rawPathEvidence.uplinkForwardStartedAt),
+
+        uplinkSource:
+          rawPathEvidence.uplinkSource == null
+            ? null
+            : String(rawPathEvidence.uplinkSource),
+
+        uplinkBytes:
+          Number.isFinite(pathBytes)
+            ? pathBytes
+            : null,
+
+        transport:
+          rawPathEvidence.transport == null
+            ? null
+            : String(rawPathEvidence.transport),
+
+        coreReceivedAt:
+          rawPathEvidence.coreReceivedAt == null
+            ? null
+            : String(rawPathEvidence.coreReceivedAt),
+      }
+    : null;
   const horizontalAccuracyM = Number(item.horizontalAccuracyM);
   const expectedTelemetryIntervalSec = Number(
     item.expectedTelemetryIntervalSec
@@ -230,6 +284,8 @@ function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"])
     groundSpeedMps: (attributes.groundSpeedMps != null && Number.isFinite(Number(attributes.groundSpeedMps))) ? Number(attributes.groundSpeedMps) : null,
     headingDeg: (attributes.headingDeg != null && Number.isFinite(Number(attributes.headingDeg))) ? Number(attributes.headingDeg) : null,
     registeredToEvent: kind === "personnel" || item.eventRegistrationStatus !== "UNREGISTERED",
+
+    pathEvidence,
   };
 }
 
@@ -238,6 +294,7 @@ function locationFingerprint(item: LiveLocation) {
   return [
     item.longitude, item.latitude, item.altitude, item.status, item.observedAt,
     item.positioningMethod, item.horizontalAccuracyM, item.rtcmStatus,
+    item.pathEvidence?.coreReceivedAt,
   ].join("|");
 }
 
@@ -687,6 +744,8 @@ export default function UnifiedDisasterDashboard() {
   const [resourceDialogGroup, setResourceDialogGroup] = useState<ResourceGroup | "ALL" | "ALL_ASSETS" | null>(null);
 
   const [videoDrone, setVideoDrone] = useState<LiveLocation | null>(null);
+  const [fieldInspectorTab, setFieldInspectorTab] =
+    useState<"quality" | "details" | "video">("quality");
 
   // Field command video channels.
   // RTSP itself is not browser-playable; this state reflects the real
@@ -1494,12 +1553,50 @@ export default function UnifiedDisasterDashboard() {
   const fieldSequenceSummary = localFieldMode
     ? calculatePacketSequence(telemetrySamples, fieldPrimaryDrone?.id, 100)
     : null;
-  const fieldSequenceReceived = fieldPreviewMode ? 96 : fieldSequenceSummary?.received ?? 0;
-  const fieldSequenceLost = fieldPreviewMode ? 4 : fieldSequenceSummary?.lost ?? 0;
-  const fieldSequenceLossPct = fieldPreviewMode ? 4 : fieldSequenceSummary?.lossPct ?? null;
-  const fieldMavlinkVersion = Number(fieldPrimaryAttributes.mavlinkVersion);
-  const fieldSystemId = Number(fieldPrimaryAttributes.systemId);
-  const fieldComponentId = Number(fieldPrimaryAttributes.componentId);
+
+  const fieldLinkQuality =
+    fieldPrimaryAttributes.linkQuality &&
+    typeof fieldPrimaryAttributes.linkQuality === "object"
+      ? fieldPrimaryAttributes.linkQuality as Record<string, unknown>
+      : {};
+
+  const linkReceived = Number(fieldLinkQuality.windowReceived);
+  const linkLost = Number(fieldLinkQuality.windowLost);
+  const linkExpected = Number(fieldLinkQuality.windowExpected);
+  const linkLossPct = Number(fieldLinkQuality.packetLossPct);
+
+  const fieldSequenceReceived = fieldPreviewMode
+    ? 96
+    : Number.isFinite(linkReceived)
+      ? linkReceived
+      : fieldSequenceSummary?.received ?? 0;
+
+  const fieldSequenceLost = fieldPreviewMode
+    ? 4
+    : Number.isFinite(linkLost)
+      ? linkLost
+      : fieldSequenceSummary?.lost ?? 0;
+
+  const fieldSequenceLossPct = fieldPreviewMode
+    ? 4
+    : Number.isFinite(linkLossPct)
+      ? linkLossPct
+      : fieldSequenceSummary?.lossPct ?? null;
+
+  const fieldMavlinkVersion = Number(
+    fieldPrimaryAttributes.mavlinkVersion ??
+    fieldLinkQuality.mavlinkVersion
+  );
+
+  const fieldSystemId = Number(
+    fieldPrimaryAttributes.systemId ??
+    fieldLinkQuality.mavlinkSystemId
+  );
+
+  const fieldComponentId = Number(
+    fieldPrimaryAttributes.componentId ??
+    fieldLinkQuality.mavlinkComponentId
+  );
   const fieldSourceAddress = text(fieldPrimaryAttributes.sourceAddress, fieldPreviewMode ? "127.0.0.1:64361" : "수신 대기");
   const fieldTelemetryAgeSec = fieldPrimaryDrone?.observedAt
     ? Math.max(0, Math.floor((Date.now() - new Date(fieldPrimaryDrone.observedAt).getTime()) / 1000))
@@ -1794,22 +1891,62 @@ export default function UnifiedDisasterDashboard() {
             </article>
           ))}
           <aside className="field-kpi-context">
-            <b>{localFieldMode ? (fieldPreviewMode ? "FIELD 화면 미리보기" : "실기체 통신 감시") : "현장 통신 우선"}</b>
-            <span>{localFieldMode ? (fieldPreviewMode ? "DEMO DATA · NOT FLIGHT" : "MD1000 · MAVLink v2 · SYNTHETIC OFF") : localE2EMode ? "LOCAL E2E · 실기체 아님" : demoMode ? "DEMO · 모의 관제" : "LIVE · 운영 데이터"}</span>
-            {!demoMode && (
-              <div
-                className="field-api-health"
-                data-state={fieldApiHealth.toLowerCase()}
-                title={fieldApiLastSuccessText}
-                role="status"
+            <div className="field-kpi-context-title">
+              <b>
+                {localFieldMode
+                  ? fieldPreviewMode
+                    ? "FIELD 화면 미리보기"
+                    : "실기체 통신 감시"
+                  : localE2EMode
+                    ? "E2E 통신 검증"
+                    : demoMode
+                      ? "모의 관제 통신"
+                      : "현장 통신 상태"}
+              </b>
+            </div>
+
+            <div
+              className="field-kpi-context-status"
+              title={
+                localE2EMode
+                  ? "LOCAL E2E · 실기체가 아닌 synthetic 검증"
+                  : localFieldMode && !fieldPreviewMode
+                    ? "MD1000 실기체 · MAVLink v2"
+                    : undefined
+              }
+            >
+              <small
+                className="field-kpi-mode-chip"
+                data-mode={
+                  localFieldMode && !fieldPreviewMode
+                    ? "physical"
+                    : localE2EMode
+                      ? "synthetic"
+                      : demoMode || fieldPreviewMode
+                        ? "demo"
+                        : "live"
+                }
               >
-                <i />
-                <span>{fieldApiHealthText}</span>
-                {fieldApiHealth !== "ONLINE" && (
-                  <small>{fieldApiLastSuccessText}</small>
-                )}
-              </div>
-            )}
+                {localFieldMode && !fieldPreviewMode
+                  ? "SYNTHETIC OFF"
+                  : localE2EMode
+                    ? "SYNTHETIC E2E"
+                    : demoMode || fieldPreviewMode
+                      ? "DEMO DATA"
+                      : "LIVE DATA"}
+              </small>
+              {!demoMode && (
+                <div
+                  className="field-api-health"
+                  data-state={fieldApiHealth.toLowerCase()}
+                  title={fieldApiLastSuccessText}
+                  role="status"
+                >
+                  <i />
+                  <span>{fieldApiHealthText}</span>
+                </div>
+              )}
+            </div>
           </aside>
         </section>
 <section className={`dashboard-map-stage${commandShellMode ? " field-command-stage" : " asset-panel-collapsed"}`} aria-label="?? ?? ?? ???">
@@ -2033,7 +2170,45 @@ export default function UnifiedDisasterDashboard() {
                     <span style={{ width: `${fieldSyncPercent}%` }} />
                   </div>
                 </section>
-                <nav className="field-inspector-tabs" aria-label="장비 정보 분류"><span className="active">통신 품질</span><span>상세 정보</span><span>실시간 영상</span></nav>
+                <nav
+                  className="field-inspector-tabs"
+                  aria-label="장비 정보 분류"
+                  role="tablist"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={fieldInspectorTab === "quality"}
+                    className={fieldInspectorTab === "quality" ? "active" : ""}
+                    onClick={() => setFieldInspectorTab("quality")}
+                  >
+                    통신 품질
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={fieldInspectorTab === "details"}
+                    className={fieldInspectorTab === "details" ? "active" : ""}
+                    onClick={() => setFieldInspectorTab("details")}
+                  >
+                    상세 정보
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={fieldInspectorTab === "video"}
+                    className={fieldInspectorTab === "video" ? "active" : ""}
+                    onClick={() => setFieldInspectorTab("video")}
+                  >
+                    실시간 영상
+                  </button>
+                </nav>
+
+                {fieldInspectorTab === "quality" && (
+                <div
+                  className="field-inspector-pane field-quality-pane"
+                  role="tabpanel"
+                >
                 <section className="field-seq-summary" aria-label="최근 SEQ 통신 품질">
                   <header><span>최근 100 SEQ 기준</span><small>{fieldPreviewMode ? "예시 데이터" : fieldSequenceSummary?.expected ? `SEQ ${fieldSequenceSummary.fromSequence ?? "-"}–${fieldSequenceSummary.toSequence ?? "-"}` : "수신 대기"}</small></header>
                   <div className="field-seq-grid">
@@ -2046,14 +2221,85 @@ export default function UnifiedDisasterDashboard() {
                   </div>
                 </section>
                 <dl className="field-link-diagnostics">
-                  <div><dt>MAVLink</dt><dd>{Number.isFinite(fieldMavlinkVersion) ? `v${fieldMavlinkVersion}` : "v2 대기"}</dd></div>
-                  <div><dt>SYS / COMP</dt><dd>{Number.isFinite(fieldSystemId) && Number.isFinite(fieldComponentId) ? `${fieldSystemId} / ${fieldComponentId}` : "1 / 1 설정"}</dd></div>
-                  <div><dt>Source</dt><dd>{fieldSourceAddress}</dd></div>
-                  <div><dt>Flight Mode</dt><dd>{fieldDisplay.flightMode ?? "수신 대기"}</dd></div>
-                  <div><dt>Signal</dt><dd>{fieldDisplay.signal == null ? "측정 대기" : `${fieldDisplay.signal.toFixed(0)} dBm`}</dd></div>
-                  <div><dt>Battery</dt><dd>{fieldDisplay.battery == null ? "측정 대기" : `${fieldDisplay.battery.toFixed(0)}%`}</dd></div>
-                  <div><dt>Heading</dt><dd>{fieldDisplay.heading == null ? "수신 대기" : `${fieldDisplay.heading.toFixed(0)}°`}</dd></div>
-                  <div><dt>Armed</dt><dd>{fieldDisplay.armed == null ? "수신 대기" : fieldDisplay.armed ? "ARMED" : "DISARMED"}</dd></div>
+                  <div>
+                    <dt>MAVLink</dt>
+                    <dd>
+                      {Number.isFinite(fieldMavlinkVersion)
+                        ? `v${fieldMavlinkVersion}`
+                        : "수신 대기"}
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt>SYS / COMP</dt>
+                    <dd>
+                      {Number.isFinite(fieldSystemId) &&
+                      Number.isFinite(fieldComponentId)
+                        ? `${fieldSystemId} / ${fieldComponentId}`
+                        : "수신 대기"}
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt>MAVLink SEQ</dt>
+                    <dd>
+                      {Number.isFinite(
+                        Number(fieldLinkQuality.mavlinkSequence),
+                      )
+                        ? String(fieldLinkQuality.mavlinkSequence)
+                        : "-"}
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt>Expected</dt>
+                    <dd>
+                      {Number.isFinite(
+                        Number(fieldLinkQuality.windowExpected),
+                      )
+                        ? String(fieldLinkQuality.windowExpected)
+                        : "-"}
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt>AVG</dt>
+                    <dd>
+                      {Number.isFinite(
+                        Number(fieldLinkQuality.periodAvgMs),
+                      )
+                        ? `${Number(
+                            fieldLinkQuality.periodAvgMs,
+                          ).toFixed(1)}ms`
+                        : "-"}
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt>P95</dt>
+                    <dd>
+                      {Number.isFinite(
+                        Number(fieldLinkQuality.periodP95Ms),
+                      )
+                        ? `${Number(
+                            fieldLinkQuality.periodP95Ms,
+                          ).toFixed(1)}ms`
+                        : "-"}
+                    </dd>
+                  </div>
+
+                  <div>
+                    <dt>MAX</dt>
+                    <dd>
+                      {Number.isFinite(
+                        Number(fieldLinkQuality.periodMaxMs),
+                      )
+                        ? `${Number(
+                            fieldLinkQuality.periodMaxMs,
+                          ).toFixed(1)}ms`
+                        : "-"}
+                    </dd>
+                  </div>
                 </dl>
                 <section className="field-event-log">
                   <header><strong>장비 이벤트 로그</strong><small>최근 상태</small></header>
@@ -2068,6 +2314,65 @@ export default function UnifiedDisasterDashboard() {
                     {!fieldPreviewMode && telemetrySamples.length === 0 && <li className="empty"><span>실기체 텔레메트리 수신 대기</span></li>}
                   </ol>
                 </section>
+                </div>
+                )}
+
+                {fieldInspectorTab === "details" && (
+                  <div
+                    className="field-inspector-pane field-inspector-detail-pane"
+                    role="tabpanel"
+                  >
+                    {fieldPrimaryAsset ? (
+                      <dl className="field-twin-detail">
+                        <DroneTwinDetail asset={fieldPrimaryAsset} />
+                      </dl>
+                    ) : (
+                      <div className="field-inspector-empty">
+                        <strong>장비 상세정보 수신 대기</strong>
+                        <span>Core에서 등록 장비와 실시간 텔레메트리를 결합하면 표시됩니다.</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {fieldInspectorTab === "video" && (
+                  <div
+                    className="field-inspector-pane field-inspector-video-pane"
+                    role="tabpanel"
+                  >
+                    <div className="field-video-tab-summary">
+                      <span>실시간 영상</span>
+                      <strong>
+                        {fieldPrimaryDrone?.label ??
+                          (fieldPreviewMode
+                            ? "MD1000 미리보기"
+                            : "주 기체 수신 대기")}
+                      </strong>
+                      <small>
+                        등록 영상 채널 {fieldVideoChannels.length}개
+                      </small>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="field-open-video-button"
+                      disabled={!fieldPrimaryDrone}
+                      onClick={() => {
+                        if (fieldPrimaryDrone) {
+                          setVideoDrone(fieldPrimaryDrone);
+                        }
+                      }}
+                    >
+                      실시간 영상 열기
+                    </button>
+
+                    {!fieldPrimaryDrone && (
+                      <p className="field-video-wait">
+                        드론 텔레메트리가 수신되면 영상 채널을 열 수 있습니다.
+                      </p>
+                    )}
+                  </div>
+                )}
               </aside>}
             </div>
             {selectedLocation && <div className="resource-modal-backdrop" role="presentation" onMouseDown={() => setSelectedLocationKey(null)}>

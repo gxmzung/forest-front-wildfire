@@ -1,5 +1,13 @@
 import { LiveDroneTelemetryReader, mergeDroneTwins } from "./live-drone-twin";
-import { emptyE2EOverview, isLocalE2EMode, LOCAL_E2E_REGISTERED_ASSETS, LOCAL_E2E_VIDEO_CHANNELS } from "./local-e2e";
+import type { SlenoNetworkQuality } from "./sleno-quality";
+import {
+  emptyE2EOverview,
+  isLocalE2EMode,
+  LOCAL_E2E_REGISTERED_ASSETS,
+  LOCAL_E2E_VIDEO_CHANNELS,
+  LOCAL_E2E_NETWORK_SETTINGS,
+  LOCAL_E2E_CONNECTION_PROBE,
+} from "./local-e2e";
 import { createFieldPreviewOverview, emptyFieldOverview, fieldRegisteredAssets, isFieldPreviewMode, isLocalFieldMode } from "./field-mode";
 const liveDroneReader = new LiveDroneTelemetryReader();
 import { dashboardApi, httpApi } from "./client";
@@ -207,6 +215,17 @@ export const forestApi = {
   dashboardDroneTelemetry: (eventId: string) =>
     dashboardApi<DataResponse<ApiRecord[]>>(`/api/v1/dashboard/telemetry/drones?eventId=${encodeURIComponent(eventId)}`, {signal: AbortSignal.timeout(2500)}),
 
+  slenoNetworkQuality: (limit = 1000) =>
+    dashboardApi<DataResponse<SlenoNetworkQuality>>(
+      `/api/v1/dashboard/network-quality/sleno?limit=${limit}`,
+      {
+        signal:
+          AbortSignal.timeout(
+            2500,
+          ),
+      },
+    ),
+
   dashboardDisasterAssets: (disasterId: string) =>
     dashboardApi<DashboardDisasterAssetsResponse>(
       `/api/v1/dashboard/disasters/${encodeURIComponent(disasterId)}/assets`,
@@ -284,55 +303,102 @@ export const forestApi = {
     assetId: string,
     payload: ApiRecord,
   ) =>
-    httpApi<DataResponse<ApiRecord>>(
-      `/api/v1/assets/${encodeURIComponent(assetId)}/video-channels`,
-      {
-        method: "POST",
-        body: JSON.stringify(payload),
-      },
-    ),
+    isLocalE2EMode()
+      ? Promise.resolve<DataResponse<ApiRecord>>({
+          data: {
+            videoChannelId: "e2e-md1000-main-video",
+            assetId,
+            ...payload,
+            verificationStatus: "UNVERIFIED",
+            synthetic: true,
+            evidenceScope: "LOCAL_BROWSER_E2E",
+          },
+        })
+      : httpApi<DataResponse<ApiRecord>>(
+          `/api/v1/assets/${encodeURIComponent(assetId)}/video-channels`,
+          {
+            method: "POST",
+            body: JSON.stringify(payload),
+          },
+        ),
 
   updateVideoChannel: (
     assetId: string,
     videoChannelId: string,
     payload: ApiRecord,
   ) =>
-    httpApi<DataResponse<ApiRecord>>(
-      `/api/v1/assets/${encodeURIComponent(assetId)}/video-channels/${encodeURIComponent(videoChannelId)}`,
-      {
-        method: "PATCH",
-        body: JSON.stringify(payload),
-      },
-    ),
+    isLocalE2EMode()
+      ? Promise.resolve<DataResponse<ApiRecord>>({
+          data: {
+            ...LOCAL_E2E_VIDEO_CHANNELS[0],
+            assetId,
+            videoChannelId,
+            ...payload,
+            synthetic: true,
+            evidenceScope: "LOCAL_BROWSER_E2E",
+          },
+        })
+      : httpApi<DataResponse<ApiRecord>>(
+          `/api/v1/assets/${encodeURIComponent(assetId)}/video-channels/${encodeURIComponent(videoChannelId)}`,
+          {
+            method: "PATCH",
+            body: JSON.stringify(payload),
+          },
+        ),
 
   assetNetworkSettings: (assetId: string) =>
-    httpApi<DataResponse<ApiRecord>>(
-      `/api/v1/assets/${encodeURIComponent(assetId)}/network-settings`,
-    ),
+    isLocalE2EMode()
+      ? Promise.resolve<DataResponse<ApiRecord>>({
+          data: {
+            ...LOCAL_E2E_NETWORK_SETTINGS,
+            assetId,
+          },
+        })
+      : httpApi<DataResponse<ApiRecord>>(
+          `/api/v1/assets/${encodeURIComponent(assetId)}/network-settings`,
+        ),
 
   updateAssetNetworkSettings: (
     assetId: string,
     payload: ApiRecord,
   ) =>
-    httpApi<DataResponse<ApiRecord>>(
-      `/api/v1/assets/${encodeURIComponent(assetId)}/network-settings`,
-      {
-        method: "PATCH",
-        body: JSON.stringify(payload),
-      },
-    ),
+    isLocalE2EMode()
+      ? Promise.resolve<DataResponse<ApiRecord>>({
+          data: {
+            ...LOCAL_E2E_NETWORK_SETTINGS,
+            assetId,
+            ...payload,
+            synthetic: true,
+            evidenceScope: "LOCAL_BROWSER_E2E",
+          },
+        })
+      : httpApi<DataResponse<ApiRecord>>(
+          `/api/v1/assets/${encodeURIComponent(assetId)}/network-settings`,
+          {
+            method: "PATCH",
+            body: JSON.stringify(payload),
+          },
+        ),
 
   probeAssetConnection: (
     assetId: string,
     type: "MAVLINK_UDP" | "RTSP",
   ) =>
-    httpApi<DataResponse<ApiRecord>>(
-      `/api/v1/assets/${encodeURIComponent(assetId)}/connection-probes`,
-      {
-        method: "POST",
-        body: JSON.stringify({ type }),
-      },
-    ),
+    isLocalE2EMode()
+      ? Promise.resolve<DataResponse<ApiRecord>>({
+          data: {
+            ...LOCAL_E2E_CONNECTION_PROBE,
+            assetId,
+            type,
+          },
+        })
+      : httpApi<DataResponse<ApiRecord>>(
+          `/api/v1/assets/${encodeURIComponent(assetId)}/connection-probes`,
+          {
+            method: "POST",
+            body: JSON.stringify({ type }),
+          },
+        ),
 
   assignAssetToEvent: (
     eventId: string,
