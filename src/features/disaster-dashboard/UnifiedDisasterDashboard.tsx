@@ -171,6 +171,15 @@ export type LiveLocation = {
   groundSpeedMps: number | null;
   headingDeg: number | null;
   registeredToEvent: boolean;
+
+  pathEvidence: {
+    uplinkReceivedAt: string | null;
+    uplinkForwardStartedAt: string | null;
+    uplinkSource: string | null;
+    uplinkBytes: number | null;
+    transport: string | null;
+    coreReceivedAt: string | null;
+  } | null;
 };
 
 function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"]): LiveLocation | null {
@@ -186,6 +195,50 @@ function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"])
   const specifications = item.specifications && typeof item.specifications === "object"
     ? item.specifications as Record<string, unknown>
     : {};
+
+  const rawPathEvidence =
+    attributes.pathEvidence &&
+    typeof attributes.pathEvidence === "object" &&
+    !Array.isArray(attributes.pathEvidence)
+      ? attributes.pathEvidence as Record<string, unknown>
+      : null;
+
+  const pathBytes =
+    Number(rawPathEvidence?.uplinkBytes);
+
+  const pathEvidence = rawPathEvidence
+    ? {
+        uplinkReceivedAt:
+          rawPathEvidence.uplinkReceivedAt == null
+            ? null
+            : String(rawPathEvidence.uplinkReceivedAt),
+
+        uplinkForwardStartedAt:
+          rawPathEvidence.uplinkForwardStartedAt == null
+            ? null
+            : String(rawPathEvidence.uplinkForwardStartedAt),
+
+        uplinkSource:
+          rawPathEvidence.uplinkSource == null
+            ? null
+            : String(rawPathEvidence.uplinkSource),
+
+        uplinkBytes:
+          Number.isFinite(pathBytes)
+            ? pathBytes
+            : null,
+
+        transport:
+          rawPathEvidence.transport == null
+            ? null
+            : String(rawPathEvidence.transport),
+
+        coreReceivedAt:
+          rawPathEvidence.coreReceivedAt == null
+            ? null
+            : String(rawPathEvidence.coreReceivedAt),
+      }
+    : null;
   const horizontalAccuracyM = Number(item.horizontalAccuracyM);
   const expectedTelemetryIntervalSec = Number(
     item.expectedTelemetryIntervalSec
@@ -231,6 +284,8 @@ function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"])
     groundSpeedMps: (attributes.groundSpeedMps != null && Number.isFinite(Number(attributes.groundSpeedMps))) ? Number(attributes.groundSpeedMps) : null,
     headingDeg: (attributes.headingDeg != null && Number.isFinite(Number(attributes.headingDeg))) ? Number(attributes.headingDeg) : null,
     registeredToEvent: kind === "personnel" || item.eventRegistrationStatus !== "UNREGISTERED",
+
+    pathEvidence,
   };
 }
 
@@ -239,6 +294,7 @@ function locationFingerprint(item: LiveLocation) {
   return [
     item.longitude, item.latitude, item.altitude, item.status, item.observedAt,
     item.positioningMethod, item.horizontalAccuracyM, item.rtcmStatus,
+    item.pathEvidence?.coreReceivedAt,
   ].join("|");
 }
 

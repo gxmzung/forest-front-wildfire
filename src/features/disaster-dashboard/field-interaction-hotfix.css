@@ -1276,3 +1276,560 @@
   display: none !important;
   content: none !important;
 }
+
+/* =========================================================
+   NET-01 ACTUAL E2E PATH MONITOR
+   ========================================================= */
+
+.net01-path-monitor {
+  overflow: hidden;
+}
+
+.net01-path-monitor > p {
+  line-height: 1.4;
+}
+
+.net01-path-steps {
+  display: grid;
+  gap: 6px;
+
+  margin: 9px 0;
+}
+
+.net01-path-steps > section {
+  display: grid;
+
+  grid-template-columns:
+    8px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 7px;
+
+  min-width: 0;
+
+  padding: 7px 8px;
+
+  border: 1px solid #dde7e3;
+  border-radius: 8px;
+
+  background: #fbfdfc;
+}
+
+.net01-path-steps > section > i {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 999px;
+
+  background: #9ba9a4;
+}
+
+.net01-path-steps > section > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  min-width: 0;
+}
+
+.net01-path-steps > section strong {
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.net01-path-steps > section small {
+  max-width: 100%;
+
+  font-size: 8px;
+  line-height: 1.25;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.net01-path-steps > section > b {
+  font-size: 8px;
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.net01-path-steps
+  > section[data-state="LIVE"]
+  > i {
+  background: #15966a;
+  box-shadow:
+    0 0 0 2px rgba(21, 150, 106, 0.12);
+}
+
+.net01-path-steps
+  > section[data-state="LIVE"]
+  > b {
+  color: #137657;
+}
+
+.net01-path-steps
+  > section[data-state="STALE"]
+  > i {
+  background: #d99a25;
+}
+
+.net01-path-steps
+  > section[data-state="STALE"]
+  > b {
+  color: #9b6810;
+}
+
+.net01-path-steps
+  > section[data-state="OFFLINE"]
+  > i {
+  background: #d14b47;
+}
+
+.net01-path-steps
+  > section[data-state="OFFLINE"]
+  > b {
+  color: #b43b37;
+}
+
+.net01-path-metrics {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 5px !important;
+
+  margin: 8px 0 !important;
+}
+
+.net01-path-metrics > div {
+  min-width: 0;
+
+  padding: 6px;
+
+  border-radius: 7px;
+
+  background: #f6faf8;
+}
+
+.net01-path-metrics dt {
+  font-size: 8px;
+  opacity: 0.68;
+}
+
+.net01-path-metrics dd {
+  margin: 2px 0 0;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   NET-01 ACTUAL E2E PATH MONITOR
+   ========================================================= */
+
+.net01-path-monitor {
+  overflow: hidden;
+}
+
+.net01-path-monitor > p {
+  line-height: 1.4;
+}
+
+.net01-path-steps {
+  display: grid;
+  gap: 6px;
+
+  margin: 9px 0;
+}
+
+.net01-path-steps > section {
+  display: grid;
+
+  grid-template-columns:
+    8px
+    minmax(0, 1fr)
+    auto;
+
+  align-items: center;
+
+  gap: 7px;
+
+  min-width: 0;
+
+  padding: 7px 8px;
+
+  border: 1px solid #dde7e3;
+  border-radius: 8px;
+
+  background: #fbfdfc;
+}
+
+.net01-path-steps > section > i {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 999px;
+
+  background: #9ba9a4;
+}
+
+.net01-path-steps > section > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+
+  min-width: 0;
+}
+
+.net01-path-steps > section strong {
+  font-size: 10px;
+  line-height: 1.15;
+}
+
+.net01-path-steps > section small {
+  max-width: 100%;
+
+  font-size: 8px;
+  line-height: 1.25;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.net01-path-steps > section > b {
+  font-size: 8px;
+  line-height: 1;
+
+  white-space: nowrap;
+}
+
+.net01-path-steps
+  > section[data-state="LIVE"]
+  > i {
+  background: #15966a;
+  box-shadow:
+    0 0 0 2px rgba(21, 150, 106, 0.12);
+}
+
+.net01-path-steps
+  > section[data-state="LIVE"]
+  > b {
+  color: #137657;
+}
+
+.net01-path-steps
+  > section[data-state="STALE"]
+  > i {
+  background: #d99a25;
+}
+
+.net01-path-steps
+  > section[data-state="STALE"]
+  > b {
+  color: #9b6810;
+}
+
+.net01-path-steps
+  > section[data-state="OFFLINE"]
+  > i {
+  background: #d14b47;
+}
+
+.net01-path-steps
+  > section[data-state="OFFLINE"]
+  > b {
+  color: #b43b37;
+}
+
+.net01-path-metrics {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 5px !important;
+
+  margin: 8px 0 !important;
+}
+
+.net01-path-metrics > div {
+  min-width: 0;
+
+  padding: 6px;
+
+  border-radius: 7px;
+
+  background: #f6faf8;
+}
+
+.net01-path-metrics dt {
+  font-size: 8px;
+  opacity: 0.68;
+}
+
+.net01-path-metrics dd {
+  margin: 2px 0 0;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   NET-01 PATH MONITOR NARROW DRAWER FIX
+   ========================================================= */
+
+/* 기존 .network-detail-card > div 스타일보다 강하게 */
+article.network-detail-card.net01-path-monitor {
+  display: block !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* 설명 문구 */
+article.network-detail-card.net01-path-monitor > p {
+  display: block !important;
+  margin: 6px 0 8px !important;
+
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+
+  font-size: 9px !important;
+  line-height: 1.35 !important;
+}
+
+/* 핵심: 4개 경로를 한 줄이 아닌 세로 4행으로 강제 */
+article.network-detail-card.net01-path-monitor
+  > .net01-path-steps {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-auto-flow: row !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  gap: 6px !important;
+  margin: 8px 0 !important;
+
+  align-items: stretch !important;
+  justify-content: stretch !important;
+
+  overflow: visible !important;
+}
+
+/* 기존 direct-child flex 규칙 무효화 */
+article.network-detail-card.net01-path-monitor
+  > .net01-path-steps
+  > section {
+  display: grid !important;
+
+  grid-template-columns:
+    7px
+    minmax(0, 1fr)
+    auto !important;
+
+  grid-template-rows: auto !important;
+
+  align-items: center !important;
+  justify-content: stretch !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  gap: 7px !important;
+
+  padding: 7px 8px !important;
+  margin: 0 !important;
+
+  border: 1px solid #dce8e3 !important;
+  border-radius: 7px !important;
+
+  background: #fbfdfc !important;
+
+  overflow: hidden !important;
+}
+
+/* 상태점 */
+article.network-detail-card.net01-path-monitor
+  .net01-path-steps
+  > section
+  > i {
+  display: block !important;
+
+  width: 7px !important;
+  height: 7px !important;
+
+  margin: 0 !important;
+
+  border-radius: 999px !important;
+}
+
+/* 가운데 텍스트 묶음 */
+article.network-detail-card.net01-path-monitor
+  .net01-path-steps
+  > section
+  > div {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+
+  min-width: 0 !important;
+  width: 100% !important;
+
+  gap: 2px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  overflow: hidden !important;
+}
+
+/* GCS → Uplink 등 */
+article.network-detail-card.net01-path-monitor
+  .net01-path-steps
+  > section
+  strong {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+
+  font-size: 9px !important;
+  font-weight: 850 !important;
+  line-height: 1.15 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 수신시간 / source */
+article.network-detail-card.net01-path-monitor
+  .net01-path-steps
+  > section
+  small {
+  display: block !important;
+
+  width: 100% !important;
+  max-width: 100% !important;
+
+  font-size: 7px !important;
+  line-height: 1.2 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* LIVE / WAIT / STALE */
+article.network-detail-card.net01-path-monitor
+  .net01-path-steps
+  > section
+  > b {
+  display: block !important;
+
+  width: auto !important;
+  min-width: 30px !important;
+
+  margin: 0 !important;
+
+  font-size: 7px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+
+  text-align: right !important;
+  white-space: nowrap !important;
+}
+
+/* ---------------------------------------------------------
+   NET-01 metrics
+   --------------------------------------------------------- */
+
+article.network-detail-card.net01-path-monitor
+  > dl.net01-path-metrics {
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr)) !important;
+
+  width: 100% !important;
+  min-width: 0 !important;
+
+  gap: 5px !important;
+
+  margin: 8px 0 !important;
+}
+
+article.network-detail-card.net01-path-monitor
+  > dl.net01-path-metrics
+  > div {
+  display: block !important;
+
+  min-width: 0 !important;
+
+  margin: 0 !important;
+  padding: 6px !important;
+
+  border-radius: 6px !important;
+
+  background: #f3f8f6 !important;
+
+  overflow: hidden !important;
+}
+
+article.network-detail-card.net01-path-monitor
+  > dl.net01-path-metrics
+  dt {
+  display: block !important;
+
+  font-size: 7px !important;
+  line-height: 1.15 !important;
+
+  white-space: nowrap !important;
+}
+
+article.network-detail-card.net01-path-monitor
+  > dl.net01-path-metrics
+  dd {
+  display: block !important;
+
+  margin: 2px 0 0 !important;
+
+  font-size: 9px !important;
+  font-weight: 850 !important;
+  line-height: 1.15 !important;
+
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 하단 설명도 카드 밖으로 삐져나가지 않게 */
+article.network-detail-card.net01-path-monitor
+  > small {
+  display: block !important;
+
+  max-width: 100% !important;
+
+  margin-top: 5px !important;
+
+  font-size: 7px !important;
+  line-height: 1.35 !important;
+
+  white-space: normal !important;
+  overflow-wrap: anywhere !important;
+}
