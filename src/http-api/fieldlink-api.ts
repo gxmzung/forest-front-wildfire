@@ -93,3 +93,125 @@ export function deliverFieldLinkAlert(
     },
   );
 }
+
+export type FieldLinkPresenceSummary = {
+  activeClients: number;
+  clients: Array<{
+    clientId: string;
+    displayName: string;
+    lastSeenAt: string;
+  }>;
+};
+
+export type FieldLinkChatMessage = {
+  messageId: string;
+  roomId: string;
+  senderId: string;
+  senderName: string;
+  text: string;
+  sentAt: string;
+  clientMessageId: string | null;
+};
+
+export type FieldLinkAlertList = {
+  alerts: Array<
+    FieldLinkDeliveredAlert & {
+      acknowledgedClientIds?: string[];
+    }
+  >;
+};
+
+export function registerFieldLinkPresence(
+  baseUrl: string,
+  pin: string,
+  payload: {
+    clientId: string;
+    displayName: string;
+  },
+) {
+  return fieldLinkRequest<FieldLinkPresenceSummary>(
+    baseUrl,
+    pin,
+    "/api/v1/presence",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function getFieldLinkChatMessages(
+  baseUrl: string,
+  pin: string,
+  roomId: string,
+) {
+  const query = new URLSearchParams({
+    roomId,
+    limit: "100",
+  });
+
+  return fieldLinkRequest<{
+    messages: FieldLinkChatMessage[];
+  }>(
+    baseUrl,
+    pin,
+    `/api/v1/chat/messages?${query.toString()}`,
+  );
+}
+
+export function sendFieldLinkChatMessage(
+  baseUrl: string,
+  pin: string,
+  payload: {
+    roomId: string;
+    senderId: string;
+    senderName: string;
+    text: string;
+    clientMessageId: string;
+  },
+) {
+  return fieldLinkRequest<FieldLinkChatMessage>(
+    baseUrl,
+    pin,
+    "/api/v1/chat/messages",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}
+
+export function getFieldLinkAlerts(
+  baseUrl: string,
+  pin: string,
+) {
+  return fieldLinkRequest<FieldLinkAlertList>(
+    baseUrl,
+    pin,
+    "/api/v1/alerts?limit=20",
+  );
+}
+
+export function acknowledgeFieldLinkAlert(
+  baseUrl: string,
+  pin: string,
+  deliveryId: string,
+  payload: {
+    clientId: string;
+    displayName: string;
+  },
+) {
+  return fieldLinkRequest<
+    FieldLinkDeliveredAlert & {
+      acknowledgedClientIds?: string[];
+    }
+  >(
+    baseUrl,
+    pin,
+    `/api/v1/alerts/${encodeURIComponent(deliveryId)}/ack`,
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+    },
+  );
+}

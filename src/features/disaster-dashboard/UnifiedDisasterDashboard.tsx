@@ -17,6 +17,7 @@ import {
 
 import DroneVideoModal from "./DroneVideoModal";
 import VideoPlayback from "./VideoPlayback";
+import FieldLinkChatWidget from "./FieldLinkChatWidget";
 import type { VideoPlaybackState } from "./videoPlaybackState";
 import RequirementsReadinessModal from "./RequirementsReadinessModal";
 import { createDemoOverview, DEMO_EVENT, DEMO_SCENARIOS, demoScenarioFromLocation } from "./demoOverview";
@@ -2034,6 +2035,14 @@ export default function UnifiedDisasterDashboard() {
                 onOpenDroneVideo={(location) => setVideoDrone(location)}
                 telemetrySamples={telemetrySamples}
               />
+
+              <FieldLinkChatWidget
+                eventId={String(
+                  overview.event.eventId ??
+                  DEFAULT_EVENT_ID
+                )}
+              />
+
               {commandShellMode && <aside className="field-command-inspector" aria-label="MD1000 장비 상세 정보">
                 <header>
                   <div><small>장비 상세 정보</small><strong>{fieldPrimaryDrone?.label ?? (fieldPreviewMode ? "MD1000 미리보기" : "주 기체 수신 대기")}</strong></div>
