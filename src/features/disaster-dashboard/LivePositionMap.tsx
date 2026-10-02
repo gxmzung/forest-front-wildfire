@@ -11,6 +11,7 @@ import {
   buildTerrainAnalysis,
   type TerrainAnalysisResult,
 } from "./terrainAnalysis";
+import { loadChungnamViewshedRaster } from "./chungnamViewshed";
 
 type Props = {
   locations: LiveLocation[];
@@ -721,7 +722,12 @@ function locationFeatureCollection(locations: LiveLocation[], changedUntil: Reco
 export default function LivePositionMap({ locations, changedUntil, highlightDurationMs, eventCenter, focusCenter, eventId, showResources, showEvent, selectedKey, onLocationSelect, onLocationDoubleClick, onLocationTopology, topology, topologyFocusKey, showTopology, referenceTimeMs, domainLayers, visibleLayerIds }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
-  const wildfireDemo = isWildfireDemoMode();
+  // DEMO 이벤트 자체도 산불 DEMO로 인식한다.
+  // 운영 URL에 ?demo=1이 빠져 있어도 demo-wildfire-* 이벤트면
+  // 현장 중심 줌/마커 표시 규칙을 동일하게 적용한다.
+  const wildfireDemo =
+    isWildfireDemoMode() ||
+    eventId.startsWith("demo-wildfire-");
   const [mutedBasemap, setMutedBasemap] = useState(false);
   const [terrain3d, setTerrain3d] = useState(false);
   const [riskHeatmap, setRiskHeatmap] = useState(false);
@@ -778,6 +784,122 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
       mapRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    let disposed = false;
+
+    const tvwsVisible =
+      wildfireDemo &&
+      visibleLayerIds.has("viewsheds");
+
+    const termVisible =
+      wildfireDemo &&
+      visibleLayerIds.has("communication-shadows");
+
+    const applyChungnamViewshed = async () => {
+      const definitions = [
+        {
+          kind: "tvws" as const,
+          sourceId: "chungnam-tvws-raster-source",
+          layerId: "chungnam-tvws-raster-layer",
+          visible: tvwsVisible,
+          opacity: 0.74,
+        },
+        {
+          kind: "term" as const,
+          sourceId: "chungnam-term-raster-source",
+          layerId: "chungnam-term-raster-layer",
+          visible: termVisible,
+          opacity: 0.58,
+        },
+      ];
+
+      for (const definition of definitions) {
+        if (!definition.visible) {
+          if (map.getLayer(definition.layerId)) {
+            map.setLayoutProperty(
+              definition.layerId,
+              "visibility",
+              "none",
+            );
+          }
+
+          continue;
+        }
+
+        const raster =
+          await loadChungnamViewshedRaster(
+            definition.kind,
+          );
+
+        if (disposed) {
+          return;
+        }
+
+        if (!map.getSource(definition.sourceId)) {
+          map.addSource(definition.sourceId, {
+            type: "image",
+            url: raster.url,
+            coordinates: raster.coordinates,
+          });
+        }
+
+        if (!map.getLayer(definition.layerId)) {
+          const beforeId = [
+            "event-origin-halo",
+            "field-resource-halo",
+          ].find((id) => map.getLayer(id));
+
+          map.addLayer(
+            {
+              id: definition.layerId,
+              type: "raster",
+              source: definition.sourceId,
+              paint: {
+                "raster-opacity": definition.opacity,
+                "raster-resampling": "nearest",
+              },
+            },
+            beforeId,
+          );
+        }
+
+        map.setLayoutProperty(
+          definition.layerId,
+          "visibility",
+          "visible",
+        );
+      }
+    };
+
+    const onLoad = () => {
+      void applyChungnamViewshed().catch(
+        (error) => {
+          console.warn(
+            "충남대 Viewshed raster 표시 실패",
+            error,
+          );
+        },
+      );
+    };
+
+    if (map.isStyleLoaded()) {
+      onLoad();
+    } else {
+      map.once("load", onLoad);
+    }
+
+    return () => {
+      disposed = true;
+      map.off("load", onLoad);
+    };
+  }, [
+    wildfireDemo,
+    visibleLayerIds,
+  ]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -2262,6 +2384,11 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
           showEvent ? "visible" : "none",
         );
       }
+      const resourceVisibility =
+        showResources || wildfireDemo
+          ? "visible"
+          : "none";
+
       for (const layerId of [
         "field-md1000-trail-halo",
         "field-md1000-trail-line",
@@ -2280,7 +2407,7 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
         map.setLayoutProperty(
           layerId,
           "visibility",
-          showResources ? "visible" : "none",
+          resourceVisibility,
         );
       }
       // 고정 순서: 배경지도 → AI 분석 결과 → 발생지점 → 수신 펄스 → 자산·인원.
