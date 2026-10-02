@@ -604,6 +604,151 @@ function overviewLocations(overview: EventOverview): LiveLocation[] {
   ].filter((item): item is LiveLocation => item !== null);
 }
 
+
+function demoRtkAssetsFromTelemetry(
+  rows: ApiRecord[],
+): ApiRecord[] {
+  const latest = new Map<string, ApiRecord>();
+
+  for (const row of rows) {
+    if (String(row.assetType ?? "") !== "RTK_TERMINAL") {
+      continue;
+    }
+
+    const assetId = String(
+      row.assetId ??
+      row.sourceAssetId ??
+      "",
+    ).trim();
+
+    const latitude = Number(row.latitude);
+    const longitude = Number(row.longitude);
+    const altitude = Number(row.altitude);
+    const observedAt = String(row.observedAt ?? "");
+
+    if (
+      !assetId ||
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude) ||
+      latitude < -90 ||
+      latitude > 90 ||
+      longitude < -180 ||
+      longitude > 180 ||
+      (latitude === 0 && longitude === 0) ||
+      !observedAt ||
+      !Number.isFinite(Date.parse(observedAt))
+    ) {
+      continue;
+    }
+
+    const attributes =
+      row.attributes &&
+      typeof row.attributes === "object" &&
+      !Array.isArray(row.attributes)
+        ? row.attributes as ApiRecord
+        : {};
+
+    const linkQuality =
+      attributes.linkQuality &&
+      typeof attributes.linkQuality === "object" &&
+      !Array.isArray(attributes.linkQuality)
+        ? attributes.linkQuality as ApiRecord
+        : {};
+
+    const rssi = Number(linkQuality.rssiDbm);
+
+    latest.set(assetId, {
+      assetId,
+
+      assetCode:
+        String(row.assetCode ?? assetId),
+
+      assetName:
+        String(
+          row.assetName ??
+          `Sleno RTK 단말 ${assetId.slice(0, 8)}`
+        ),
+
+      assetType:
+        "RTK_TERMINAL",
+
+      operationalStatus:
+        String(
+          row.operationalStatus ??
+          "UNKNOWN"
+        ),
+
+      observedAt,
+
+      receivedAt:
+        String(
+          row.receivedAt ??
+          observedAt
+        ),
+
+      geometry: {
+        type: "Point",
+        coordinates: [
+          longitude,
+          latitude,
+          Number.isFinite(altitude)
+            ? altitude
+            : 0,
+        ],
+      },
+
+      signalStrengthDbm:
+        Number.isFinite(rssi)
+          ? rssi
+          : null,
+
+      packetLossPct:
+        row.packetLossPct ?? null,
+
+      positioningMethod:
+        String(
+          row.positioningMethod ??
+          attributes.fixType ??
+          "GNSS"
+        ),
+
+      qualityStatus:
+        String(
+          row.operationalStatus ??
+          ""
+        ),
+
+      sourceSystem:
+        String(
+          attributes.sourceSystem ??
+          "sleno-server"
+        ),
+
+      sourceAssetId:
+        String(
+          row.sourceAssetId ??
+          assetId
+        ),
+
+      reportedByAssetId: "",
+      reportingRole: "JININFRA",
+
+      activeLink:
+        String(
+          attributes.networkType ??
+          "LORAWAN"
+        ),
+
+      eventRegistrationStatus:
+        "REGISTERED",
+
+      attributes,
+    });
+  }
+
+  return [...latest.values()];
+}
+
 const fallbackTopologyLabels: Record<string, string[]> = {
   ENDPOINT: ["대원 RTK 단말", "드론·영상장비", "400㎒ 무전기"],
   FIELD: ["LPWA · 저속", "이음5G · 고속", "무전 중계망"],
@@ -1174,8 +1319,56 @@ export default function UnifiedDisasterDashboard() {
     if (!selectedId) return;
     let active = true;
     const refresh = () => demoMode
-      ? (() => {
+      ? (async () => {
           const next = createDemoOverview();
+
+          /*
+           * 운영 WILDFIRE demo 화면은 유지하되
+           * 실제 Core에 들어온 Sleno RTK 위치만
+           * live overlay 한다.
+           */
+          try {
+            const response =
+              await forestApi
+                .dashboardDroneTelemetry(
+                  selectedId
+                );
+
+            const slenoAssets =
+              demoRtkAssetsFromTelemetry(
+                response.data
+              );
+
+            if (slenoAssets.length > 0) {
+              const liveAssetIds =
+                new Set(
+                  slenoAssets.map(
+                    (asset) =>
+                      String(
+                        asset.assetId
+                      )
+                  )
+                );
+
+              next.assets = [
+                ...next.assets.filter(
+                  (asset) =>
+                    !liveAssetIds.has(
+                      String(
+                        asset.assetId
+                      )
+                    )
+                ),
+                ...slenoAssets,
+              ];
+            }
+          } catch (caught) {
+            console.warn(
+              "[demo] Sleno RTK live overlay unavailable",
+              caught
+            );
+          }
+
           setOverview(next);
           const sequence = ++demoSequenceRef.current;
           setTelemetrySamples((current) => [...current, ...next.assets
@@ -1194,7 +1387,7 @@ export default function UnifiedDisasterDashboard() {
             } satisfies TelemetrySample;
           })].slice(-3_600));
           setLastUpdatedAt(new Date());
-          return Promise.resolve();
+          return;
         })()
       : refreshOverview()
       .then(() => active && setError(null))
