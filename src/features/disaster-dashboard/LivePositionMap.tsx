@@ -66,6 +66,88 @@ function compactLabel(location: LiveLocation) {
   return `${location.registeredToEvent ? type : "미등록"} · ${name}`;
 }
 
+function resourceQualityPopupContent(location: LiveLocation) {
+  const root = document.createElement("section");
+  root.className = "resource-quality-popup-card";
+
+  const header = document.createElement("header");
+
+  const title = document.createElement("strong");
+  title.textContent = location.label;
+
+  const type = document.createElement("span");
+  type.textContent = shortCategoryNames[location.category] ?? "장비";
+
+  header.append(title, type);
+  root.appendChild(header);
+
+  const rows: Array<[string, string]> = [
+    [
+      "통신 상태",
+      location.qualityStatus || location.status || "확인 중",
+    ],
+    [
+      "신호",
+      location.signalStrengthDbm == null
+        ? "측정값 없음"
+        : `${location.signalStrengthDbm.toFixed(0)} dBm`,
+    ],
+    [
+      "SNR",
+      location.snrDb == null
+        ? "측정값 없음"
+        : `${location.snrDb.toFixed(1)} dB`,
+    ],
+    [
+      "패킷 손실",
+      location.packetLossPct == null
+        ? "측정값 없음"
+        : `${location.packetLossPct.toFixed(1)}%`,
+    ],
+    [
+      "지연",
+      location.latencyMs == null
+        ? "측정값 없음"
+        : `${location.latencyMs.toFixed(0)} ms`,
+    ],
+    [
+      "전송망",
+      location.networkMode || "망 정보 없음",
+    ],
+    [
+      "최근 수신",
+      location.observedAt && Number.isFinite(Date.parse(location.observedAt))
+        ? new Date(location.observedAt).toLocaleTimeString("ko-KR", {
+            hour12: false,
+          })
+        : "수신 시각 없음",
+    ],
+  ];
+
+  const dl = document.createElement("dl");
+
+  for (const [label, value] of rows) {
+    const row = document.createElement("div");
+
+    const dt = document.createElement("dt");
+    dt.textContent = label;
+
+    const dd = document.createElement("dd");
+    dd.textContent = value;
+
+    row.append(dt, dd);
+    dl.appendChild(row);
+  }
+
+  root.appendChild(dl);
+
+  const footer = document.createElement("small");
+  footer.textContent = "클릭하면 장치 상세정보를 확인할 수 있습니다.";
+  root.appendChild(footer);
+
+  return root;
+}
+
 function isWildfireDemoMode() {
   if (typeof window === "undefined") return false;
   const params = new URLSearchParams(window.location.search);
@@ -756,6 +838,7 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
   const [tileDegraded, setTileDegraded] = useState(false);
   const selectedViewportRef = useRef("");
   const singleClickTimerRef = useRef<number | null>(null);
+  const resourcePopupRef = useRef<maplibregl.Popup | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -2472,8 +2555,46 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
         onLocationDoubleClick(location);
       }
     };
-    const pointer = () => { map.getCanvas().style.cursor = "pointer"; };
-    const unpointer = () => { map.getCanvas().style.cursor = ""; };
+    const showResourceQuality = (
+      event: maplibregl.MapLayerMouseEvent,
+    ) => {
+      map.getCanvas().style.cursor = "pointer";
+
+      const key = String(
+        event.features?.[0]?.properties?.key ?? "",
+      );
+
+      const location =
+        locations.find(
+          (item) => keyOf(item) === key,
+        );
+
+      if (!location) return;
+
+      resourcePopupRef.current?.remove();
+
+      resourcePopupRef.current =
+        new maplibregl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          offset: 22,
+          className: "resource-quality-map-popup",
+        })
+          .setLngLat([
+            location.longitude,
+            location.latitude,
+          ])
+          .setDOMContent(
+            resourceQualityPopupContent(location),
+          )
+          .addTo(map);
+    };
+
+    const hideResourceQuality = () => {
+      map.getCanvas().style.cursor = "";
+      resourcePopupRef.current?.remove();
+      resourcePopupRef.current = null;
+    };
     if (map.isStyleLoaded()) render(); else map.once("load", render);
     map.on("click", "field-resource-point", selectResource);
     map.on("click", "field-resource-label", selectResource);
@@ -2481,10 +2602,10 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
     map.on("dblclick", "field-resource-label", openDroneVideo);
     map.on("contextmenu", "field-resource-point", showResourceTopology);
     map.on("contextmenu", "field-resource-label", showResourceTopology);
-    map.on("mouseenter", "field-resource-point", pointer);
-    map.on("mouseenter", "field-resource-label", pointer);
-    map.on("mouseleave", "field-resource-point", unpointer);
-    map.on("mouseleave", "field-resource-label", unpointer);
+    map.on("mouseenter", "field-resource-point", showResourceQuality);
+    map.on("mouseenter", "field-resource-label", showResourceQuality);
+    map.on("mouseleave", "field-resource-point", hideResourceQuality);
+    map.on("mouseleave", "field-resource-label", hideResourceQuality);
     return () => {
       if (singleClickTimerRef.current !== null) {
         window.clearTimeout(singleClickTimerRef.current);
@@ -2497,10 +2618,12 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
       map.off("dblclick", "field-resource-label", openDroneVideo);
       map.off("contextmenu", "field-resource-point", showResourceTopology);
       map.off("contextmenu", "field-resource-label", showResourceTopology);
-      map.off("mouseenter", "field-resource-point", pointer);
-      map.off("mouseenter", "field-resource-label", pointer);
-      map.off("mouseleave", "field-resource-point", unpointer);
-      map.off("mouseleave", "field-resource-label", unpointer);
+      resourcePopupRef.current?.remove();
+      resourcePopupRef.current = null;
+      map.off("mouseenter", "field-resource-point", showResourceQuality);
+      map.off("mouseenter", "field-resource-label", showResourceQuality);
+      map.off("mouseleave", "field-resource-point", hideResourceQuality);
+      map.off("mouseleave", "field-resource-label", hideResourceQuality);
     };
   }, [locations, changedUntil, eventCenter, onLocationDoubleClick, onLocationSelect, onLocationTopology, referenceTimeMs, selectedKey, showEvent, showResources, showTopology, topology, topologyFocusKey]);
 

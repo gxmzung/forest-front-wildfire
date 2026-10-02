@@ -43,6 +43,13 @@ const FORCE_LOCAL_E2E_MODE = isLocalE2EMode();
 const FORCE_LOCAL_FIELD_MODE = isLocalFieldMode() || new URLSearchParams(window.location.search).get("field") === "1";
 const FORCE_FIELD_PREVIEW_MODE = FORCE_LOCAL_FIELD_MODE && (isFieldPreviewMode() || new URLSearchParams(window.location.search).get("preview") === "1");
 
+/*
+ * 최종 운영 화면에서는 DEMO/KPI/PoC 검증 UI를 노출하지 않는다.
+ * 필요 시 ?debug=1 에서만 개발 검증 UI를 다시 확인할 수 있다.
+ */
+const SHOW_VALIDATION_UI =
+  new URLSearchParams(window.location.search).get("debug") === "1";
+
 function text(value: unknown, fallback = "-") { return value == null || value === "" ? fallback : String(value); }
 const koreanLabels: Record<string, string> = {
   WILDFIRE: "산불",
@@ -153,6 +160,7 @@ export type LiveLocation = {
   category: string;
   batteryPct: number | null;
   signalStrengthDbm: number | null;
+  snrDb: number | null;
   latencyMs: number | null;
   packetLossPct: number | null;
   safetyStatus: string;
@@ -197,6 +205,13 @@ function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"])
   const specifications = item.specifications && typeof item.specifications === "object"
     ? item.specifications as Record<string, unknown>
     : {};
+
+  const linkQuality =
+    attributes.linkQuality &&
+    typeof attributes.linkQuality === "object" &&
+    !Array.isArray(attributes.linkQuality)
+      ? attributes.linkQuality as Record<string, unknown>
+      : {};
 
   const rawPathEvidence =
     attributes.pathEvidence &&
@@ -259,7 +274,16 @@ function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"])
     observedAt: String(item.observedAt ?? ""),
     category: String(kind === "personnel" ? "PERSONNEL" : item.assetType ?? "ASSET"),
     batteryPct: (item.batteryPct != null && Number.isFinite(Number(item.batteryPct))) ? Number(item.batteryPct) : null,
-    signalStrengthDbm: (item.signalStrengthDbm != null && Number.isFinite(Number(item.signalStrengthDbm))) ? Number(item.signalStrengthDbm) : null,
+    signalStrengthDbm:
+      Number.isFinite(Number(item.signalStrengthDbm ?? linkQuality.rssiDbm))
+        ? Number(item.signalStrengthDbm ?? linkQuality.rssiDbm)
+        : null,
+
+    snrDb:
+      Number.isFinite(Number(linkQuality.snrDb))
+        ? Number(linkQuality.snrDb)
+        : null,
+
     latencyMs: (item.latencyMs != null && Number.isFinite(Number(item.latencyMs))) ? Number(item.latencyMs) : null,
     packetLossPct: (item.packetLossPct != null && Number.isFinite(Number(item.packetLossPct))) ? Number(item.packetLossPct) : null,
     safetyStatus: korean(item.safetyStatus ?? "UNKNOWN"),
@@ -273,9 +297,20 @@ function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"])
     reportedByAssetId: String(item.reportedByAssetId ?? ""),
     reportingRole: String(item.reportingRole ?? ""),
     rtcmStatus: attributes.correction ? String(attributes.correction) : null,
-    networkMode: item.activeLink || item.networkMode || attributes.network
-      ? String(item.activeLink ?? item.networkMode ?? attributes.network)
-      : null,
+    networkMode:
+      item.activeLink ||
+      item.networkMode ||
+      attributes.network ||
+      attributes.networkType ||
+      pathEvidence?.transport
+        ? String(
+            item.activeLink ??
+            item.networkMode ??
+            attributes.network ??
+            attributes.networkType ??
+            pathEvidence?.transport
+          )
+        : null,
     expectedTelemetryIntervalSec: Number.isFinite(expectedTelemetryIntervalSec) && expectedTelemetryIntervalSec > 0
       ? expectedTelemetryIntervalSec
       : null,
@@ -885,7 +920,9 @@ export default function UnifiedDisasterDashboard() {
   const [visibleResourceGroups, setVisibleResourceGroups] = useState<Set<ResourceGroup>>(
     () => new Set(["PERSONNEL", "UAV", "COMMAND", "POSITIONING", "COMMUNICATION", "DETECTION", "UNASSIGNED"]),
   );
-  const [operationsTab, setOperationsTab] = useState<PanelTab>("kpis");
+  const [operationsTab, setOperationsTab] = useState<PanelTab>(
+    SHOW_VALIDATION_UI ? "kpis" : "networks",
+  );
   const [selectedLocationKey, setSelectedLocationKey] = useState<string | null>(null);
   const [topologyLocationKey, setTopologyLocationKey] = useState<string | null>(null);
   const [resourceDialogGroup, setResourceDialogGroup] = useState<ResourceGroup | "ALL" | "ALL_ASSETS" | null>(null);
@@ -2018,14 +2055,14 @@ export default function UnifiedDisasterDashboard() {
   }, [refreshEvents]);
 
   return (
-<main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}`} aria-label="?? ?? ?? ??">
+<main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}${SHOW_VALIDATION_UI ? "" : " final-ops-ui"}`} aria-label="?? ?? ?? ??">
       {error && <p className="unified-disaster-error" role="status"><strong>데이터 갱신 지연</strong><span>{error}</span><small>{overview ? "마지막 정상 데이터를 유지합니다." : "연결을 다시 확인하고 있습니다."}</small></p>}
       {!overview && (
         <section className="dashboard-readiness" aria-live="polite">
           <header>
             <div className="readiness-brand"><span>산림청</span><strong>산림재난 통합상황판</strong><small>FOREST DISASTER COMMON OPERATIONAL PICTURE</small></div>
             <div className="readiness-actions">
-              <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>기능 검증 현황</button>
+              {SHOW_VALIDATION_UI && <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>기능 검증 현황</button>}
               <button type="button" className="asset-registry-open" onClick={() => { window.location.href = "/device"; }}>자산 등록·관리</button>
               <div className={`readiness-connection ${error ? "is-error" : eventsLoaded ? "is-ready" : "is-loading"}`}><i />{error ? "연결 점검 필요" : eventsLoaded ? "연결 정상" : "데이터 연결 중"}</div>
             </div>
@@ -2061,10 +2098,10 @@ export default function UnifiedDisasterDashboard() {
             <span>{korean(overview.event.severityCode)}</span>
             <small>{text(overview.event.locationName)}</small>
           </div>
-          {demoMode && <div className="demo-mode-badge" title="실제 API 연결 전 화면 검증용 데이터입니다"><b>DEMO</b><span>모의 관제 데이터</span></div>}
+          {SHOW_VALIDATION_UI && demoMode && <div className="demo-mode-badge" title="실제 API 연결 전 화면 검증용 데이터입니다"><b>DEMO</b><span>모의 관제 데이터</span></div>}
           {localE2EMode && <div className="demo-mode-badge" title="실기체가 아닌 로컬 synthetic MAVLink 브라우저 E2E입니다"><b>E2E</b><span>SYNTHETIC · NOT FLIGHT</span></div>}
           {localFieldMode && <div className={`demo-mode-badge field-mode-badge${fieldPreviewMode ? " field-preview-badge" : ""}`} title={fieldPreviewMode ? "화면 확인을 위한 명시적 미리보기 데이터입니다. 실제 비행 증거가 아닙니다." : "실제 MD1000 MAVLink만 수신하는 로컬 현장 모드입니다. Synthetic feed는 사용하지 않습니다."}><b>{fieldPreviewMode ? "미리보기" : "현장"}</b><span>{fieldPreviewMode ? "DEMO DATA · NOT FLIGHT" : "MD1000 실기체 · MAVLink 연동"}</span></div>}
-          {demoMode && <label className="demo-scenario-selector"><span>검증 시나리오</span><select aria-label="DEMO 검증 시나리오" value={demoScenario} onChange={(event) => { const params = new URLSearchParams(window.location.search); params.set("demo", "1"); params.set("scenario", event.target.value); window.location.search = params.toString(); }}>{DEMO_SCENARIOS.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.label}</option>)}</select></label>}
+          {SHOW_VALIDATION_UI && demoMode && <label className="demo-scenario-selector"><span>검증 시나리오</span><select aria-label="DEMO 검증 시나리오" value={demoScenario} onChange={(event) => { const params = new URLSearchParams(window.location.search); params.set("demo", "1"); params.set("scenario", event.target.value); window.location.search = params.toString(); }}>{DEMO_SCENARIOS.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.label}</option>)}</select></label>}
           {localFieldMode && <button type="button" className="field-preview-toggle" onClick={() => { const params = new URLSearchParams(window.location.search); params.set("field", "1"); if (fieldPreviewMode) params.delete("preview"); else params.set("preview", "1"); window.location.search = params.toString(); }}>{fieldPreviewMode ? "실데이터 보기" : "미리보기 데이터"}</button>}
           <nav className="header-summary" aria-label="운영 현황">
             <button
@@ -2083,12 +2120,12 @@ export default function UnifiedDisasterDashboard() {
           </nav>
           <div className="command-primary-actions">
             <button type="button" className="asset-registry-open" onClick={() => { window.location.href = "/device"; }}>자산 등록·관리</button>
-            <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>기능 검증 현황</button>
+            {SHOW_VALIDATION_UI && <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>기능 검증 현황</button>}
           </div>
           <button type="button" className="asset-status-open" onClick={() => { setSelectedLocationKey(null); setResourceDialogGroup("ALL"); }}>사건 투입 자산</button>
           <time className="last-updated" title={lastUpdatedAt?.toLocaleString("ko-KR")}><i /> 최근 갱신 {lastUpdatedAt ? relativeTime(lastUpdatedAt.toISOString()) : "대기 중"}</time>
         </header>
-        <section className="field-kpi-strip" aria-label="현장 통신 KPI 4종">
+        {SHOW_VALIDATION_UI && <section className="field-kpi-strip" aria-label="현장 통신 KPI 4종">
           {communicationKpis.map((item) => (
             <article key={item.id} data-state={item.state}>
               <span className="field-kpi-icon" aria-hidden="true">{item.icon}</span>
@@ -2158,9 +2195,9 @@ export default function UnifiedDisasterDashboard() {
               )}
             </div>
           </aside>
-        </section>
+        </section>}
 <section className={`dashboard-map-stage${commandShellMode ? " field-command-stage" : " asset-panel-collapsed"}`} aria-label="?? ?? ?? ???">
-          {demoMode && (
+          {SHOW_VALIDATION_UI && demoMode && (
             <div className="semantic-mission-poc-overlay">
               <SemanticMissionPocPanel />
             </div>
@@ -2252,7 +2289,7 @@ export default function UnifiedDisasterDashboard() {
                 )}
               />
 
-              {commandShellMode && <aside className="field-command-inspector" aria-label="MD1000 장비 상세 정보">
+              {(localFieldMode || localE2EMode || SHOW_VALIDATION_UI) && <aside className="field-command-inspector" aria-label="MD1000 장비 상세 정보">
                 <header>
                   <div><small>장비 상세 정보</small><strong>{fieldPrimaryDrone?.label ?? (fieldPreviewMode ? "MD1000 미리보기" : "주 기체 수신 대기")}</strong></div>
                   <em
@@ -2597,6 +2634,14 @@ export default function UnifiedDisasterDashboard() {
             <section className="selected-location-drawer resource-modal" role="dialog" aria-modal="true" aria-label="선택 자산 상세" onMouseDown={(event) => event.stopPropagation()}>
               <div><span>{assetTypeLabel(selectedLocation.category)}</span><strong>{selectedLocation.label}</strong><small>{coordinateOutlierKeys.has(locationKey(selectedLocation)) ? "좌표 정합성 확인 필요" : selectedLocation.status}</small></div>
               <dl>
+                <div>
+                  <dt>통신 상태</dt>
+                  <dd>{selectedLocation.qualityStatus || selectedLocation.status || "확인 중"}</dd>
+                </div>
+                <div>
+                  <dt>전송망</dt>
+                  <dd>{selectedLocation.networkMode || "망 정보 없음"}</dd>
+                </div>
                 {!demoMode && <DroneTwinDetail asset={overview.assets.find(asset => asset.assetId === selectedLocation.id) ?? {}} />}
                 <div><dt>최근 통신</dt><dd>{relativeTime(selectedLocation.observedAt)}</dd></div>
                 <div><dt>위치</dt><dd>{selectedLocation.latitude.toFixed(6)}, {selectedLocation.longitude.toFixed(6)}</dd></div>
@@ -2771,7 +2816,7 @@ export default function UnifiedDisasterDashboard() {
             data-active-pulses={Object.values(changedUntil).filter((until) => until > Date.now()).length}
           ><i /> 사건 데이터 변화 감지 · 갱신 주기의 30% 동안 테두리 강조</div>
         </section>
-{commandShellMode && (displayConfig.showVideoDeck || displayConfig.showEventTimeline) && <section className="field-command-footer" aria-label="?? ?? ? ??? ????">
+{(localFieldMode || localE2EMode || SHOW_VALIDATION_UI) && (displayConfig.showVideoDeck || displayConfig.showEventTimeline) && <section className="field-command-footer" aria-label="?? ?? ? ??? ????">
           {displayConfig.showVideoDeck && <div className="field-video-deck">
             <header><strong>실시간 영상</strong><small>{fieldPreviewMode ? "미리보기 4채널" : "RTSP 연결 상태"}</small></header>
             <div>
