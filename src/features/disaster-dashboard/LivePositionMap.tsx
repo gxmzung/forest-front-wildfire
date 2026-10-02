@@ -721,7 +721,12 @@ function locationFeatureCollection(locations: LiveLocation[], changedUntil: Reco
 export default function LivePositionMap({ locations, changedUntil, highlightDurationMs, eventCenter, focusCenter, eventId, showResources, showEvent, selectedKey, onLocationSelect, onLocationDoubleClick, onLocationTopology, topology, topologyFocusKey, showTopology, referenceTimeMs, domainLayers, visibleLayerIds }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
-  const wildfireDemo = isWildfireDemoMode();
+  // DEMO 이벤트 자체도 산불 DEMO로 인식한다.
+  // 운영 URL에 ?demo=1이 빠져 있어도 demo-wildfire-* 이벤트면
+  // 현장 중심 줌/마커 표시 규칙을 동일하게 적용한다.
+  const wildfireDemo =
+    isWildfireDemoMode() ||
+    eventId.startsWith("demo-wildfire-");
   const [mutedBasemap, setMutedBasemap] = useState(false);
   const [terrain3d, setTerrain3d] = useState(false);
   const [riskHeatmap, setRiskHeatmap] = useState(false);
@@ -2262,6 +2267,11 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
           showEvent ? "visible" : "none",
         );
       }
+      const resourceVisibility =
+        showResources || wildfireDemo
+          ? "visible"
+          : "none";
+
       for (const layerId of [
         "field-md1000-trail-halo",
         "field-md1000-trail-line",
@@ -2280,7 +2290,7 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
         map.setLayoutProperty(
           layerId,
           "visibility",
-          showResources ? "visible" : "none",
+          resourceVisibility,
         );
       }
       // 고정 순서: 배경지도 → AI 분석 결과 → 발생지점 → 수신 펄스 → 자산·인원.
