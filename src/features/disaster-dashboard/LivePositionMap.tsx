@@ -11,6 +11,7 @@ import {
   buildTerrainAnalysis,
   type TerrainAnalysisResult,
 } from "./terrainAnalysis";
+import { loadChungnamViewshedRaster } from "./chungnamViewshed";
 
 type Props = {
   locations: LiveLocation[];
@@ -783,6 +784,122 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
       mapRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    let disposed = false;
+
+    const tvwsVisible =
+      wildfireDemo &&
+      visibleLayerIds.has("viewsheds");
+
+    const termVisible =
+      wildfireDemo &&
+      visibleLayerIds.has("communication-shadows");
+
+    const applyChungnamViewshed = async () => {
+      const definitions = [
+        {
+          kind: "tvws" as const,
+          sourceId: "chungnam-tvws-raster-source",
+          layerId: "chungnam-tvws-raster-layer",
+          visible: tvwsVisible,
+          opacity: 0.74,
+        },
+        {
+          kind: "term" as const,
+          sourceId: "chungnam-term-raster-source",
+          layerId: "chungnam-term-raster-layer",
+          visible: termVisible,
+          opacity: 0.58,
+        },
+      ];
+
+      for (const definition of definitions) {
+        if (!definition.visible) {
+          if (map.getLayer(definition.layerId)) {
+            map.setLayoutProperty(
+              definition.layerId,
+              "visibility",
+              "none",
+            );
+          }
+
+          continue;
+        }
+
+        const raster =
+          await loadChungnamViewshedRaster(
+            definition.kind,
+          );
+
+        if (disposed) {
+          return;
+        }
+
+        if (!map.getSource(definition.sourceId)) {
+          map.addSource(definition.sourceId, {
+            type: "image",
+            url: raster.url,
+            coordinates: raster.coordinates,
+          });
+        }
+
+        if (!map.getLayer(definition.layerId)) {
+          const beforeId = [
+            "event-origin-halo",
+            "field-resource-halo",
+          ].find((id) => map.getLayer(id));
+
+          map.addLayer(
+            {
+              id: definition.layerId,
+              type: "raster",
+              source: definition.sourceId,
+              paint: {
+                "raster-opacity": definition.opacity,
+                "raster-resampling": "nearest",
+              },
+            },
+            beforeId,
+          );
+        }
+
+        map.setLayoutProperty(
+          definition.layerId,
+          "visibility",
+          "visible",
+        );
+      }
+    };
+
+    const onLoad = () => {
+      void applyChungnamViewshed().catch(
+        (error) => {
+          console.warn(
+            "충남대 Viewshed raster 표시 실패",
+            error,
+          );
+        },
+      );
+    };
+
+    if (map.isStyleLoaded()) {
+      onLoad();
+    } else {
+      map.once("load", onLoad);
+    }
+
+    return () => {
+      disposed = true;
+      map.off("load", onLoad);
+    };
+  }, [
+    wildfireDemo,
+    visibleLayerIds,
+  ]);
 
   useEffect(() => {
     const map = mapRef.current;
