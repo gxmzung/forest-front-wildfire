@@ -25,6 +25,7 @@ import { applyTelemetrySafetyRules, TelemetryStreamClient, type TelemetryStreamS
 import { calculatePacketSequence, calculateTelemetryMetrics, classifyLinkHealth, type TelemetrySample } from "./operationalEvidence";
 import { evaluateFieldApiHealth, fieldApiHealthLabel, formatLastSuccessAge } from "./fieldApiHealth";
 import { PROJECT_ENHANCED_TARGET } from "./officialRfpGaps";
+import { pickSlenoRtkFocusCenter } from "./slenoMapFocus";
 import {
   displayProfileClassName,
   getDisplayProfileConfig,
@@ -1618,7 +1619,22 @@ export default function UnifiedDisasterDashboard() {
         (eventCenter[1] - liveCenter[1]) * 111,
       )
     : 0;
-  const mapFocusCenter = !eventCenter ? liveCenter : eventToLiveDistance > 0.08 ? liveCenter : eventCenter;
+  /*
+   * WILDFIRE demo에서 실제 Sleno RTK가 들어오면
+   * 데모 사건 좌표로 옮겨 그리지 않고 실제 좌표를 지도 중심으로 사용한다.
+   */
+  const slenoRtkFocusCenter =
+    demoMode
+      ? pickSlenoRtkFocusCenter(mapLocations)
+      : null;
+
+  const mapFocusCenter =
+    slenoRtkFocusCenter
+    ?? (!eventCenter
+      ? liveCenter
+      : eventToLiveDistance > 0.08
+        ? liveCenter
+        : eventCenter);
   const coordinateOutlierKeys = new Set(
     liveCenter
       ? mapLocations

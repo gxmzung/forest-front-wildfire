@@ -754,7 +754,7 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
   const fallbackTerrainConfig = resolveTerrainConfig(import.meta.env);
   const terrainConfig = wildfireDemo ? DEOKSUNG_DEM : fallbackTerrainConfig;
   const [tileDegraded, setTileDegraded] = useState(false);
-  const selectedEventRef = useRef("");
+  const selectedViewportRef = useRef("");
   const singleClickTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -1493,19 +1493,27 @@ export default function LivePositionMap({ locations, changedUntil, highlightDura
     const map = mapRef.current;
     if (!map || !(focusCenter ?? eventCenter)) return;
 
-    // DEMO 관제 화면은 사건 현장을 우선 표시한다.
-    // 일반 이벤트 중복 선택 방지 로직보다 먼저 처리해야 초기 광역 뷰에 남지 않는다.
+    const targetCenter = (focusCenter ?? eventCenter)!;
+
+    /*
+     * eventId만으로 중복 이동을 막으면
+     * 비동기로 실제 RTK 좌표가 뒤늦게 들어와도 지도가 이동하지 않는다.
+     * 약 100m 단위 중심점까지 포함해 viewport 변경을 판단한다.
+     */
+    const viewportKey =
+      `${eventId}:${targetCenter[0].toFixed(3)}:${targetCenter[1].toFixed(3)}`;
+
+    // DEMO 관제 화면은 실제 focus가 없을 때만 사건 현장을 우선 표시한다.
     if (wildfireDemo && !focusCenter && eventCenter) {
-      if (selectedEventRef.current !== eventId) {
-        selectedEventRef.current = eventId;
+      if (selectedViewportRef.current !== viewportKey) {
+        selectedViewportRef.current = viewportKey;
         map.easeTo({ center: eventCenter, zoom: 13.8, duration: 700 });
       }
       return;
     }
 
-    if (selectedEventRef.current === eventId) return;
-    selectedEventRef.current = eventId;
-    const targetCenter = (focusCenter ?? eventCenter)!;
+    if (selectedViewportRef.current === viewportKey) return;
+    selectedViewportRef.current = viewportKey;
     const nearbyLocations = locations.filter((location) =>
       Math.hypot(location.longitude - targetCenter[0], location.latitude - targetCenter[1]) <= 0.08
     );
