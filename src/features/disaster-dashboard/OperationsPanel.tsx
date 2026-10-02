@@ -14,6 +14,13 @@ import {
   getFieldLinkAlertSummary,
   type FieldLinkAlertSummary,
 } from "../../http-api/fieldlink-api";
+import {
+  appendAlertDeliveryTrace,
+  createDeliveredAlertTrace,
+  createFailedAlertTrace,
+  normalizeAlertDeliveryTraces,
+  type AlertDeliveryTrace,
+} from "./alertDeliveryTrace";
 
 export type PanelTab = "layers" | "alerts" | "networks" | "reports" | "kpis" | "integrations";
 
@@ -204,6 +211,74 @@ export function OperationsPanel({
   const [fieldLinkSendingId, setFieldLinkSendingId] =
     useState("");
 
+  const fieldLinkTraceStorageKey =
+    `fieldlink.alert.traces:${String(
+      overview.event.eventId,
+    )}`;
+
+  const [
+    fieldLinkAlertTraces,
+    setFieldLinkAlertTraces,
+  ] = useState<
+    AlertDeliveryTrace[]
+  >([]);
+
+  useEffect(() => {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
+      return;
+    }
+
+    try {
+      const raw =
+        window.sessionStorage
+          .getItem(
+            fieldLinkTraceStorageKey,
+          );
+
+      setFieldLinkAlertTraces(
+        raw
+          ? normalizeAlertDeliveryTraces(
+              JSON.parse(raw),
+            )
+          : [],
+      );
+    } catch {
+      setFieldLinkAlertTraces(
+        [],
+      );
+    }
+  }, [
+    fieldLinkTraceStorageKey,
+  ]);
+
+  useEffect(() => {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
+      return;
+    }
+
+    try {
+      window.sessionStorage
+        .setItem(
+          fieldLinkTraceStorageKey,
+          JSON.stringify(
+            fieldLinkAlertTraces,
+          ),
+        );
+    } catch {
+      // sessionStorage 비활성 환경에서도
+      // 현장 전달 자체는 계속 수행한다.
+    }
+  }, [
+    fieldLinkAlertTraces,
+    fieldLinkTraceStorageKey,
+  ]);
+
   const [alertOverrides, setAlertOverrides] = useState<Record<string, AlertWorkflowStatus>>({});
   const [alertAudit, setAlertAudit] = useState<Array<ReturnType<typeof createAlertAudit>>>([]);
   useEffect(() => {
@@ -300,17 +375,80 @@ export function OperationsPanel({
         return;
       }
 
+      const alertType =
+        value(
+          alert,
+          [
+            "alertType",
+            "type",
+          ],
+          "UNKNOWN",
+        );
+
+      const title =
+        value(
+          alert,
+          [
+            "title",
+            "alertType",
+            "type",
+          ],
+          "현장 경보",
+        );
+
+      const message =
+        value(
+          alert,
+          [
+            "message",
+            "description",
+          ],
+          "현장 경보가 발령되었습니다.",
+        );
+
       const alertId =
         value(
           alert,
-          ["alertId", "id"],
-          `FIELD-${Date.now()}`,
+          [
+            "alertId",
+            "id",
+          ],
+          `${alertType}-${message}`,
         );
+
+      const detectedAtRaw =
+        value(
+          alert,
+          [
+            "issuedAt",
+            "createdAt",
+            "detectedAt",
+          ],
+          "",
+        );
+
+      const descriptor = {
+        sourceAlertId:
+          alertId,
+
+        alertType,
+
+        title,
+
+        message,
+
+        detectedAt:
+          detectedAtRaw ||
+          null,
+      };
 
       const rawSeverity =
         value(
           alert,
-          ["severity", "severityCode"],
+          [
+            "severity",
+            "severityCode",
+          ],
           "WARNING",
         ).toUpperCase();
 
@@ -319,41 +457,74 @@ export function OperationsPanel({
         | "WATCH"
         | "WARNING"
         | "CRITICAL" =
-        ["CRITICAL", "SEVERE", "HIGH"]
-          .includes(rawSeverity)
+        [
+          "CRITICAL",
+          "SEVERE",
+          "HIGH",
+        ].includes(
+          rawSeverity,
+        )
           ? "CRITICAL"
-          : ["CAUTION", "WATCH"]
-              .includes(rawSeverity)
+          : [
+              "CAUTION",
+              "WATCH",
+            ].includes(
+              rawSeverity,
+            )
             ? "WATCH"
-            : rawSeverity === "INFO" ||
-                rawSeverity === "NORMAL"
+            : rawSeverity ===
+                  "INFO" ||
+                rawSeverity ===
+                  "NORMAL"
               ? "INFO"
               : "WARNING";
 
-      setFieldLinkSendingId(alertId);
+      const attemptedAt =
+        new Date()
+          .toISOString();
+
+      setFieldLinkSendingId(
+        alertId,
+      );
 
       try {
-        await deliverFieldLinkAlert(
-          fieldLinkUrl,
-          fieldLinkPin,
-          {
-            sourceAlertId: alertId,
-            severity,
-            title: value(
-              alert,
-              ["title", "alertType", "type"],
-              "현장 경보",
+        const delivery =
+          await deliverFieldLinkAlert(
+            fieldLinkUrl,
+            fieldLinkPin,
+            {
+              sourceAlertId:
+                alertId,
+
+              severity,
+
+              title,
+
+              message,
+
+              source:
+                "INTEGRATED_COMMAND",
+            },
+          );
+
+        const trace =
+          createDeliveredAlertTrace(
+            descriptor,
+            delivery,
+            attemptedAt,
+          );
+
+        setFieldLinkAlertTraces(
+          (current) =>
+            appendAlertDeliveryTrace(
+              current,
+              trace,
             ),
-            message: value(
-              alert,
-              ["message", "description"],
-              "현장 경보가 발령되었습니다.",
-            ),
-            source: "INTEGRATED_COMMAND",
-          },
         );
 
-        setFieldLinkAlertError("");
+        setFieldLinkAlertError(
+          "",
+        );
 
         const summary =
           await getFieldLinkAlertSummary(
@@ -361,15 +532,34 @@ export function OperationsPanel({
             fieldLinkPin,
           );
 
-        setFieldLinkAlertSummary(summary);
+        setFieldLinkAlertSummary(
+          summary,
+        );
       } catch (error) {
+        const trace =
+          createFailedAlertTrace(
+            descriptor,
+            error,
+            attemptedAt,
+          );
+
+        setFieldLinkAlertTraces(
+          (current) =>
+            appendAlertDeliveryTrace(
+              current,
+              trace,
+            ),
+        );
+
         setFieldLinkAlertError(
           error instanceof Error
             ? error.message
             : "FIELDLINK_ERROR",
         );
       } finally {
-        setFieldLinkSendingId("");
+        setFieldLinkSendingId(
+          "",
+        );
       }
     };
 
@@ -969,6 +1159,112 @@ export function OperationsPanel({
                     : "현장 PIN 입력 후 연결 확인을 눌러주세요."}
               </small>
             </section>
+
+            {fieldLinkAlertTraces.length > 0 && (
+              <section
+                className="fieldlink-alert-traces"
+                aria-label="ALERT-03 현장 전달 추적"
+              >
+                <header>
+                  <div>
+                    <strong>
+                      ALERT-03 전달 추적
+                    </strong>
+                    <small>
+                      접근 판정 → FieldLink → 현장 확인
+                    </small>
+                  </div>
+
+                  <span>
+                    최근 {Math.min(
+                      fieldLinkAlertTraces.length,
+                      5,
+                    )}건
+                  </span>
+                </header>
+
+                {fieldLinkAlertTraces
+                  .slice(0, 5)
+                  .map((trace) => (
+                    <article
+                      key={trace.traceId}
+                      data-status={
+                        trace.deliveryStatus
+                      }
+                    >
+                      <div>
+                        <strong>
+                          {trace.classification ===
+                          "FIRELINE_APPROACH"
+                            ? "화선 접근 경보"
+                            : trace.title}
+                        </strong>
+
+                        <span>
+                          {trace.deliveryStatus ===
+                          "ACKNOWLEDGED"
+                            ? "현장 확인"
+                            : trace.deliveryStatus ===
+                                "DELIVERED"
+                              ? "전달 완료"
+                              : "전달 실패"}
+                        </span>
+                      </div>
+
+                      <small>
+                        alert ·{" "}
+                        {trace.sourceAlertId}
+                      </small>
+
+                      <small>
+                        delivery ·{" "}
+                        {trace.deliveryId ??
+                          "-"}
+                      </small>
+
+                      <small>
+                        판정{" "}
+                        {trace.detectedAt
+                          ? relativeTime(
+                              trace.detectedAt,
+                            )
+                          : "시각 미수신"}
+                        {" · "}
+                        전달{" "}
+                        {trace.sentAt
+                          ? relativeTime(
+                              trace.sentAt,
+                            )
+                          : "실패"}
+                      </small>
+
+                      <small>
+                        수신 대상{" "}
+                        {trace.recipients}명
+                        {" · "}
+                        ACK{" "}
+                        {trace.acknowledged}명
+                        {" · "}
+                        성공률{" "}
+                        {trace.successRatePct ==
+                        null
+                          ? "-"
+                          : `${trace.successRatePct}%`}
+                      </small>
+
+                      {trace.error && (
+                        <small
+                          className="fieldlink-trace-error"
+                        >
+                          오류 ·{" "}
+                          {trace.error}
+                        </small>
+                      )}
+                    </article>
+                  ))}
+              </section>
+            )}
+
             {activeAlerts.length === 0 && <p className="operation-empty-state"><b>현재 활성 경보 없음</b><span>정상 상태입니다.</span></p>}
             {activeAlerts.slice(0, 12).map((alert) => {
               const severity = value(alert, ["severity", "severityCode"], "WARNING");
