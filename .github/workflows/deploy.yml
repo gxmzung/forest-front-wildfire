@@ -80,7 +80,7 @@ jobs:
               if test "$status" = healthy; then
                 curl --fail --silent --show-error http://127.0.0.1:18030/health
                 curl --fail --silent --show-error http://127.0.0.1:18030/demo-health | grep 'forest-service-demo'
-                curl --fail --silent --show-error 'http://127.0.0.1:18030/?demo=1' | grep '<div id="root"></div>'
+                curl --fail --silent --show-error 'http://127.0.0.1:18030/' | grep '<div id="root"></div>'
                 exit 0
               fi
               test "$status" = unhealthy && docker logs --tail 100 forest-front-wildfire && exit 1

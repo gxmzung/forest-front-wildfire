@@ -31,7 +31,7 @@
 
 ## 시연 당일
 
-- 기본 진입: `https://wildfire.forest.tobeunicorn.kr/?demo=1`
+- 기본 진입: `https://wildfire.forest.tobeunicorn.kr/`
 - 예비 브라우저와 유선망 준비
 - 시연 순서: 지도 레이어 → 드론 → 경보 → 통신망 → 3D → KPI
 - DEMO 자료가 공식 실측값이 아님을 화면 표식과 설명으로 고지

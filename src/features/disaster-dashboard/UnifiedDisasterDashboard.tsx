@@ -37,7 +37,9 @@ import "./field-interaction-hotfix.css";
 
 const POLL_INTERVAL_MS = 1_000;
 const DEFAULT_CHANGE_HIGHLIGHT_MS = POLL_INTERVAL_MS * 0.3;
-const DEFAULT_EVENT_ID = "10000000-0000-4000-8000-000000000001";
+const DEFAULT_EVENT_ID =
+  import.meta.env.VITE_DEFAULT_EVENT_ID?.trim() ||
+  "10000000-0000-4000-8000-000000000001";
 const FORCE_DEMO_MODE = new URLSearchParams(window.location.search).get("demo") === "1";
 const FORCE_LOCAL_E2E_MODE = isLocalE2EMode();
 const FORCE_LOCAL_FIELD_MODE = isLocalFieldMode() || new URLSearchParams(window.location.search).get("field") === "1";
