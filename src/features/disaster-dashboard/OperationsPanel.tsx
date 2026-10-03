@@ -82,6 +82,10 @@ function resourceGroupOf(location: LiveLocation): ResourceGroup {
   return "UNASSIGNED";
 }
 
+const SHOW_VALIDATION_UI =
+  typeof window !== "undefined" &&
+  new URLSearchParams(window.location.search).get("debug") === "1";
+
 const tabs: Array<{ id: PanelTab; label: string; icon: string }> = [
   { id: "layers", label: "지도 레이어", icon: "▱" },
   { id: "alerts", label: "현장 경보", icon: "!" },
@@ -90,6 +94,12 @@ const tabs: Array<{ id: PanelTab; label: string; icon: string }> = [
   { id: "kpis", label: "현장 KPI", icon: "✓" },
   { id: "integrations", label: "연계 상태", icon: "↔" },
 ];
+
+const visibleTabs =
+  SHOW_VALIDATION_UI
+    ? tabs
+    : tabs.filter((tab) => tab.id !== "kpis");
+
 
 const statusLabels: Record<string, string> = {
   ACTIVE: "정상 운용", INACTIVE: "비활성", DEGRADED: "성능 저하", FAILED: "장애",
@@ -900,7 +910,7 @@ export function OperationsPanel({
     <aside className={`operations-panel${collapsed ? " is-collapsed" : ""}`} aria-label="지도 운영 도구">
       <div className="operation-rail-brand" aria-hidden="true"><b>산림</b><span>통합상황</span></div>
       <nav aria-label="운영 정보 선택">
-        {tabs.map((tab) => (
+        {visibleTabs.map((tab) => (
           <button key={tab.id} type="button" className={activeTab === tab.id && !collapsed ? "active" : ""} onClick={() => { onActiveTabChange(tab.id); setCollapsed(false); }} aria-label={tab.label}>
             <i>{tab.icon}</i><span>{tab.label}</span>{tab.id === "alerts" && activeAlerts.length > 0 ? <b>{activeAlerts.length}</b> : null}
           </button>

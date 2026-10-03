@@ -4486,3 +4486,21 @@
 .fieldlink-trace-error {
   font-weight: 700;
 }
+
+/* FINAL_OPERATION_UI_CLEANUP */
+.unified-disaster-board.is-field-mode.final-ops-ui {
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+}
+
+.unified-disaster-board.is-field-mode.final-ops-ui
+  .field-command-stage
+  .live-location-layout {
+  grid-template-columns: 330px minmax(0, 1fr) !important;
+}
+
+.unified-disaster-board.is-field-mode.final-ops-ui
+  .field-command-stage
+  .location-map {
+  grid-column: 2 !important;
+}
