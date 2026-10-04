@@ -1181,3 +1181,82 @@
   text-align: center;
   white-space: nowrap;
 }
+/* 2026-10-04 desktop one-screen KPI fit */
+@media (min-width: 1501px) and (max-height: 1000px) {
+  .performance-kpi-dashboard {
+    gap: 5px;
+    margin-bottom: 4px;
+  }
+
+  .performance-kpi-heading {
+    padding: 6px 8px;
+  }
+
+  .performance-kpi-heading small {
+    display: none;
+  }
+
+  .performance-kpi-grid {
+    gap: 4px;
+  }
+
+  .performance-vital-card {
+    gap: 3px;
+    padding: 5px 6px;
+  }
+
+  .performance-vital-value > p {
+    font-size: 16px;
+  }
+
+  .performance-vital-track {
+    height: 5px;
+  }
+
+  .performance-proof-hub > summary {
+    padding: 5px 7px;
+  }
+
+  .performance-measurement-session {
+    gap: 3px;
+    padding: 5px 6px;
+  }
+
+  .performance-deployment-timeline {
+    gap: 3px;
+    padding: 4px 5px;
+  }
+
+  .performance-deployment-timeline > strong {
+    font-size: 12px;
+  }
+
+  .performance-session-actions button {
+    min-height: 21px;
+  }
+
+  .packet-sequence-panel {
+    padding: 5px 6px;
+  }
+
+  .packet-sequence-summary {
+    margin: 3px 0;
+  }
+
+  .packet-sequence-summary > div {
+    padding: 2px;
+  }
+
+  .packet-sequence-grid {
+    gap: 1px;
+  }
+
+  .packet-sequence-grid > span {
+    height: 9px;
+    font-size: 5px;
+  }
+
+  .packet-sequence-legend {
+    margin-top: 3px;
+  }
+}

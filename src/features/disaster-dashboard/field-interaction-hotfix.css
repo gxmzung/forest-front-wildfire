@@ -322,7 +322,7 @@
     .field-command-stage
     .live-location-layout {
     grid-template-columns:
-      305px
+      348px
       minmax(620px, 1fr)
       340px !important;
     gap: 8px !important;
@@ -331,13 +331,13 @@
   .unified-disaster-board.is-field-mode
     .field-command-stage
     .operations-panel {
-    width: 305px !important;
+    width: 348px !important;
   }
 
   .unified-disaster-board.is-field-mode
     .field-command-stage
     .operation-drawer {
-    width: 237px !important;
+    width: 280px !important;
   }
 }
 
@@ -1921,3 +1921,250 @@ article.network-detail-card.net01-path-monitor
   .field-command-inspector {
   display: none !important;
 }
+
+/* =========================================================
+   2026-10-04 OPERATIONS DRAWER WIDTH SOURCE-OF-TRUTH
+   Existing UI was designed for:
+   68px operation rail + 430px drawer = 498px total
+   Do not shrink the drawer independently from the grid column.
+   ========================================================= */
+
+@media (min-width: 1200px) {
+
+  /* 전체 왼쪽 열 = rail 68 + drawer 430 */
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .live-location-layout {
+    grid-template-columns:
+      498px
+      minmax(0, 1fr)
+      340px !important;
+    gap: 8px !important;
+  }
+
+  /* rail + drawer를 포함하는 왼쪽 영역 */
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .operations-panel {
+    width: 498px !important;
+    min-width: 498px !important;
+    max-width: 498px !important;
+  }
+
+  /* 실제 흰색 drawer */
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .operation-drawer {
+    left: 68px !important;
+
+    width: 430px !important;
+    min-width: 430px !important;
+    max-width: 430px !important;
+
+    right: auto !important;
+
+    box-sizing: border-box !important;
+  }
+
+  /* drawer 내부는 정확히 430px 안에서 계산 */
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .operations-panel-body {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    box-sizing: border-box !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  /* drawer 직계 콘텐츠가 intrinsic width로 밀어내지 못하게 */
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .operations-panel-body > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 지도 레이어 2열 */
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .layer-child-options {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .resource-category-option {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* KPI 2열 */
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .performance-kpi-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .performance-kpi-card {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* FieldLink PIN */
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .fieldlink-auth-row {
+    grid-template-columns:
+      minmax(0, 1fr)
+      76px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* FieldLink KPI 3칸 */
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .fieldlink-kpi-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* NET-01 등 통신망 내부 2열 */
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .net01-path-metrics {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* 2열 요소의 자식이 intrinsic width로 밀어내는 것 차단 */
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .layer-child-options > *,
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .performance-kpi-grid > *,
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .fieldlink-kpi-grid > *,
+  .unified-disaster-board.is-field-mode
+    .field-command-stage
+    .net01-path-metrics > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 오른쪽 inspector 없는 최종 운영 프로필도 동일 */
+  .unified-disaster-board.is-field-mode.final-ops-ui
+    .field-command-stage
+    .live-location-layout,
+  .unified-disaster-board.is-field-mode.final-ops-ui
+    .dashboard-map-stage.field-command-stage
+    .live-location-panel
+    > .live-location-layout {
+    grid-template-columns:
+      498px
+      minmax(0, 1fr) !important;
+  }
+
+  /* 지도 상태 표시 위치도 새 경계에 맞춤 */
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage
+    .map-status-pill {
+    left: 510px !important;
+  }
+}
+
+/* ROOT LEFT PANEL WIDTH FIX 2026-10-05 BEGIN
+   100% browser zoom
+   68px rail + 380px drawer = 448px
+   map gives space to the operations drawer
+*/
+@media (min-width: 1101px) {
+
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .live-location-panel
+    > .live-location-layout {
+    grid-template-columns:
+      448px
+      minmax(0, 1fr)
+      clamp(280px, 18vw, 340px) !important;
+    gap: 8px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .operations-panel {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+
+    width: 448px !important;
+    min-width: 448px !important;
+    max-width: 448px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .operation-drawer {
+    left: 68px !important;
+
+    width: 380px !important;
+    min-width: 380px !important;
+    max-width: 380px !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .location-map {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .field-command-inspector {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    min-width: 0 !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .operations-panel-body {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .operations-panel-body > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+}
+/* ROOT LEFT PANEL WIDTH FIX 2026-10-05 END */
+
