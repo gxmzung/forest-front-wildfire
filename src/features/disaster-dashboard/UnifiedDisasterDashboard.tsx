@@ -50,6 +50,7 @@ const FORCE_FIELD_PREVIEW_MODE = FORCE_LOCAL_FIELD_MODE && (isFieldPreviewMode()
  * 필요 시 ?debug=1 에서만 개발 검증 UI를 다시 확인할 수 있다.
  */
 const SHOW_VALIDATION_UI =
+  !FORCE_DEMO_MODE ||
   new URLSearchParams(window.location.search).get("debug") === "1";
 
 function text(value: unknown, fallback = "-") { return value == null || value === "" ? fallback : String(value); }
