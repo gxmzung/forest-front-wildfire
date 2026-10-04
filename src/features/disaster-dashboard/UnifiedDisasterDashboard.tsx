@@ -1,4 +1,4 @@
-import { DroneTwinDetail } from "./DroneTwinDetail";
+﻿import { DroneTwinDetail } from "./DroneTwinDetail";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { externalDisasterApi, loadDashboardDisasterAssetsCached, loadEventOverview, loadEventTimeline, type ApiRecord, type EventOverview, type EventTimeline, type ForestEvent } from "../../http-api";
 import { forestApi } from "../../http-api/forest-api";
@@ -46,8 +46,8 @@ const FORCE_LOCAL_FIELD_MODE = isLocalFieldMode() || new URLSearchParams(window.
 const FORCE_FIELD_PREVIEW_MODE = FORCE_LOCAL_FIELD_MODE && (isFieldPreviewMode() || new URLSearchParams(window.location.search).get("preview") === "1");
 
 /*
- * 최종 운영 화면에서는 DEMO/KPI/PoC 검증 UI를 노출하지 않는다.
- * 필요 시 ?debug=1 에서만 개발 검증 UI를 다시 확인할 수 있다.
+ * 理쒖쥌 ?댁쁺 ?붾㈃?먯꽌??DEMO/KPI/PoC 寃利?UI瑜??몄텧?섏? ?딅뒗??
+ * ?꾩슂 ???debug=1 ?먯꽌留?媛쒕컻 寃利?UI瑜??ㅼ떆 ?뺤씤?????덈떎.
  */
 const SHOW_VALIDATION_UI =
   !FORCE_DEMO_MODE ||
@@ -55,79 +55,79 @@ const SHOW_VALIDATION_UI =
 
 function text(value: unknown, fallback = "-") { return value == null || value === "" ? fallback : String(value); }
 const koreanLabels: Record<string, string> = {
-  WILDFIRE: "산불",
-  LANDSLIDE: "산사태",
-  COMPLEX: "복합 재난",
-  RESPONDING: "대응 중",
-  CLOSED: "종료",
-  READY: "대기",
-  ACTIVE: "활성",
-  INACTIVE: "비활성",
-  RESOLVED: "해제",
-  FLYING: "비행 중",
-  TAKING_OFF: "이륙 중",
-  RETURNING: "복귀 중",
-  MOVING: "이동 중",
-  PATROLLING: "순찰 중",
-  SEARCHING: "수색 중",
-  APPROACHING: "접근 중",
-  EVACUATING: "대피 중",
-  HOLDING: "현장 대기",
-  STOPPED: "정지",
-  SAFE: "안전",
-  CAUTION: "주의",
-  WARNING: "경계",
-  CRITICAL: "심각",
-  SEVERE: "위험",
-  MODERATE: "보통",
-  LOW: "낮음",
-  NORMAL: "정상",
-  DEGRADED: "성능 저하",
-  DEPLOYING: "구축 중",
-  CALIBRATING: "보정 중",
-  SIGNAL_LOST: "신호 끊김",
-  BOOTING: "시작 중",
-  FAILED: "고장",
-  UNKNOWN: "확인 필요",
-  RTK_FIXED: "RTK FIX · 보정 안정",
-  RTK_FLOAT: "RTK FLOAT · 보정 중",
-  GNSS: "일반 GNSS",
-  NETWORK: "네트워크 측위",
-  VALIDATED: "검증 완료",
-  RAW: "원시 수신",
-  REJECTED: "사용 제외",
+  WILDFIRE: "?곕텋",
+  LANDSLIDE: "?곗궗??,
+  COMPLEX: "蹂듯빀 ?щ궃",
+  RESPONDING: "???以?,
+  CLOSED: "醫낅즺",
+  READY: "?湲?,
+  ACTIVE: "?쒖꽦",
+  INACTIVE: "鍮꾪솢??,
+  RESOLVED: "?댁젣",
+  FLYING: "鍮꾪뻾 以?,
+  TAKING_OFF: "?대쪠 以?,
+  RETURNING: "蹂듦? 以?,
+  MOVING: "?대룞 以?,
+  PATROLLING: "?쒖같 以?,
+  SEARCHING: "?섏깋 以?,
+  APPROACHING: "?묎렐 以?,
+  EVACUATING: "???以?,
+  HOLDING: "?꾩옣 ?湲?,
+  STOPPED: "?뺤?",
+  SAFE: "?덉쟾",
+  CAUTION: "二쇱쓽",
+  WARNING: "寃쎄퀎",
+  CRITICAL: "?ш컖",
+  SEVERE: "?꾪뿕",
+  MODERATE: "蹂댄넻",
+  LOW: "??쓬",
+  NORMAL: "?뺤긽",
+  DEGRADED: "?깅뒫 ???,
+  DEPLOYING: "援ъ텞 以?,
+  CALIBRATING: "蹂댁젙 以?,
+  SIGNAL_LOST: "?좏샇 ?딄?",
+  BOOTING: "?쒖옉 以?,
+  FAILED: "怨좎옣",
+  UNKNOWN: "?뺤씤 ?꾩슂",
+  RTK_FIXED: "RTK FIX 쨌 蹂댁젙 ?덉젙",
+  RTK_FLOAT: "RTK FLOAT 쨌 蹂댁젙 以?,
+  GNSS: "?쇰컲 GNSS",
+  NETWORK: "?ㅽ듃?뚰겕 痢≪쐞",
+  VALIDATED: "寃利??꾨즺",
+  RAW: "?먯떆 ?섏떊",
+  REJECTED: "?ъ슜 ?쒖쇅",
 };
 function korean(value: unknown, fallback = "-") {
   const raw = text(value, fallback);
   return koreanLabels[raw] ?? raw.replaceAll("_", " ");
 }
 const assetTypeLabels: Record<string, string> = {
-  PERSONNEL: "인원",
-  UAV: "무인기",
-  RTK_BASE_LPWA_GATEWAY: "이동형 RTK 기준국·LPWA 게이트웨이",
-  TVWS_BASE_STATION: "TVWS 기지국",
+  PERSONNEL: "?몄썝",
+  UAV: "臾댁씤湲?,
+  RTK_BASE_LPWA_GATEWAY: "?대룞??RTK 湲곗?援?텹PWA 寃뚯씠?몄썾??,
+  TVWS_BASE_STATION: "TVWS 湲곗?援?,
   TVWS_CPE: "TVWS CPE",
-  LTE_GATEWAY: "LTE 게이트웨이",
-  COMMAND_VEHICLE: "지휘 차량",
-  RTK_TERMINAL: "RTK 단말",
-  PRIVATE_5G_NTN_GATEWAY: "특화망 5G·저궤도 위성 게이트웨이",
-  RADIO_GATEWAY_400MHZ: "400MHz 무전 게이트웨이",
-  MAIN_RELAY_DRONE: "주 중계 드론",
-  SERVICE_RELAY_DRONE: "서비스 중계 드론",
-  FIXED_RELAY: "고정형 임시 중계기",
-  GCS: "드론 지상통제장치(GCS)",
-  REF_AP: "기준 AP",
-  ROVER_AP: "이동 AP",
-  IR_UWB_GPR: "IR-UWB·GPR 탐지 장비",
-  MOBILE_RELAY: "이동 중계기",
-  RSSI_DETECTOR: "RSSI 탐지기",
-  ASSET: "장비",
+  LTE_GATEWAY: "LTE 寃뚯씠?몄썾??,
+  COMMAND_VEHICLE: "吏??李⑤웾",
+  RTK_TERMINAL: "RTK ?⑤쭚",
+  PRIVATE_5G_NTN_GATEWAY: "?뱁솕留?5G쨌?沅ㅻ룄 ?꾩꽦 寃뚯씠?몄썾??,
+  RADIO_GATEWAY_400MHZ: "400MHz 臾댁쟾 寃뚯씠?몄썾??,
+  MAIN_RELAY_DRONE: "二?以묎퀎 ?쒕줎",
+  SERVICE_RELAY_DRONE: "?쒕퉬??以묎퀎 ?쒕줎",
+  FIXED_RELAY: "怨좎젙???꾩떆 以묎퀎湲?,
+  GCS: "?쒕줎 吏?곹넻?쒖옣移?GCS)",
+  REF_AP: "湲곗? AP",
+  ROVER_AP: "?대룞 AP",
+  IR_UWB_GPR: "IR-UWB쨌GPR ?먯? ?λ퉬",
+  MOBILE_RELAY: "?대룞 以묎퀎湲?,
+  RSSI_DETECTOR: "RSSI ?먯?湲?,
+  ASSET: "?λ퉬",
 };
 function assetTypeLabel(value: string) { return assetTypeLabels[value] ?? value.replaceAll("_", " "); }
 export type ResourceGroup = "PERSONNEL" | "UAV" | "COMMAND" | "POSITIONING" | "COMMUNICATION" | "DETECTION" | "UNASSIGNED";
 const resourceGroupLabels: Record<ResourceGroup, string> = {
-  PERSONNEL: "인원", UAV: "무인기", COMMAND: "지휘 장비", POSITIONING: "위치 장비",
-  COMMUNICATION: "통신 장비", DETECTION: "탐지 장비", UNASSIGNED: "미등록 장비",
+  PERSONNEL: "?몄썝", UAV: "臾댁씤湲?, COMMAND: "吏???λ퉬", POSITIONING: "?꾩튂 ?λ퉬",
+  COMMUNICATION: "?듭떊 ?λ퉬", DETECTION: "?먯? ?λ퉬", UNASSIGNED: "誘몃벑濡??λ퉬",
 };
 function resourceGroupOf(item: LiveLocation): ResourceGroup {
   if (item.kind === "personnel") return "PERSONNEL";
@@ -140,15 +140,15 @@ function resourceGroupOf(item: LiveLocation): ResourceGroup {
   return "UNASSIGNED";
 }
 function relativeTime(value: unknown) {
-  if (!value) return "수신 시각 없음";
+  if (!value) return "?섏떊 ?쒓컖 ?놁쓬";
   const elapsedSeconds = Math.max(0, Math.floor((Date.now() - new Date(String(value)).getTime()) / 1000));
-  if (elapsedSeconds < 10) return "방금 전";
-  if (elapsedSeconds < 60) return `${elapsedSeconds}초 전`;
+  if (elapsedSeconds < 10) return "諛⑷툑 ??;
+  if (elapsedSeconds < 60) return `${elapsedSeconds}珥???;
   const minutes = Math.floor(elapsedSeconds / 60);
-  if (minutes < 60) return `${minutes}분 전`;
+  if (minutes < 60) return `${minutes}遺???;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}시간 전`;
-  return `${Math.floor(hours / 24)}일 전`;
+  if (hours < 24) return `${hours}?쒓컙 ??;
+  return `${Math.floor(hours / 24)}????;
 }
 
 export type LiveLocation = {
@@ -385,35 +385,35 @@ function communicationPath(location: LiveLocation): CommunicationPath | null {
     const accessNetwork = location.networkMode || "LPWA";
     if (location.reportedByAssetId) {
       return {
-        nodes: ["대원 RTK 단말", `${korean(location.reportingRole || "GATEWAY")} 집계`, "통합 API·클라우드"],
+        nodes: ["???RTK ?⑤쭚", `${korean(location.reportingRole || "GATEWAY")} 吏묎퀎`, "?듯빀 API쨌?대씪?곕뱶"],
         links: [
           { label: accessNetwork, medium: "wireless" },
-          { label: "HTTPS·JSON", medium: "wired" },
+          { label: "HTTPS쨌JSON", medium: "wired" },
         ],
       };
     }
     return {
-      nodes: ["대원 RTK 단말", "LPWA 게이트웨이", "백홀 게이트웨이", "통합관제"],
+      nodes: ["???RTK ?⑤쭚", "LPWA 寃뚯씠?몄썾??, "諛깊? 寃뚯씠?몄썾??, "?듯빀愿??],
       links: [
         { label: "LPWA", medium: "wireless" },
         { label: "Ethernet", medium: "wired" },
-        { label: "LTE·5G·LEO", medium: "wireless" },
+        { label: "LTE쨌5G쨌LEO", medium: "wireless" },
       ],
     };
   }
   if (location.category === "RTK_BASE_LPWA_GATEWAY") {
     return {
-      nodes: ["대원 단말", "RTK 기준국·LPWA GW", "TVWS·백홀 장비", "통합관제"],
+      nodes: ["????⑤쭚", "RTK 湲곗?援?텹PWA GW", "TVWS쨌諛깊? ?λ퉬", "?듯빀愿??],
       links: [
         { label: "LPWA", medium: "wireless" },
         { label: "Ethernet", medium: "wired" },
-        { label: "LTE·5G·LEO", medium: "wireless" },
+        { label: "LTE쨌5G쨌LEO", medium: "wireless" },
       ],
     };
   }
   if (location.category === "TVWS_CPE") {
     return {
-      nodes: ["현장 장비·LPWA GW", "TVWS CPE", "TVWS 기지국", "백홀 GW"],
+      nodes: ["?꾩옣 ?λ퉬쨌LPWA GW", "TVWS CPE", "TVWS 湲곗?援?, "諛깊? GW"],
       links: [
         { label: "Ethernet", medium: "wired" },
         { label: "TVWS", medium: "wireless" },
@@ -423,40 +423,40 @@ function communicationPath(location: LiveLocation): CommunicationPath | null {
   }
   if (location.category === "TVWS_BASE_STATION") {
     return {
-      nodes: ["현장 TVWS CPE", "TVWS 기지국", "L3 스위치·백홀 GW", "통합관제"],
+      nodes: ["?꾩옣 TVWS CPE", "TVWS 湲곗?援?, "L3 ?ㅼ쐞移샕룸갚? GW", "?듯빀愿??],
       links: [
         { label: "TVWS", medium: "wireless" },
         { label: "Ethernet", medium: "wired" },
-        { label: "LTE·5G·LEO", medium: "wireless" },
+        { label: "LTE쨌5G쨌LEO", medium: "wireless" },
       ],
     };
   }
   if (["LTE_GATEWAY", "PRIVATE_5G_NTN_GATEWAY"].includes(location.category)) {
     return {
-      nodes: ["현장 IP 장비", assetTypeLabel(location.category), "통합관제"],
+      nodes: ["?꾩옣 IP ?λ퉬", assetTypeLabel(location.category), "?듯빀愿??],
       links: [
         { label: "Ethernet", medium: "wired" },
-        { label: location.category === "LTE_GATEWAY" ? "LTE" : "5G·LEO", medium: "wireless" },
+        { label: location.category === "LTE_GATEWAY" ? "LTE" : "5G쨌LEO", medium: "wireless" },
       ],
     };
   }
   if (location.category === "COMMAND_VEHICLE") {
     return {
-      nodes: ["현장 게이트웨이", "차량 L3 스위치", "백홀 게이트웨이", "통합관제"],
+      nodes: ["?꾩옣 寃뚯씠?몄썾??, "李⑤웾 L3 ?ㅼ쐞移?, "諛깊? 寃뚯씠?몄썾??, "?듯빀愿??],
       links: [
         { label: "Ethernet", medium: "wired" },
         { label: "Ethernet", medium: "wired" },
-        { label: "LTE·5G·LEO", medium: "wireless" },
+        { label: "LTE쨌5G쨌LEO", medium: "wireless" },
       ],
     };
   }
   if (resourceGroupOf(location) === "COMMUNICATION") {
     return {
-      nodes: ["현장 장비", assetTypeLabel(location.category), "상위 게이트웨이", "통합관제"],
+      nodes: ["?꾩옣 ?λ퉬", assetTypeLabel(location.category), "?곸쐞 寃뚯씠?몄썾??, "?듯빀愿??],
       links: [
-        { label: "현장 무선", medium: "wireless" },
+        { label: "?꾩옣 臾댁꽑", medium: "wireless" },
         { label: "Ethernet", medium: "wired" },
-        { label: "백홀 무선", medium: "wireless" },
+        { label: "諛깊? 臾댁꽑", medium: "wireless" },
       ],
     };
   }
@@ -465,19 +465,19 @@ function communicationPath(location: LiveLocation): CommunicationPath | null {
 
 function correctionStatus(location: LiveLocation) {
   if (location.category === "RTK_BASE_LPWA_GATEWAY") {
-    return location.rtcmStatus === "READY" ? "RTCM 생성·송출 준비" : location.rtcmStatus ? korean(location.rtcmStatus) : "상태 수신 전";
+    return location.rtcmStatus === "READY" ? "RTCM ?앹꽦쨌?≪텧 以鍮? : location.rtcmStatus ? korean(location.rtcmStatus) : "?곹깭 ?섏떊 ??;
   }
-  if (location.positioningMethod === "RTK_FIXED") return "RTCM 적용 · 고정해";
-  if (location.positioningMethod === "RTK_FLOAT") return "RTCM 적용 · 유동해";
-  if (location.positioningMethod === "GNSS") return "기준국 보정 미적용";
-  return "보정 상태 확인 불가";
+  if (location.positioningMethod === "RTK_FIXED") return "RTCM ?곸슜 쨌 怨좎젙??;
+  if (location.positioningMethod === "RTK_FLOAT") return "RTCM ?곸슜 쨌 ?좊룞??;
+  if (location.positioningMethod === "GNSS") return "湲곗?援?蹂댁젙 誘몄쟻??;
+  return "蹂댁젙 ?곹깭 ?뺤씤 遺덇?";
 }
 
 function positioningDescription(location: LiveLocation) {
   if (location.category === "RTK_BASE_LPWA_GATEWAY") {
-    return "기준국은 정확한 기준좌표와 GNSS 관측값의 차이로 RTCM 보정정보를 만듭니다. 대원 상태는 LPWA를 기본 현장망으로 공유하고, LPWA 음영지역에서 LTE 보조망으로 전환합니다.";
+    return "湲곗?援?? ?뺥솗??湲곗?醫뚰몴? GNSS 愿痢↔컪??李⑥씠濡?RTCM 蹂댁젙?뺣낫瑜?留뚮벊?덈떎. ????곹깭??LPWA瑜?湲곕낯 ?꾩옣留앹쑝濡?怨듭쑀?섍퀬, LPWA ?뚯쁺吏??뿉??LTE 蹂댁“留앹쑝濡??꾪솚?⑸땲??";
   }
-  return "단말이 GNSS 위성신호와 기준국의 RTCM 보정정보를 결합해 위치를 계산합니다. 표시 위치는 측위 상태와 예상 오차를 함께 확인해야 합니다.";
+  return "?⑤쭚??GNSS ?꾩꽦?좏샇? 湲곗?援?쓽 RTCM 蹂댁젙?뺣낫瑜?寃고빀???꾩튂瑜?怨꾩궛?⑸땲?? ?쒖떆 ?꾩튂??痢≪쐞 ?곹깭? ?덉긽 ?ㅼ감瑜??④퍡 ?뺤씤?댁빞 ?⑸땲??";
 }
 
 type PositioningWarning = {
@@ -492,41 +492,41 @@ function positioningWarning(location: LiveLocation): PositioningWarning | null {
     if (location.rtcmStatus === "READY") return null;
     return {
       level: "critical",
-      title: "RTCM 보정정보를 송출할 수 없습니다",
-      message: "현재 기준국 상태로는 대원 단말의 정밀 위치를 보장할 수 없습니다.",
-      action: "기준국 좌표와 GNSS 수신상태, RTCM 연동을 확인하고 대원 단말의 LPWA 기본망 및 LTE 보조망 상태를 각각 점검해 주세요.",
+      title: "RTCM 蹂댁젙?뺣낫瑜??≪텧?????놁뒿?덈떎",
+      message: "?꾩옱 湲곗?援??곹깭濡쒕뒗 ????⑤쭚???뺣? ?꾩튂瑜?蹂댁옣?????놁뒿?덈떎.",
+      action: "湲곗?援?醫뚰몴? GNSS ?섏떊?곹깭, RTCM ?곕룞???뺤씤?섍퀬 ????⑤쭚??LPWA 湲곕낯留?諛?LTE 蹂댁“留??곹깭瑜?媛곴컖 ?먭???二쇱꽭??",
     };
   }
   if (location.positioningMethod === "RTK_FIXED" && location.horizontalAccuracyM != null) return null;
   if (location.positioningMethod === "RTK_FLOAT") {
     return {
       level: "caution",
-      title: "RTK 보정이 아직 안정되지 않았습니다",
-      message: "FLOAT 상태의 위치는 FIX 상태보다 오차가 크므로 정확한 구조·지휘 위치로 확정해서는 안 됩니다.",
-      action: "기준국 거리·위성 수·LPWA 수신상태를 확인하고 RTCM 보정정보가 안정될 때까지 기다려 주세요.",
+      title: "RTK 蹂댁젙???꾩쭅 ?덉젙?섏? ?딆븯?듬땲??,
+      message: "FLOAT ?곹깭???꾩튂??FIX ?곹깭蹂대떎 ?ㅼ감媛 ?щ?濡??뺥솗??援ъ“쨌吏???꾩튂濡??뺤젙?댁꽌?????⑸땲??",
+      action: "湲곗?援?嫄곕━쨌?꾩꽦 ?샕텹PWA ?섏떊?곹깭瑜??뺤씤?섍퀬 RTCM 蹂댁젙?뺣낫媛 ?덉젙???뚭퉴吏 湲곕떎??二쇱꽭??",
     };
   }
   if (location.positioningMethod === "GNSS") {
     return {
       level: "critical",
-      title: "보정치가 없는 일반 GNSS 위치입니다",
-      message: "표시 좌표는 기준국 보정이 적용되지 않아 정확히 신뢰할 수 있는 정밀 위치가 아닙니다.",
-      action: "RTK 기준국의 RTCM 보정 연결을 확인하고, 위치 공유 경로는 LPWA 기본망과 LTE 보조망으로 구분해 점검해 주세요.",
+      title: "蹂댁젙移섍? ?녿뒗 ?쇰컲 GNSS ?꾩튂?낅땲??,
+      message: "?쒖떆 醫뚰몴??湲곗?援?蹂댁젙???곸슜?섏? ?딆븘 ?뺥솗???좊ː?????덈뒗 ?뺣? ?꾩튂媛 ?꾨떃?덈떎.",
+      action: "RTK 湲곗?援?쓽 RTCM 蹂댁젙 ?곌껐???뺤씤?섍퀬, ?꾩튂 怨듭쑀 寃쎈줈??LPWA 湲곕낯留앷낵 LTE 蹂댁“留앹쑝濡?援щ텇???먭???二쇱꽭??",
     };
   }
   if (location.positioningMethod === "RTK_FIXED" && location.horizontalAccuracyM == null) {
     return {
       level: "caution",
-      title: "위치 오차값을 확인할 수 없습니다",
-      message: "RTK FIX 상태이지만 정확도 값이 없어 표시 위치의 신뢰 수준을 검증할 수 없습니다.",
-      action: "RTK 단말에서 horizontalAccuracyM 등 프로토콜 필수 측위 품질값을 함께 전송해 주세요.",
+      title: "?꾩튂 ?ㅼ감媛믪쓣 ?뺤씤?????놁뒿?덈떎",
+      message: "RTK FIX ?곹깭?댁?留??뺥솗??媛믪씠 ?놁뼱 ?쒖떆 ?꾩튂???좊ː ?섏???寃利앺븷 ???놁뒿?덈떎.",
+      action: "RTK ?⑤쭚?먯꽌 horizontalAccuracyM ???꾨줈?좎퐳 ?꾩닔 痢≪쐞 ?덉쭏媛믪쓣 ?④퍡 ?꾩넚??二쇱꽭??",
     };
   }
   return {
     level: "critical",
-    title: "측위·보정 상태가 확인되지 않았습니다",
-    message: "보정 적용 여부를 알 수 없어 표시 좌표를 정확한 위치로 신뢰할 수 없습니다.",
-    action: "RTK 기준국의 보정 연결과 positioningMethod·horizontalAccuracyM을 확인하고, primaryLink·activeLink·fallbackActivated를 통신 규약에 맞게 입력해 주세요.",
+    title: "痢≪쐞쨌蹂댁젙 ?곹깭媛 ?뺤씤?섏? ?딆븯?듬땲??,
+    message: "蹂댁젙 ?곸슜 ?щ?瑜??????놁뼱 ?쒖떆 醫뚰몴瑜??뺥솗???꾩튂濡??좊ː?????놁뒿?덈떎.",
+    action: "RTK 湲곗?援?쓽 蹂댁젙 ?곌껐怨?positioningMethod쨌horizontalAccuracyM???뺤씤?섍퀬, primaryLink쨌activeLink쨌fallbackActivated瑜??듭떊 洹쒖빟??留욊쾶 ?낅젰??二쇱꽭??",
   };
 }
 
@@ -540,58 +540,58 @@ type CommunicationProfile = {
 function communicationProfile(location: LiveLocation): CommunicationProfile | null {
   if (["RTK_TERMINAL", "RTK_BASE_LPWA_GATEWAY"].includes(location.category)) {
     return {
-      scope: "현장 저속망",
+      scope: "?꾩옣 ??띾쭩",
       role: "LPWA",
-      carries: "RTCM 보정정보·대원 위치·배터리·비상신호",
-      path: "RTK 단말 ↔ LPWA 게이트웨이 → 지휘차량",
+      carries: "RTCM 蹂댁젙?뺣낫쨌????꾩튂쨌諛고꽣由?룸퉬?곸떊??,
+      path: "RTK ?⑤쭚 ??LPWA 寃뚯씠?몄썾????吏?섏감??,
     };
   }
   if (location.category === "PRIVATE_5G_NTN_GATEWAY") {
     return {
-      scope: "현장 고속망 + 비상 외부연결",
-      role: "이음5G·LEO 게이트웨이",
-      carries: "드론 영상·사진·지도·현장 업무 데이터",
-      path: "드론·카메라 → 이음5G → 지휘차량 → LEO/LTE → 클라우드",
+      scope: "?꾩옣 怨좎냽留?+ 鍮꾩긽 ?몃??곌껐",
+      role: "?댁쓬5G쨌LEO 寃뚯씠?몄썾??,
+      carries: "?쒕줎 ?곸긽쨌?ъ쭊쨌吏?꽷룻쁽???낅Т ?곗씠??,
+      path: "?쒕줎쨌移대찓?????댁쓬5G ??吏?섏감????LEO/LTE ???대씪?곕뱶",
     };
   }
   if (location.category === "LTE_GATEWAY") {
     return {
-      scope: "외부 연결망",
-      role: "통신사 LTE 백홀",
-      carries: "위치·상태·영상·업무 데이터",
-      path: "단말 또는 지휘차량 → LTE → 클라우드",
+      scope: "?몃? ?곌껐留?,
+      role: "?듭떊??LTE 諛깊?",
+      carries: "?꾩튂쨌?곹깭쨌?곸긽쨌?낅Т ?곗씠??,
+      path: "?⑤쭚 ?먮뒗 吏?섏감????LTE ???대씪?곕뱶",
     };
   }
   if (["TVWS_BASE_STATION", "TVWS_CPE"].includes(location.category)) {
     return {
-      scope: "장거리 현장연결·백홀",
-      role: "TVWS Base·CPE",
-      carries: "차량·중계장비 간 데이터와 외부망 연결 트래픽",
-      path: "현장 중계기·진화차량 → TVWS → 지휘차량·외부망",
+      scope: "?κ굅由??꾩옣?곌껐쨌諛깊?",
+      role: "TVWS Base쨌CPE",
+      carries: "李⑤웾쨌以묎퀎?λ퉬 媛??곗씠?곗? ?몃?留??곌껐 ?몃옒??,
+      path: "?꾩옣 以묎퀎湲걔룹쭊?붿감????TVWS ??吏?섏감?됀룹쇅遺留?,
     };
   }
   if (location.category === "RADIO_GATEWAY_400MHZ") {
     return {
-      scope: "현장 음성망",
-      role: "400MHz 양방향 무전",
-      carries: "대원 음성·긴급 호출",
-      path: "대원 무전기 ↔ 무전 게이트웨이 ↔ 지휘부",
+      scope: "?꾩옣 ?뚯꽦留?,
+      role: "400MHz ?묐갑??臾댁쟾",
+      carries: "????뚯꽦쨌湲닿툒 ?몄텧",
+      path: "???臾댁쟾湲???臾댁쟾 寃뚯씠?몄썾????吏?섎?",
     };
   }
   if (["MAIN_RELAY_DRONE", "SERVICE_RELAY_DRONE", "FIXED_RELAY", "MOBILE_RELAY"].includes(location.category)) {
     return {
-      scope: "현장 중계망",
-      role: "공중·지상 중계기",
-      carries: "현장 단말의 통신 신호와 상태정보",
-      path: "대원·센서 → 중계기 → 지휘차량 → 외부 연결망",
+      scope: "?꾩옣 以묎퀎留?,
+      role: "怨듭쨷쨌吏??以묎퀎湲?,
+      carries: "?꾩옣 ?⑤쭚???듭떊 ?좏샇? ?곹깭?뺣낫",
+      path: "??먃룹꽱????以묎퀎湲???吏?섏감?????몃? ?곌껐留?,
     };
   }
   if (location.category === "COMMAND_VEHICLE") {
     return {
-      scope: "현장망 집선·외부망 연결",
-      role: "지휘·통신차량",
-      carries: "LPWA·이음5G·TVWS·LTE·위성 통합 트래픽",
-      path: "현장 저속·고속망 → 지휘차량 → 외부망·클라우드",
+      scope: "?꾩옣留?吏묒꽑쨌?몃?留??곌껐",
+      role: "吏?샕룻넻?좎감??,
+      carries: "LPWA쨌?댁쓬5G쨌TVWS쨌LTE쨌?꾩꽦 ?듯빀 ?몃옒??,
+      path: "?꾩옣 ??띉룰퀬?띾쭩 ??吏?섏감?????몃?留씲룻겢?쇱슦??,
     };
   }
   return null;
@@ -705,7 +705,7 @@ function demoRtkAssetsFromTelemetry(
       assetName:
         String(
           row.assetName ??
-          `Sleno RTK 단말 ${assetId.slice(0, 8)}`
+          `Sleno RTK ?⑤쭚 ${assetId.slice(0, 8)}`
         ),
 
       assetType:
@@ -789,11 +789,11 @@ function demoRtkAssetsFromTelemetry(
 }
 
 const fallbackTopologyLabels: Record<string, string[]> = {
-  ENDPOINT: ["대원 RTK 단말", "드론·영상장비", "400㎒ 무전기"],
-  FIELD: ["LPWA · 저속", "이음5G · 고속", "무전 중계망"],
-  COMMAND: ["게이트웨이·L3 스위치", "RTK 기준국", "현장 상황판"],
-  BACKHAUL: ["LTE", "TVWS", "LEO 위성"],
-  CLOUD: ["수집 API", "PostgreSQL", "통합 상황판"],
+  ENDPOINT: ["???RTK ?⑤쭚", "?쒕줎쨌?곸긽?λ퉬", "400??臾댁쟾湲?],
+  FIELD: ["LPWA 쨌 ???, "?댁쓬5G 쨌 怨좎냽", "臾댁쟾 以묎퀎留?],
+  COMMAND: ["寃뚯씠?몄썾?는텹3 ?ㅼ쐞移?, "RTK 湲곗?援?, "?꾩옣 ?곹솴??],
+  BACKHAUL: ["LTE", "TVWS", "LEO ?꾩꽦"],
+  CLOUD: ["?섏쭛 API", "PostgreSQL", "?듯빀 ?곹솴??],
 };
 
 function topologyLabelsFor(overview: EventOverview | null, layer: string) {
@@ -870,12 +870,12 @@ function webMercatorToLngLat(x: number, y: number): [number, number] | null {
 }
 
 const districtCenters: Record<string, [number, number]> = {
-  "평창": [128.390, 37.370], "평창군": [128.390, 37.370], "강릉": [128.876, 37.752], "강릉시": [128.876, 37.752],
-  "홍천": [127.888, 37.697], "홍천군": [127.888, 37.697], "정선": [128.661, 37.380], "정선군": [128.661, 37.380],
-  "원주": [127.920, 37.342], "원주시": [127.920, 37.342], "춘천": [127.730, 37.881], "춘천시": [127.730, 37.881],
-  "인제": [128.170, 38.070], "인제군": [128.170, 38.070], "양양": [128.619, 38.075], "양양군": [128.619, 38.075],
-  "울진": [129.400, 36.993], "울진군": [129.400, 36.993], "봉화": [128.733, 36.893], "봉화군": [128.733, 36.893],
-  "밀양": [128.746, 35.503], "밀양시": [128.746, 35.503], "합천": [128.166, 35.566], "합천군": [128.166, 35.566],
+  "?됱갹": [128.390, 37.370], "?됱갹援?: [128.390, 37.370], "媛뺣쫱": [128.876, 37.752], "媛뺣쫱??: [128.876, 37.752],
+  "?띿쿇": [127.888, 37.697], "?띿쿇援?: [127.888, 37.697], "?뺤꽑": [128.661, 37.380], "?뺤꽑援?: [128.661, 37.380],
+  "?먯＜": [127.920, 37.342], "?먯＜??: [127.920, 37.342], "異섏쿇": [127.730, 37.881], "異섏쿇??: [127.730, 37.881],
+  "?몄젣": [128.170, 38.070], "?몄젣援?: [128.170, 38.070], "?묒뼇": [128.619, 38.075], "?묒뼇援?: [128.619, 38.075],
+  "?몄쭊": [129.400, 36.993], "?몄쭊援?: [129.400, 36.993], "遊됲솕": [128.733, 36.893], "遊됲솕援?: [128.733, 36.893],
+  "諛??: [128.746, 35.503], "諛?묒떆": [128.746, 35.503], "?⑹쿇": [128.166, 35.566], "?⑹쿇援?: [128.166, 35.566],
 };
 function pointBuffer([longitude, latitude]: [number, number], radius: number) {
   const ring = Array.from({ length: 25 }, (_, index) => {
@@ -1066,7 +1066,7 @@ export default function UnifiedDisasterDashboard() {
     const checkedAt = new Date().toISOString();
 
     const errorMessage = (reason: unknown) =>
-      reason instanceof Error ? reason.message : "외부 API 요청 실패";
+      reason instanceof Error ? reason.message : "?몃? API ?붿껌 ?ㅽ뙣";
 
     if (firms.status === "fulfilled") {
       setExternalFirmsRows(
@@ -1113,7 +1113,7 @@ export default function UnifiedDisasterDashboard() {
           return [{
             id: `landslide-history-${item.serialNumber}`,
             observedAt: item.occurredDate,
-            provider: "재난안전데이터",
+            provider: "?щ궃?덉쟾?곗씠??,
             disasterName: item.disasterName,
             address: item.address,
             resultGeometry: {
@@ -1127,15 +1127,15 @@ export default function UnifiedDisasterDashboard() {
 
     if (wildfireRisk.status === "fulfilled") setExternalWildfireRiskRows(wildfireRisk.value.data.flatMap((item, index) => {
       const coordinates = districtCenter(item.district, item.area, item.province);
-      return coordinates ? [{ id: `kfs-risk-${item.regionCode || index}`, observedAt: item.analyzedAt || checkedAt, provider: "산림청", riskScore: item.mean ?? item.max, district: item.district, resultGeometry: pointBuffer(coordinates, 0.035) }] : [];
+      return coordinates ? [{ id: `kfs-risk-${item.regionCode || index}`, observedAt: item.analyzedAt || checkedAt, provider: "?곕┝泥?, riskScore: item.mean ?? item.max, district: item.district, resultGeometry: pointBuffer(coordinates, 0.035) }] : [];
     }));
     if (landslideForecast.status === "fulfilled") setExternalLandslideForecastRows(landslideForecast.value.data.flatMap((item, index) => {
       const coordinates = districtCenter(item.district);
-      return coordinates ? [{ id: `slide-forecast-${index}`, observedAt: item.predictedAt || checkedAt, provider: "재난안전데이터", forecast: item.forecast, resultGeometry: pointBuffer(coordinates, 0.028) }] : [];
+      return coordinates ? [{ id: `slide-forecast-${index}`, observedAt: item.predictedAt || checkedAt, provider: "?щ궃?덉쟾?곗씠??, forecast: item.forecast, resultGeometry: pointBuffer(coordinates, 0.028) }] : [];
     }));
     if (landslideRegionalRisk.status === "fulfilled") setExternalLandslideRegionalRows(landslideRegionalRisk.value.data.flatMap((item, index) => {
       const coordinates = districtCenter(item.districtName, item.detailAddress);
-      return coordinates ? [{ id: `slide-regional-${item.managementNumber || index}`, observedAt: item.lastModifiedAt || checkedAt, provider: "재난안전데이터", riskGrade: item.riskGradeCode, expectedPeople: item.expectedPeople, resultGeometry: pointBuffer(coordinates, 0.022) }] : [];
+      return coordinates ? [{ id: `slide-regional-${item.managementNumber || index}`, observedAt: item.lastModifiedAt || checkedAt, provider: "?щ궃?덉쟾?곗씠??, riskGrade: item.riskGradeCode, expectedPeople: item.expectedPeople, resultGeometry: pointBuffer(coordinates, 0.022) }] : [];
     }));
 
     setExternalIntegrationStatus((current) => ({
@@ -1364,9 +1364,9 @@ export default function UnifiedDisasterDashboard() {
           const next = createDemoOverview();
 
           /*
-           * 운영 WILDFIRE demo 화면은 유지하되
-           * 실제 Core에 들어온 Sleno RTK 위치만
-           * live overlay 한다.
+           * ?댁쁺 WILDFIRE demo ?붾㈃? ?좎??섎릺
+           * ?ㅼ젣 Core???ㅼ뼱??Sleno RTK ?꾩튂留?
+           * live overlay ?쒕떎.
            */
           try {
             const response =
@@ -1432,7 +1432,7 @@ export default function UnifiedDisasterDashboard() {
         })()
       : refreshOverview()
       .then(() => active && setError(null))
-      .catch((caught: unknown) => active && setError(caught instanceof Error ? caught.message : "현황 조회 실패"));
+      .catch((caught: unknown) => active && setError(caught instanceof Error ? caught.message : "?꾪솴 議고쉶 ?ㅽ뙣"));
     void refresh();
     const timer = window.setInterval(refresh, POLL_INTERVAL_MS);
     return () => { active = false; window.clearInterval(timer); };
@@ -1660,8 +1660,8 @@ export default function UnifiedDisasterDashboard() {
       )
     : 0;
   /*
-   * WILDFIRE demo에서 실제 Sleno RTK가 들어오면
-   * 데모 사건 좌표로 옮겨 그리지 않고 실제 좌표를 지도 중심으로 사용한다.
+   * WILDFIRE demo?먯꽌 ?ㅼ젣 Sleno RTK媛 ?ㅼ뼱?ㅻ㈃
+   * ?곕え ?ш굔 醫뚰몴濡???꺼 洹몃━吏 ?딄퀬 ?ㅼ젣 醫뚰몴瑜?吏??以묒떖?쇰줈 ?ъ슜?쒕떎.
    */
   const slenoRtkFocusCenter =
     demoMode
@@ -1713,8 +1713,8 @@ export default function UnifiedDisasterDashboard() {
     cloud: topologyLabelsFor(overview, "CLOUD"),
   };
   const topologyDataStatus = overview?.topology.nodes.length
-    ? `${overview.topology.nodes.length}개 노드 · ${overview.topology.links.length}개 연결`
-    : "운용 기준 구성";
+    ? `${overview.topology.nodes.length}媛??몃뱶 쨌 ${overview.topology.links.length}媛??곌껐`
+    : "?댁슜 湲곗? 援ъ꽦";
   const externalIntegrationItems = Object.values(externalIntegrationStatus);
   const failedExternalIntegrations = externalIntegrationItems.filter(
     (item) => item.status === "error",
@@ -1740,10 +1740,10 @@ export default function UnifiedDisasterDashboard() {
     const sharing = overviewKpiValue(overview, "SHARING_SUCCESS") ?? telemetryMetrics?.sharingSuccessPct ?? null;
     const availability = overviewKpiValue(overview, "NETWORK_AVAILABILITY") ?? telemetryMetrics?.availabilityPct ?? null;
     return [
-      { id: "deployment", label: "통신망 구축시간", value: deployment, unit: "분", target: PROJECT_ENHANCED_TARGET.networkDeploymentMinutes, direction: "MAX" as const, icon: "NET" },
-      { id: "freshness", label: "위치정보 갱신", value: freshness, unit: "초", target: PROJECT_ENHANCED_TARGET.locationUpdateSeconds, direction: "MAX" as const, icon: "GPS" },
-      { id: "sharing", label: "정보공유 성공률", value: sharing, unit: "%", target: PROJECT_ENHANCED_TARGET.sharingSuccessPct, direction: "MIN" as const, icon: "SEQ" },
-      { id: "availability", label: "네트워크 가용률", value: availability, unit: "%", target: PROJECT_ENHANCED_TARGET.availabilityPct, direction: "MIN" as const, icon: "LINK" },
+      { id: "deployment", label: "?듭떊留?援ъ텞?쒓컙", value: deployment, unit: "遺?, target: PROJECT_ENHANCED_TARGET.networkDeploymentMinutes, direction: "MAX" as const, icon: "NET" },
+      { id: "freshness", label: "?꾩튂?뺣낫 媛깆떊", value: freshness, unit: "珥?, target: PROJECT_ENHANCED_TARGET.locationUpdateSeconds, direction: "MAX" as const, icon: "GPS" },
+      { id: "sharing", label: "?뺣낫怨듭쑀 ?깃났瑜?, value: sharing, unit: "%", target: PROJECT_ENHANCED_TARGET.sharingSuccessPct, direction: "MIN" as const, icon: "SEQ" },
+      { id: "availability", label: "?ㅽ듃?뚰겕 媛?⑸쪧", value: availability, unit: "%", target: PROJECT_ENHANCED_TARGET.availabilityPct, direction: "MIN" as const, icon: "LINK" },
     ].map((item) => ({ ...item, state: fieldKpiState(item.value, item.target, item.direction) }));
   }, [overview, telemetrySamples]);
   const fieldPrimaryDrone = (localFieldMode || localE2EMode)
@@ -1847,7 +1847,7 @@ export default function UnifiedDisasterDashboard() {
     fieldPrimaryAttributes.componentId ??
     fieldLinkQuality.mavlinkComponentId
   );
-  const fieldSourceAddress = text(fieldPrimaryAttributes.sourceAddress, fieldPreviewMode ? "127.0.0.1:64361" : "수신 대기");
+  const fieldSourceAddress = text(fieldPrimaryAttributes.sourceAddress, fieldPreviewMode ? "127.0.0.1:64361" : "?섏떊 ?湲?);
   const fieldTelemetryAgeSec = fieldPrimaryDrone?.observedAt
     ? Math.max(0, Math.floor((Date.now() - new Date(fieldPrimaryDrone.observedAt).getTime()) / 1000))
     : null;
@@ -1904,13 +1904,13 @@ export default function UnifiedDisasterDashboard() {
           ? "STALE"
           : "OFFLINE";
   const fieldTwinLabel = fieldTwinState === "LIVE"
-    ? "PHYSICAL ↔ DIGITAL SYNC"
+    ? "PHYSICAL ??DIGITAL SYNC"
     : fieldTwinState === "STALE"
       ? "SYNC DELAY"
       : fieldTwinState === "OFFLINE"
         ? "PHYSICAL LINK OFFLINE"
         : fieldTwinState === "PREVIEW"
-          ? "PREVIEW TWIN · NOT FLIGHT"
+          ? "PREVIEW TWIN 쨌 NOT FLIGHT"
           : "WAITING FOR PHYSICAL STATE";
   const fieldDisplay = {
     altitude: fieldPrimaryDrone?.altitude ?? (fieldPreviewMode ? 126 : null),
@@ -1942,21 +1942,21 @@ export default function UnifiedDisasterDashboard() {
 
   const fieldFreshnessLabel =
     fieldFreshnessState === "LIVE"
-      ? "LIVE · 정상 수신"
+      ? "LIVE 쨌 ?뺤긽 ?섏떊"
       : fieldFreshnessState === "STALE"
-        ? "STALE · 갱신 지연"
+        ? "STALE 쨌 媛깆떊 吏??
         : fieldFreshnessState === "OFFLINE"
-          ? "OFFLINE · 수신 중단"
+          ? "OFFLINE 쨌 ?섏떊 以묐떒"
           : fieldFreshnessState === "PREVIEW"
-            ? "PREVIEW · SIMULATED"
-            : "WAITING · 위치 수신 대기";
+            ? "PREVIEW 쨌 SIMULATED"
+            : "WAITING 쨌 ?꾩튂 ?섏떊 ?湲?;
 
   const fieldFreshnessDetail =
     fieldPreviewMode
-      ? "DEMO DATA · NOT FLIGHT"
+      ? "DEMO DATA 쨌 NOT FLIGHT"
       : fieldTelemetryAgeSec == null
-        ? "GLOBAL_POSITION_INT(33) 대기"
-        : `마지막 위치 수신 ${fieldTelemetryAgeSec}s 전`;
+        ? "GLOBAL_POSITION_INT(33) ?湲?
+        : `留덉?留??꾩튂 ?섏떊 ${fieldTelemetryAgeSec}s ??;
 
   /* PHASE_5_5_FIELD_SUCCESS_GATE */
   const fieldHasCorePosition = Boolean(
@@ -2050,7 +2050,7 @@ export default function UnifiedDisasterDashboard() {
     try {
       await refreshEvents();
     } catch (caught: unknown) {
-      setError(caught instanceof Error ? caught.message : "사건 목록 조회 실패");
+      setError(caught instanceof Error ? caught.message : "?ш굔 紐⑸줉 議고쉶 ?ㅽ뙣");
     } finally {
       setEventsLoaded(true);
       setRetrying(false);
@@ -2059,28 +2059,28 @@ export default function UnifiedDisasterDashboard() {
 
   return (
 <main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}${SHOW_VALIDATION_UI ? "" : " final-ops-ui"}`} aria-label="?? ?? ?? ??">
-      {error && <p className="unified-disaster-error" role="status"><strong>데이터 갱신 지연</strong><span>{error}</span><small>{overview ? "마지막 정상 데이터를 유지합니다." : "연결을 다시 확인하고 있습니다."}</small></p>}
+      {error && <p className="unified-disaster-error" role="status"><strong>?곗씠??媛깆떊 吏??/strong><span>{error}</span><small>{overview ? "留덉?留??뺤긽 ?곗씠?곕? ?좎??⑸땲??" : "?곌껐???ㅼ떆 ?뺤씤?섍퀬 ?덉뒿?덈떎."}</small></p>}
       {!overview && (
         <section className="dashboard-readiness" aria-live="polite">
           <header>
-            <div className="readiness-brand"><span>산림청</span><strong>산림재난 통합상황판</strong><small>FOREST DISASTER COMMON OPERATIONAL PICTURE</small></div>
+            <div className="readiness-brand"><span>?곕┝泥?/span><strong>?곕┝?щ궃 ?듯빀?곹솴??/strong><small>FOREST DISASTER COMMON OPERATIONAL PICTURE</small></div>
             <div className="readiness-actions">
-              {SHOW_VALIDATION_UI && <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>기능 검증 현황</button>}
-              <button type="button" className="asset-registry-open" onClick={() => { window.location.href = "/device"; }}>자산 등록·관리</button>
-              <div className={`readiness-connection ${error ? "is-error" : eventsLoaded ? "is-ready" : "is-loading"}`}><i />{error ? "연결 점검 필요" : eventsLoaded ? "연결 정상" : "데이터 연결 중"}</div>
+              {SHOW_VALIDATION_UI && <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>湲곕뒫 寃利??꾪솴</button>}
+              <button type="button" className="asset-registry-open" onClick={() => { window.location.href = "/device"; }}>?먯궛 ?깅줉쨌愿由?/button>
+              <div className={`readiness-connection ${error ? "is-error" : eventsLoaded ? "is-ready" : "is-loading"}`}><i />{error ? "?곌껐 ?먭? ?꾩슂" : eventsLoaded ? "?곌껐 ?뺤긽" : "?곗씠???곌껐 以?}</div>
             </div>
           </header>
           <div className="readiness-body">
             <div className="readiness-symbol" aria-hidden="true"><span /><i /><b /></div>
             <div>
-              <p>{error ? "통합 데이터 연결을 확인해 주세요" : eventsLoaded ? "현재 진행 중인 재난이 없습니다" : "산림재난 운영 정보를 불러오고 있습니다"}</p>
-              <h1>{error ? "상황판을 준비하지 못했습니다" : eventsLoaded ? "정상 대기 상태" : "상황판 준비 중"}</h1>
-              <span>{error ? "기존 데이터는 변경되지 않았습니다. 연결 복구 후 최신 상황을 다시 불러옵니다." : eventsLoaded ? "재난 사건이 접수되면 지도·자원·통신망·경보 현황이 자동으로 표시됩니다." : "사건, 현장 자원, 통신망과 경보 상태를 확인하는 중입니다."}</span>
-              {error && <button type="button" onClick={handleRetry} disabled={retrying}>{retrying ? "다시 연결 중…" : "연결 다시 확인"}</button>}
+              <p>{error ? "?듯빀 ?곗씠???곌껐???뺤씤??二쇱꽭?? : eventsLoaded ? "?꾩옱 吏꾪뻾 以묒씤 ?щ궃???놁뒿?덈떎" : "?곕┝?щ궃 ?댁쁺 ?뺣낫瑜?遺덈윭?ㅺ퀬 ?덉뒿?덈떎"}</p>
+              <h1>{error ? "?곹솴?먯쓣 以鍮꾪븯吏 紐삵뻽?듬땲?? : eventsLoaded ? "?뺤긽 ?湲??곹깭" : "?곹솴??以鍮?以?}</h1>
+              <span>{error ? "湲곗〈 ?곗씠?곕뒗 蹂寃쎈릺吏 ?딆븯?듬땲?? ?곌껐 蹂듦뎄 ??理쒖떊 ?곹솴???ㅼ떆 遺덈윭?듬땲??" : eventsLoaded ? "?щ궃 ?ш굔???묒닔?섎㈃ 吏?꽷룹옄?먃룻넻?좊쭩쨌寃쎈낫 ?꾪솴???먮룞?쇰줈 ?쒖떆?⑸땲??" : "?ш굔, ?꾩옣 ?먯썝, ?듭떊留앷낵 寃쎈낫 ?곹깭瑜??뺤씤?섎뒗 以묒엯?덈떎."}</span>
+              {error && <button type="button" onClick={handleRetry} disabled={retrying}>{retrying ? "?ㅼ떆 ?곌껐 以묅? : "?곌껐 ?ㅼ떆 ?뺤씤"}</button>}
             </div>
           </div>
           <footer>
-            <span><i /> 사건 정보</span><span><i /> 현장 자원</span><span><i /> 통신망 상태</span><span><i /> 위험 경보</span>
+            <span><i /> ?ш굔 ?뺣낫</span><span><i /> ?꾩옣 ?먯썝</span><span><i /> ?듭떊留??곹깭</span><span><i /> ?꾪뿕 寃쎈낫</span>
           </footer>
         </section>
       )}
@@ -2088,25 +2088,25 @@ export default function UnifiedDisasterDashboard() {
       {overview && (
         <>
         <header className="map-command-header">
-          <div className="service-brand"><span>산</span><div><strong>산림재난 통합상황판</strong><small>COMMON OPERATIONAL PICTURE</small></div></div>
+          <div className="service-brand"><span>??/span><div><strong>?곕┝?щ궃 ?듯빀?곹솴??/strong><small>COMMON OPERATIONAL PICTURE</small></div></div>
           <label className="event-selector">
-            <span>{eventSwitching ? "사건 전환 중" : "재난 사건"}</span>
-            <select value={eventSwitching ? overview.event.eventId : selectedId} onChange={(event) => setSelectedId(event.target.value)} aria-label="재난 사건 선택" disabled={eventSwitching}>
-              {events.map((event) => <option key={event.eventId} value={event.eventId}>{korean(event.disasterType, "재난")} · {text(event.eventName, event.eventCode)}</option>)}
+            <span>{eventSwitching ? "?ш굔 ?꾪솚 以? : "?щ궃 ?ш굔"}</span>
+            <select value={eventSwitching ? overview.event.eventId : selectedId} onChange={(event) => setSelectedId(event.target.value)} aria-label="?щ궃 ?ш굔 ?좏깮" disabled={eventSwitching}>
+              {events.map((event) => <option key={event.eventId} value={event.eventId}>{korean(event.disasterType, "?щ궃")} 쨌 {text(event.eventName, event.eventCode)}</option>)}
             </select>
           </label>
           <div className="header-event-state">
-            <b data-type={overview.event.disasterType}>{korean(overview.event.disasterType, "재난")}</b>
+            <b data-type={overview.event.disasterType}>{korean(overview.event.disasterType, "?щ궃")}</b>
             <span>{korean(overview.event.status)}</span>
             <span>{korean(overview.event.severityCode)}</span>
             <small>{text(overview.event.locationName)}</small>
           </div>
-          {SHOW_VALIDATION_UI && demoMode && <div className="demo-mode-badge" title="실제 API 연결 전 화면 검증용 데이터입니다"><b>DEMO</b><span>모의 관제 데이터</span></div>}
-          {localE2EMode && <div className="demo-mode-badge" title="실기체가 아닌 로컬 synthetic MAVLink 브라우저 E2E입니다"><b>E2E</b><span>SYNTHETIC · NOT FLIGHT</span></div>}
-          {localFieldMode && <div className={`demo-mode-badge field-mode-badge${fieldPreviewMode ? " field-preview-badge" : ""}`} title={fieldPreviewMode ? "화면 확인을 위한 명시적 미리보기 데이터입니다. 실제 비행 증거가 아닙니다." : "실제 MD1000 MAVLink만 수신하는 로컬 현장 모드입니다. Synthetic feed는 사용하지 않습니다."}><b>{fieldPreviewMode ? "미리보기" : "현장"}</b><span>{fieldPreviewMode ? "DEMO DATA · NOT FLIGHT" : "MD1000 실기체 · MAVLink 연동"}</span></div>}
-          {SHOW_VALIDATION_UI && demoMode && <label className="demo-scenario-selector"><span>검증 시나리오</span><select aria-label="DEMO 검증 시나리오" value={demoScenario} onChange={(event) => { const params = new URLSearchParams(window.location.search); params.set("demo", "1"); params.set("scenario", event.target.value); window.location.search = params.toString(); }}>{DEMO_SCENARIOS.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.label}</option>)}</select></label>}
-          {localFieldMode && <button type="button" className="field-preview-toggle" onClick={() => { const params = new URLSearchParams(window.location.search); params.set("field", "1"); if (fieldPreviewMode) params.delete("preview"); else params.set("preview", "1"); window.location.search = params.toString(); }}>{fieldPreviewMode ? "실데이터 보기" : "미리보기 데이터"}</button>}
-          <nav className="header-summary" aria-label="운영 현황">
+          {SHOW_VALIDATION_UI && demoMode && <div className="demo-mode-badge" title="?ㅼ젣 API ?곌껐 ???붾㈃ 寃利앹슜 ?곗씠?곗엯?덈떎"><b>DEMO</b><span>紐⑥쓽 愿???곗씠??/span></div>}
+          {localE2EMode && <div className="demo-mode-badge" title="?ㅺ린泥닿? ?꾨땶 濡쒖뺄 synthetic MAVLink 釉뚮씪?곗? E2E?낅땲??><b>E2E</b><span>SYNTHETIC 쨌 NOT FLIGHT</span></div>}
+          {localFieldMode && <div className={`demo-mode-badge field-mode-badge${fieldPreviewMode ? " field-preview-badge" : ""}`} title={fieldPreviewMode ? "?붾㈃ ?뺤씤???꾪븳 紐낆떆??誘몃━蹂닿린 ?곗씠?곗엯?덈떎. ?ㅼ젣 鍮꾪뻾 利앷굅媛 ?꾨떃?덈떎." : "?ㅼ젣 MD1000 MAVLink留??섏떊?섎뒗 濡쒖뺄 ?꾩옣 紐⑤뱶?낅땲?? Synthetic feed???ъ슜?섏? ?딆뒿?덈떎."}><b>{fieldPreviewMode ? "誘몃━蹂닿린" : "?꾩옣"}</b><span>{fieldPreviewMode ? "DEMO DATA 쨌 NOT FLIGHT" : "MD1000 ?ㅺ린泥?쨌 MAVLink ?곕룞"}</span></div>}
+          {SHOW_VALIDATION_UI && demoMode && <label className="demo-scenario-selector"><span>寃利??쒕굹由ъ삤</span><select aria-label="DEMO 寃利??쒕굹由ъ삤" value={demoScenario} onChange={(event) => { const params = new URLSearchParams(window.location.search); params.set("demo", "1"); params.set("scenario", event.target.value); window.location.search = params.toString(); }}>{DEMO_SCENARIOS.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.label}</option>)}</select></label>}
+          {localFieldMode && <button type="button" className="field-preview-toggle" onClick={() => { const params = new URLSearchParams(window.location.search); params.set("field", "1"); if (fieldPreviewMode) params.delete("preview"); else params.set("preview", "1"); window.location.search = params.toString(); }}>{fieldPreviewMode ? "?ㅻ뜲?댄꽣 蹂닿린" : "誘몃━蹂닿린 ?곗씠??}</button>}
+          <nav className="header-summary" aria-label="?댁쁺 ?꾪솴">
             <button
   type="button"
   onClick={() => {
@@ -2114,30 +2114,30 @@ export default function UnifiedDisasterDashboard() {
     setResourceDialogGroup("ALL_ASSETS");
   }}
 >
-  <span>투입 장비</span>
+  <span>?ъ엯 ?λ퉬</span>
   <b>{overview.assets.length}</b>
 </button>
-            <button type="button" onClick={() => setOperationsTab("layers")}><span>인원</span><b>{overview.personnel.length}</b></button>
-            <button type="button" onClick={() => setOperationsTab("networks")}><span>통신망</span><b>{overview.networks.length}</b></button>
-            <button type="button" data-alert={activeAlertCount > 0} onClick={() => setOperationsTab("alerts")}><span>경보</span><b>{activeAlertCount}</b></button>
+            <button type="button" onClick={() => setOperationsTab("layers")}><span>?몄썝</span><b>{overview.personnel.length}</b></button>
+            <button type="button" onClick={() => setOperationsTab("networks")}><span>?듭떊留?/span><b>{overview.networks.length}</b></button>
+            <button type="button" data-alert={activeAlertCount > 0} onClick={() => setOperationsTab("alerts")}><span>寃쎈낫</span><b>{activeAlertCount}</b></button>
           </nav>
           <div className="command-primary-actions">
-            <button type="button" className="asset-registry-open" onClick={() => { window.location.href = "/device"; }}>자산 등록·관리</button>
-            {SHOW_VALIDATION_UI && <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>기능 검증 현황</button>}
+            <button type="button" className="asset-registry-open" onClick={() => { window.location.href = "/device"; }}>?먯궛 ?깅줉쨌愿由?/button>
+            {SHOW_VALIDATION_UI && <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>湲곕뒫 寃利??꾪솴</button>}
           </div>
-          <button type="button" className="asset-status-open" onClick={() => { setSelectedLocationKey(null); setResourceDialogGroup("ALL"); }}>사건 투입 자산</button>
-          <time className="last-updated" title={lastUpdatedAt?.toLocaleString("ko-KR")}><i /> 최근 갱신 {lastUpdatedAt ? relativeTime(lastUpdatedAt.toISOString()) : "대기 중"}</time>
+          <button type="button" className="asset-status-open" onClick={() => { setSelectedLocationKey(null); setResourceDialogGroup("ALL"); }}>?ш굔 ?ъ엯 ?먯궛</button>
+          <time className="last-updated" title={lastUpdatedAt?.toLocaleString("ko-KR")}><i /> 理쒓렐 媛깆떊 {lastUpdatedAt ? relativeTime(lastUpdatedAt.toISOString()) : "?湲?以?}</time>
         </header>
-        {SHOW_VALIDATION_UI && <section className="field-kpi-strip" aria-label="현장 통신 KPI 4종">
+        {SHOW_VALIDATION_UI && <section className="field-kpi-strip" aria-label="?꾩옣 ?듭떊 KPI 4醫?>
           {communicationKpis.map((item) => (
             <article key={item.id} data-state={item.state}>
               <span className="field-kpi-icon" aria-hidden="true">{item.icon}</span>
               <div>
                 <small>{item.label}</small>
-                <strong>{item.value == null ? "측정 대기" : `${item.value.toFixed(item.unit === "%" ? 1 : 1)}${item.unit}`}</strong>
+                <strong>{item.value == null ? "痢≪젙 ?湲? : `${item.value.toFixed(item.unit === "%" ? 1 : 1)}${item.unit}`}</strong>
               </div>
-              <em>{item.state === "PASS" ? "PASS" : item.state === "CHECK" ? "CHECK" : "대기"}</em>
-              <p>기준 {item.direction === "MAX" ? "≤" : "≥"}{item.target}{item.unit}</p>
+              <em>{item.state === "PASS" ? "PASS" : item.state === "CHECK" ? "CHECK" : "?湲?}</em>
+              <p>湲곗? {item.direction === "MAX" ? "?? : "??}{item.target}{item.unit}</p>
             </article>
           ))}
           <aside className="field-kpi-context">
@@ -2145,13 +2145,13 @@ export default function UnifiedDisasterDashboard() {
               <b>
                 {localFieldMode
                   ? fieldPreviewMode
-                    ? "FIELD 화면 미리보기"
-                    : "실기체 통신 감시"
+                    ? "FIELD ?붾㈃ 誘몃━蹂닿린"
+                    : "?ㅺ린泥??듭떊 媛먯떆"
                   : localE2EMode
-                    ? "E2E 통신 검증"
+                    ? "E2E ?듭떊 寃利?
                     : demoMode
-                      ? "모의 관제 통신"
-                      : "현장 통신 상태"}
+                      ? "紐⑥쓽 愿???듭떊"
+                      : "?꾩옣 ?듭떊 ?곹깭"}
               </b>
             </div>
 
@@ -2159,9 +2159,9 @@ export default function UnifiedDisasterDashboard() {
               className="field-kpi-context-status"
               title={
                 localE2EMode
-                  ? "LOCAL E2E · 실기체가 아닌 synthetic 검증"
+                  ? "LOCAL E2E 쨌 ?ㅺ린泥닿? ?꾨땶 synthetic 寃利?
                   : localFieldMode && !fieldPreviewMode
-                    ? "MD1000 실기체 · MAVLink v2"
+                    ? "MD1000 ?ㅺ린泥?쨌 MAVLink v2"
                     : undefined
               }
             >
@@ -2205,11 +2205,11 @@ export default function UnifiedDisasterDashboard() {
               <SemanticMissionPocPanel />
             </div>
           )}
-          <section className="live-location-panel" aria-label="실시간 현장 위치">
+          <section className="live-location-panel" aria-label="?ㅼ떆媛??꾩옣 ?꾩튂">
             {!demoMode && overview.liveDroneTelemetry && <div
               className="telemetry-connection-status"
               role="status"
-              title={localFieldMode ? "현재 위치는 CRC 검증된 MAVLink GLOBAL_POSITION_INT(33)만 사용합니다." : undefined}
+              title={localFieldMode ? "?꾩옱 ?꾩튂??CRC 寃利앸맂 MAVLink GLOBAL_POSITION_INT(33)留??ъ슜?⑸땲??" : undefined}
               data-local-e2e={localE2EMode ? "true" : undefined}
               data-e2e-live={localE2EMode ? overview.liveDroneTelemetry.live : undefined}
               data-e2e-stale={localE2EMode ? overview.liveDroneTelemetry.stale : undefined}
@@ -2219,15 +2219,15 @@ export default function UnifiedDisasterDashboard() {
               data-field-stale={localFieldMode ? overview.liveDroneTelemetry.stale : undefined}
               data-field-offline={localFieldMode ? overview.liveDroneTelemetry.offline : undefined}
             >
-              {localFieldMode ? (fieldPreviewMode ? 'MD1000 화면 미리보기 · 데모 데이터 · 실비행 아님' : 'MD1000 실시간 기체 위치') : 'MAVLink 위치 연동'} · {localFieldMode
+              {localFieldMode ? (fieldPreviewMode ? 'MD1000 ?붾㈃ 誘몃━蹂닿린 쨌 ?곕え ?곗씠??쨌 ?ㅻ퉬???꾨떂' : 'MD1000 ?ㅼ떆媛?湲곗껜 ?꾩튂') : 'MAVLink ?꾩튂 ?곕룞'} 쨌 {localFieldMode
                 ? (fieldPreviewMode ? 'PREVIEW ONLY' : fieldCoreStatusLabel(overview.liveDroneTelemetry.status, overview.liveDroneTelemetry.matched))
-                : overview.liveDroneTelemetry.status === 'CONNECTED' ? 'Core 조회 정상' : 'Core 조회 실패 · 마지막 수신값 유지'}
-              {' · '}지도 연결 {overview.liveDroneTelemetry.matched}대 · LIVE {overview.liveDroneTelemetry.live} · STALE {overview.liveDroneTelemetry.stale} · OFFLINE {overview.liveDroneTelemetry.offline}
-              {' · '}ID 미연결 {overview.liveDroneTelemetry.unmatched}대
-              {overview.liveDroneTelemetry.unmatched > 0 && ' · 자산 코드 또는 telemetrySourceAssetId 확인'}
+                : overview.liveDroneTelemetry.status === 'CONNECTED' ? 'Core 議고쉶 ?뺤긽' : 'Core 議고쉶 ?ㅽ뙣 쨌 留덉?留??섏떊媛??좎?'}
+              {' 쨌 '}吏???곌껐 {overview.liveDroneTelemetry.matched}? 쨌 LIVE {overview.liveDroneTelemetry.live} 쨌 STALE {overview.liveDroneTelemetry.stale} 쨌 OFFLINE {overview.liveDroneTelemetry.offline}
+              {' 쨌 '}ID 誘몄뿰寃?{overview.liveDroneTelemetry.unmatched}?
+              {overview.liveDroneTelemetry.unmatched > 0 && ' 쨌 ?먯궛 肄붾뱶 ?먮뒗 telemetrySourceAssetId ?뺤씤'}
             </div>}
             <div className="live-location-layout">
-              <div className="location-map" role="region" aria-label={`현장 위치 ${liveLocations.length}건`}>
+              <div className="location-map" role="region" aria-label={`?꾩옣 ?꾩튂 ${liveLocations.length}嫄?}>
                 <LivePositionMap
                   locations={visibleLocations}
                   changedUntil={changedUntil}
@@ -2259,11 +2259,11 @@ export default function UnifiedDisasterDashboard() {
                 />
                 {eventToLiveDistance > 0.08 && (
                   <p className="map-coordinate-warning" role="status">
-                    <strong>좌표 정합성 확인 필요</strong>
-                    사건 기준점과 현장 자산 중심이 약 {eventToLiveDistanceKm.toFixed(1)}km 떨어져 있어 자산 중심으로 표시합니다.
+                    <strong>醫뚰몴 ?뺥빀???뺤씤 ?꾩슂</strong>
+                    ?ш굔 湲곗??먭낵 ?꾩옣 ?먯궛 以묒떖????{eventToLiveDistanceKm.toFixed(1)}km ?⑥뼱???덉뼱 ?먯궛 以묒떖?쇰줈 ?쒖떆?⑸땲??
                   </p>
                 )}
-                {liveLocations.length === 0 && <p>수신된 위치가 없습니다.</p>}
+                {liveLocations.length === 0 && <p>?섏떊???꾩튂媛 ?놁뒿?덈떎.</p>}
               </div>
               <OperationsPanel
                 overview={overview}
@@ -2292,9 +2292,9 @@ export default function UnifiedDisasterDashboard() {
                 )}
               />
 
-              {(localFieldMode || localE2EMode || SHOW_VALIDATION_UI) && <aside className="field-command-inspector" aria-label="MD1000 장비 상세 정보">
+              {(localFieldMode || localE2EMode || SHOW_VALIDATION_UI) && <aside className="field-command-inspector" aria-label="MD1000 ?λ퉬 ?곸꽭 ?뺣낫">
                 <header>
-                  <div><small>장비 상세 정보</small><strong>{fieldPrimaryDrone?.label ?? (fieldPreviewMode ? "MD1000 미리보기" : "주 기체 수신 대기")}</strong></div>
+                  <div><small>?λ퉬 ?곸꽭 ?뺣낫</small><strong>{fieldPrimaryDrone?.label ?? (fieldPreviewMode ? "MD1000 誘몃━蹂닿린" : "二?湲곗껜 ?섏떊 ?湲?)}</strong></div>
                   <em
                     className="field-freshness-chip"
                     data-state={fieldFreshnessState.toLowerCase()}
@@ -2317,8 +2317,8 @@ export default function UnifiedDisasterDashboard() {
                   >
                     <header>
                       <div>
-                        <strong>SEMANTIC AI · PoC</strong>
-                        <small>통신 단절 fallback 시각화</small>
+                        <strong>SEMANTIC AI 쨌 PoC</strong>
+                        <small>?듭떊 ?⑥젅 fallback ?쒓컖??/small>
                       </div>
                       <span>EXPERIMENTAL</span>
                     </header>
@@ -2356,7 +2356,7 @@ export default function UnifiedDisasterDashboard() {
                     </div>
 
                     <footer>
-                      마지막 관측 기반 예측 표시 · 실제 LIVE 영상 또는 관측 데이터가 아닙니다.
+                      留덉?留?愿痢?湲곕컲 ?덉륫 ?쒖떆 쨌 ?ㅼ젣 LIVE ?곸긽 ?먮뒗 愿痢??곗씠?곌? ?꾨떃?덈떎.
                     </footer>
                   </section>
                 )}
@@ -2368,7 +2368,7 @@ export default function UnifiedDisasterDashboard() {
                   <header>
                     <div>
                       <small>FIELD SUCCESS GATE</small>
-                      <strong>{fieldPrimaryDrone ? "MD1000 실기체 연동" : fieldPreviewMode ? "MD1000 미리보기 연동" : "실기체 연동 대기"}</strong>
+                      <strong>{fieldPrimaryDrone ? "MD1000 ?ㅺ린泥??곕룞" : fieldPreviewMode ? "MD1000 誘몃━蹂닿린 ?곕룞" : "?ㅺ린泥??곕룞 ?湲?}</strong>
                     </div>
                     <em data-state={fieldPipelineMapState.toLowerCase()}>
                       {fieldPipelineMapState}
@@ -2394,11 +2394,11 @@ export default function UnifiedDisasterDashboard() {
                 </section>
 
                 <div className="field-inspector-identity">
-                  <span>{fieldPrimaryDrone ? `무인기 · ${fieldPrimaryDrone.label}` : fieldPreviewMode ? "무인기 · MD1000 PREVIEW" : "무인기 · 미수신"}</span>
-                  <b>{fieldPrimaryDrone?.status ?? "실기체 위치 수신 대기"}</b>
-                  <small>{fieldPreviewMode ? "DEMO DATA · NOT FLIGHT" : "GLOBAL_POSITION_INT(33) 기반 현재 위치"}</small>
+                  <span>{fieldPrimaryDrone ? `臾댁씤湲?쨌 ${fieldPrimaryDrone.label}` : fieldPreviewMode ? "臾댁씤湲?쨌 MD1000 PREVIEW" : "臾댁씤湲?쨌 誘몄닔??}</span>
+                  <b>{fieldPrimaryDrone?.status ?? "?ㅺ린泥??꾩튂 ?섏떊 ?湲?}</b>
+                  <small>{fieldPreviewMode ? "DEMO DATA 쨌 NOT FLIGHT" : "GLOBAL_POSITION_INT(33) 湲곕컲 ?꾩옱 ?꾩튂"}</small>
                 </div>
-                <section className="field-twin-status" data-state={fieldTwinState.toLowerCase()} aria-label="MD1000 디지털 트윈 동기화 상태">
+                <section className="field-twin-status" data-state={fieldTwinState.toLowerCase()} aria-label="MD1000 ?붿????몄쐢 ?숆린???곹깭">
                   <header>
                     <span>Digital Twin</span>
                     <strong>{fieldTwinLabel}</strong>
@@ -2430,7 +2430,7 @@ export default function UnifiedDisasterDashboard() {
                 </section>
                 <nav
                   className="field-inspector-tabs"
-                  aria-label="장비 정보 분류"
+                  aria-label="?λ퉬 ?뺣낫 遺꾨쪟"
                   role="tablist"
                 >
                   <button
@@ -2440,7 +2440,7 @@ export default function UnifiedDisasterDashboard() {
                     className={fieldInspectorTab === "quality" ? "active" : ""}
                     onClick={() => setFieldInspectorTab("quality")}
                   >
-                    통신 품질
+                    ?듭떊 ?덉쭏
                   </button>
                   <button
                     type="button"
@@ -2449,7 +2449,7 @@ export default function UnifiedDisasterDashboard() {
                     className={fieldInspectorTab === "details" ? "active" : ""}
                     onClick={() => setFieldInspectorTab("details")}
                   >
-                    상세 정보
+                    ?곸꽭 ?뺣낫
                   </button>
                   <button
                     type="button"
@@ -2458,7 +2458,7 @@ export default function UnifiedDisasterDashboard() {
                     className={fieldInspectorTab === "video" ? "active" : ""}
                     onClick={() => setFieldInspectorTab("video")}
                   >
-                    실시간 영상
+                    ?ㅼ떆媛??곸긽
                   </button>
                 </nav>
 
@@ -2467,15 +2467,15 @@ export default function UnifiedDisasterDashboard() {
                   className="field-inspector-pane field-quality-pane"
                   role="tabpanel"
                 >
-                <section className="field-seq-summary" aria-label="최근 SEQ 통신 품질">
-                  <header><span>최근 100 SEQ 기준</span><small>{fieldPreviewMode ? "예시 데이터" : fieldSequenceSummary?.expected ? `SEQ ${fieldSequenceSummary.fromSequence ?? "-"}–${fieldSequenceSummary.toSequence ?? "-"}` : "수신 대기"}</small></header>
+                <section className="field-seq-summary" aria-label="理쒓렐 SEQ ?듭떊 ?덉쭏">
+                  <header><span>理쒓렐 100 SEQ 湲곗?</span><small>{fieldPreviewMode ? "?덉떆 ?곗씠?? : fieldSequenceSummary?.expected ? `SEQ ${fieldSequenceSummary.fromSequence ?? "-"}??{fieldSequenceSummary.toSequence ?? "-"}` : "?섏떊 ?湲?}</small></header>
                   <div className="field-seq-grid">
                     <article><small>Received</small><strong>{fieldSequenceReceived || "-"}</strong></article>
                     <article><small>Lost</small><strong data-alert={fieldSequenceLost > 0}>{fieldSequenceLost || "-"}</strong></article>
                     <article><small>Loss %</small><strong data-alert={(fieldSequenceLossPct ?? 0) >= 3}>{fieldSequenceLossPct == null ? "-" : `${fieldSequenceLossPct.toFixed(1)}%`}</strong></article>
-                    <article><small>최근 수신</small><strong>{fieldPrimaryDrone ? relativeTime(fieldPrimaryDrone.observedAt) : "대기"}</strong></article>
-                    <article><small>고도</small><strong>{fieldDisplay.altitude == null ? "-" : `${fieldDisplay.altitude.toFixed(0)}m`}</strong></article>
-                    <article><small>속도</small><strong>{fieldDisplay.speed == null ? "-" : `${fieldDisplay.speed.toFixed(1)}m/s`}</strong></article>
+                    <article><small>理쒓렐 ?섏떊</small><strong>{fieldPrimaryDrone ? relativeTime(fieldPrimaryDrone.observedAt) : "?湲?}</strong></article>
+                    <article><small>怨좊룄</small><strong>{fieldDisplay.altitude == null ? "-" : `${fieldDisplay.altitude.toFixed(0)}m`}</strong></article>
+                    <article><small>?띾룄</small><strong>{fieldDisplay.speed == null ? "-" : `${fieldDisplay.speed.toFixed(1)}m/s`}</strong></article>
                   </div>
                 </section>
                 <dl className="field-link-diagnostics">
@@ -2484,7 +2484,7 @@ export default function UnifiedDisasterDashboard() {
                     <dd>
                       {Number.isFinite(fieldMavlinkVersion)
                         ? `v${fieldMavlinkVersion}`
-                        : "수신 대기"}
+                        : "?섏떊 ?湲?}
                     </dd>
                   </div>
 
@@ -2494,7 +2494,7 @@ export default function UnifiedDisasterDashboard() {
                       {Number.isFinite(fieldSystemId) &&
                       Number.isFinite(fieldComponentId)
                         ? `${fieldSystemId} / ${fieldComponentId}`
-                        : "수신 대기"}
+                        : "?섏떊 ?湲?}
                     </dd>
                   </div>
 
@@ -2560,16 +2560,16 @@ export default function UnifiedDisasterDashboard() {
                   </div>
                 </dl>
                 <section className="field-event-log">
-                  <header><strong>장비 이벤트 로그</strong><small>최근 상태</small></header>
+                  <header><strong>?λ퉬 ?대깽??濡쒓렇</strong><small>理쒓렐 ?곹깭</small></header>
                   <ol>
                     {fieldPreviewMode && <>
-                      <li><i data-tone="ok" /><time>14:27:35</time><span>데이터 수신 성공</span><em>SEQ 3287</em></li>
-                      <li><i data-tone="ok" /><time>14:27:34</time><span>데이터 수신 성공</span><em>SEQ 3286</em></li>
-                      <li><i data-tone="bad" /><time>14:27:32</time><span>패킷 손실 감지</span><em>SEQ 3284</em></li>
-                      <li><i data-tone="ok" /><time>14:27:31</time><span>데이터 수신 성공</span><em>SEQ 3283</em></li>
+                      <li><i data-tone="ok" /><time>14:27:35</time><span>?곗씠???섏떊 ?깃났</span><em>SEQ 3287</em></li>
+                      <li><i data-tone="ok" /><time>14:27:34</time><span>?곗씠???섏떊 ?깃났</span><em>SEQ 3286</em></li>
+                      <li><i data-tone="bad" /><time>14:27:32</time><span>?⑦궥 ?먯떎 媛먯?</span><em>SEQ 3284</em></li>
+                      <li><i data-tone="ok" /><time>14:27:31</time><span>?곗씠???섏떊 ?깃났</span><em>SEQ 3283</em></li>
                     </>}
-                    {!fieldPreviewMode && telemetrySamples.slice(-4).reverse().map((sample, index) => <li key={`${sample.receivedAt}-${index}`}><i data-tone="ok" /><time>{new Date(sample.receivedAt).toLocaleTimeString("ko-KR", { hour12: false })}</time><span>텔레메트리 수신</span><em>SEQ {sample.sequence ?? "-"}</em></li>)}
-                    {!fieldPreviewMode && telemetrySamples.length === 0 && <li className="empty"><span>실기체 텔레메트리 수신 대기</span></li>}
+                    {!fieldPreviewMode && telemetrySamples.slice(-4).reverse().map((sample, index) => <li key={`${sample.receivedAt}-${index}`}><i data-tone="ok" /><time>{new Date(sample.receivedAt).toLocaleTimeString("ko-KR", { hour12: false })}</time><span>?붾젅硫뷀듃由??섏떊</span><em>SEQ {sample.sequence ?? "-"}</em></li>)}
+                    {!fieldPreviewMode && telemetrySamples.length === 0 && <li className="empty"><span>?ㅺ린泥??붾젅硫뷀듃由??섏떊 ?湲?/span></li>}
                   </ol>
                 </section>
                 </div>
@@ -2586,8 +2586,8 @@ export default function UnifiedDisasterDashboard() {
                       </dl>
                     ) : (
                       <div className="field-inspector-empty">
-                        <strong>장비 상세정보 수신 대기</strong>
-                        <span>Core에서 등록 장비와 실시간 텔레메트리를 결합하면 표시됩니다.</span>
+                        <strong>?λ퉬 ?곸꽭?뺣낫 ?섏떊 ?湲?/strong>
+                        <span>Core?먯꽌 ?깅줉 ?λ퉬? ?ㅼ떆媛??붾젅硫뷀듃由щ? 寃고빀?섎㈃ ?쒖떆?⑸땲??</span>
                       </div>
                     )}
                   </div>
@@ -2599,15 +2599,15 @@ export default function UnifiedDisasterDashboard() {
                     role="tabpanel"
                   >
                     <div className="field-video-tab-summary">
-                      <span>실시간 영상</span>
+                      <span>?ㅼ떆媛??곸긽</span>
                       <strong>
                         {fieldPrimaryDrone?.label ??
                           (fieldPreviewMode
-                            ? "MD1000 미리보기"
-                            : "주 기체 수신 대기")}
+                            ? "MD1000 誘몃━蹂닿린"
+                            : "二?湲곗껜 ?섏떊 ?湲?)}
                       </strong>
                       <small>
-                        등록 영상 채널 {fieldVideoChannels.length}개
+                        ?깅줉 ?곸긽 梨꾨꼸 {fieldVideoChannels.length}媛?
                       </small>
                     </div>
 
@@ -2621,12 +2621,12 @@ export default function UnifiedDisasterDashboard() {
                         }
                       }}
                     >
-                      실시간 영상 열기
+                      ?ㅼ떆媛??곸긽 ?닿린
                     </button>
 
                     {!fieldPrimaryDrone && (
                       <p className="field-video-wait">
-                        드론 텔레메트리가 수신되면 영상 채널을 열 수 있습니다.
+                        ?쒕줎 ?붾젅硫뷀듃由ш? ?섏떊?섎㈃ ?곸긽 梨꾨꼸???????덉뒿?덈떎.
                       </p>
                     )}
                   </div>
@@ -2634,53 +2634,53 @@ export default function UnifiedDisasterDashboard() {
               </aside>}
             </div>
             {selectedLocation && <div className="resource-modal-backdrop" role="presentation" onMouseDown={() => setSelectedLocationKey(null)}>
-            <section className="selected-location-drawer resource-modal" role="dialog" aria-modal="true" aria-label="선택 자산 상세" onMouseDown={(event) => event.stopPropagation()}>
-              <div><span>{assetTypeLabel(selectedLocation.category)}</span><strong>{selectedLocation.label}</strong><small>{coordinateOutlierKeys.has(locationKey(selectedLocation)) ? "좌표 정합성 확인 필요" : selectedLocation.status}</small></div>
+            <section className="selected-location-drawer resource-modal" role="dialog" aria-modal="true" aria-label="?좏깮 ?먯궛 ?곸꽭" onMouseDown={(event) => event.stopPropagation()}>
+              <div><span>{assetTypeLabel(selectedLocation.category)}</span><strong>{selectedLocation.label}</strong><small>{coordinateOutlierKeys.has(locationKey(selectedLocation)) ? "醫뚰몴 ?뺥빀???뺤씤 ?꾩슂" : selectedLocation.status}</small></div>
               <dl>
                 <div>
-                  <dt>통신 상태</dt>
-                  <dd>{selectedLocation.qualityStatus || selectedLocation.status || "확인 중"}</dd>
+                  <dt>?듭떊 ?곹깭</dt>
+                  <dd>{selectedLocation.qualityStatus || selectedLocation.status || "?뺤씤 以?}</dd>
                 </div>
                 <div>
-                  <dt>전송망</dt>
-                  <dd>{selectedLocation.networkMode || "망 정보 없음"}</dd>
+                  <dt>?꾩넚留?/dt>
+                  <dd>{selectedLocation.networkMode || "留??뺣낫 ?놁쓬"}</dd>
                 </div>
                 {!demoMode && <DroneTwinDetail asset={overview.assets.find(asset => asset.assetId === selectedLocation.id) ?? {}} />}
-                <div><dt>최근 통신</dt><dd>{relativeTime(selectedLocation.observedAt)}</dd></div>
-                <div><dt>위치</dt><dd>{selectedLocation.latitude.toFixed(6)}, {selectedLocation.longitude.toFixed(6)}</dd></div>
-                <div><dt>고도</dt><dd>{selectedLocation.altitude == null ? "확인 불가" : `${selectedLocation.altitude.toFixed(1)}m`}</dd></div>
-                <div><dt>배터리</dt><dd>{selectedLocation.batteryPct == null ? "측정값 없음" : `${selectedLocation.batteryPct.toFixed(0)}%`}</dd></div>
-                <div><dt>신호</dt><dd>{selectedLocation.signalStrengthDbm == null ? "측정값 없음" : `${selectedLocation.signalStrengthDbm.toFixed(0)} dBm`}</dd></div>
-                <div><dt>지연·손실</dt><dd>{selectedLocation.latencyMs == null ? "측정값 없음" : `${selectedLocation.latencyMs.toFixed(0)} ms · ${selectedLocation.packetLossPct?.toFixed(1) ?? "-"}%`}</dd></div>
-                <div><dt>데이터 발생 장비</dt><dd>{selectedLocation.sourceAssetId || selectedLocation.id}</dd></div>
-                <div><dt>API 전달 주체</dt><dd>{selectedLocation.reportedByAssetId ? `${korean(selectedLocation.reportingRole || "GATEWAY")} · ${selectedLocation.reportedByAssetId}` : "직접 보고 또는 정보 미수신"}</dd></div>
+                <div><dt>理쒓렐 ?듭떊</dt><dd>{relativeTime(selectedLocation.observedAt)}</dd></div>
+                <div><dt>?꾩튂</dt><dd>{selectedLocation.latitude.toFixed(6)}, {selectedLocation.longitude.toFixed(6)}</dd></div>
+                <div><dt>怨좊룄</dt><dd>{selectedLocation.altitude == null ? "?뺤씤 遺덇?" : `${selectedLocation.altitude.toFixed(1)}m`}</dd></div>
+                <div><dt>諛고꽣由?/dt><dd>{selectedLocation.batteryPct == null ? "痢≪젙媛??놁쓬" : `${selectedLocation.batteryPct.toFixed(0)}%`}</dd></div>
+                <div><dt>?좏샇</dt><dd>{selectedLocation.signalStrengthDbm == null ? "痢≪젙媛??놁쓬" : `${selectedLocation.signalStrengthDbm.toFixed(0)} dBm`}</dd></div>
+                <div><dt>吏?걔룹넀??/dt><dd>{selectedLocation.latencyMs == null ? "痢≪젙媛??놁쓬" : `${selectedLocation.latencyMs.toFixed(0)} ms 쨌 ${selectedLocation.packetLossPct?.toFixed(1) ?? "-"}%`}</dd></div>
+                <div><dt>?곗씠??諛쒖깮 ?λ퉬</dt><dd>{selectedLocation.sourceAssetId || selectedLocation.id}</dd></div>
+                <div><dt>API ?꾨떖 二쇱껜</dt><dd>{selectedLocation.reportedByAssetId ? `${korean(selectedLocation.reportingRole || "GATEWAY")} 쨌 ${selectedLocation.reportedByAssetId}` : "吏곸젒 蹂닿퀬 ?먮뒗 ?뺣낫 誘몄닔??}</dd></div>
               {isPositioningLocation(selectedLocation) && <>
-                  <div><dt>측위 상태</dt><dd>{selectedLocation.positioningMethod ? korean(selectedLocation.positioningMethod) : "측위정보 수신 전"}</dd></div>
-                  <div><dt>예상 오차</dt><dd>{selectedLocation.horizontalAccuracyM == null ? "측정값 없음" : `±${selectedLocation.horizontalAccuracyM.toFixed(2)}m`}</dd></div>
-                  <div><dt>기준국 보정</dt><dd>{correctionStatus(selectedLocation)}</dd></div>
-                  <div><dt>현장 전송망</dt><dd>{selectedLocation.networkMode ? korean(selectedLocation.networkMode) : "망 정보 수신 전"}</dd></div>
+                  <div><dt>痢≪쐞 ?곹깭</dt><dd>{selectedLocation.positioningMethod ? korean(selectedLocation.positioningMethod) : "痢≪쐞?뺣낫 ?섏떊 ??}</dd></div>
+                  <div><dt>?덉긽 ?ㅼ감</dt><dd>{selectedLocation.horizontalAccuracyM == null ? "痢≪젙媛??놁쓬" : `짹${selectedLocation.horizontalAccuracyM.toFixed(2)}m`}</dd></div>
+                  <div><dt>湲곗?援?蹂댁젙</dt><dd>{correctionStatus(selectedLocation)}</dd></div>
+                  <div><dt>?꾩옣 ?꾩넚留?/dt><dd>{selectedLocation.networkMode ? korean(selectedLocation.networkMode) : "留??뺣낫 ?섏떊 ??}</dd></div>
                 </>}
                 {resourceGroupOf(selectedLocation) === "UAV" && <>
-                  <div><dt>비행 모드</dt><dd>{selectedLocation.flightMode ?? "수신 전"}</dd></div>
-                  <div><dt>시동·임무</dt><dd>{selectedLocation.armed == null ? "수신 전" : `${selectedLocation.armed ? "ARMED" : "DISARMED"} · WP ${selectedLocation.missionSequence ?? "-"}`}</dd></div>
-                  <div><dt>속도·방향</dt><dd>{selectedLocation.groundSpeedMps == null ? "수신 전" : `${selectedLocation.groundSpeedMps.toFixed(1)}m/s · ${selectedLocation.headingDeg?.toFixed(0) ?? "-"}°`}</dd></div>
-                  <div><dt>비상 상태</dt><dd>{selectedLocation.emergencyStatus ?? "정상"}</dd></div>
+                  <div><dt>鍮꾪뻾 紐⑤뱶</dt><dd>{selectedLocation.flightMode ?? "?섏떊 ??}</dd></div>
+                  <div><dt>?쒕룞쨌?꾨Т</dt><dd>{selectedLocation.armed == null ? "?섏떊 ?? : `${selectedLocation.armed ? "ARMED" : "DISARMED"} 쨌 WP ${selectedLocation.missionSequence ?? "-"}`}</dd></div>
+                  <div><dt>?띾룄쨌諛⑺뼢</dt><dd>{selectedLocation.groundSpeedMps == null ? "?섏떊 ?? : `${selectedLocation.groundSpeedMps.toFixed(1)}m/s 쨌 ${selectedLocation.headingDeg?.toFixed(0) ?? "-"}째`}</dd></div>
+                  <div><dt>鍮꾩긽 ?곹깭</dt><dd>{selectedLocation.emergencyStatus ?? "?뺤긽"}</dd></div>
                 </>}
               </dl>
-              {selectedTelemetryHistory.length > 0 && <section className="asset-live-history" aria-label={`${selectedLocation.id} 실시간 수신 이력`}>
-                <header><div><small>GATEWAY RAW HISTORY</small><strong>최근 위치 수신 {selectedTelemetryHistory.length}건</strong></div><button type="button" onClick={downloadSelectedTelemetry}>JSON 증적</button></header>
+              {selectedTelemetryHistory.length > 0 && <section className="asset-live-history" aria-label={`${selectedLocation.id} ?ㅼ떆媛??섏떊 ?대젰`}>
+                <header><div><small>GATEWAY RAW HISTORY</small><strong>理쒓렐 ?꾩튂 ?섏떊 {selectedTelemetryHistory.length}嫄?/strong></div><button type="button" onClick={downloadSelectedTelemetry}>JSON 利앹쟻</button></header>
                 <ol>{selectedTelemetryHistory.slice(0, 6).map((sample, index) => <li key={`${sample.observedAt}-${sample.sequence ?? index}`}><time>{new Date(sample.observedAt).toLocaleTimeString("ko-KR")}</time><span>{sample.latitude?.toFixed(6) ?? "-"}, {sample.longitude?.toFixed(6) ?? "-"}</span><em>SEQ {sample.sequence ?? "-"}</em></li>)}</ol>
               </section>}
-              {selectedLocation.kind === "asset" && <button type="button" className="asset-log-link" onClick={() => { window.location.href = `/device?assetId=${encodeURIComponent(selectedLocation.id)}`; }}>assetId 로그·이력 조회</button>}
+              {selectedLocation.kind === "asset" && <button type="button" className="asset-log-link" onClick={() => { window.location.href = `/device?assetId=${encodeURIComponent(selectedLocation.id)}`; }}>assetId 濡쒓렇쨌?대젰 議고쉶</button>}
               {isPositioningLocation(selectedLocation) && <p className="positioning-dialog-note">
-                <strong>{selectedLocation.category === "RTK_BASE_LPWA_GATEWAY" ? "기준국 역할" : "위치 산출 흐름"}</strong>
+                <strong>{selectedLocation.category === "RTK_BASE_LPWA_GATEWAY" ? "湲곗?援???븷" : "?꾩튂 ?곗텧 ?먮쫫"}</strong>
                 <span>{positioningDescription(selectedLocation)}</span>
               </p>}
-              {selectedCommunicationPath && <section className="communication-path" aria-label="통신 연결 구성">
+              {selectedCommunicationPath && <section className="communication-path" aria-label="?듭떊 ?곌껐 援ъ꽦">
                 <header>
-                  <strong>통신 연결 구성</strong>
-                  <span><i data-medium="wired" />유선</span>
-                  <span><i data-medium="wireless" />무선</span>
+                  <strong>?듭떊 ?곌껐 援ъ꽦</strong>
+                  <span><i data-medium="wired" />?좎꽑</span>
+                  <span><i data-medium="wireless" />臾댁꽑</span>
                 </header>
                 <div className="communication-path-flow">
                   {selectedCommunicationPath.nodes.map((node, index) => <div className="communication-path-step" key={`${node}-${index}`}>
@@ -2702,70 +2702,70 @@ export default function UnifiedDisasterDashboard() {
               >
                 <strong>{selectedPositioningWarning.title}</strong>
                 <span>{selectedPositioningWarning.message}</span>
-                <small><b>조치</b>{selectedPositioningWarning.action}</small>
+                <small><b>議곗튂</b>{selectedPositioningWarning.action}</small>
               </aside>}
-              {selectedCommunicationProfile && <section className="communication-role-panel" aria-label="통신망 역할">
-                <header><small>통신망 구분</small><strong>{selectedCommunicationProfile.scope}</strong></header>
+              {selectedCommunicationProfile && <section className="communication-role-panel" aria-label="?듭떊留???븷">
+                <header><small>?듭떊留?援щ텇</small><strong>{selectedCommunicationProfile.scope}</strong></header>
                 <dl>
-                  <div><dt>사용망</dt><dd>{selectedCommunicationProfile.role}</dd></div>
-                  <div><dt>전송정보</dt><dd>{selectedCommunicationProfile.carries}</dd></div>
-                  <div><dt>연결경로</dt><dd>{selectedCommunicationProfile.path}</dd></div>
+                  <div><dt>?ъ슜留?/dt><dd>{selectedCommunicationProfile.role}</dd></div>
+                  <div><dt>?꾩넚?뺣낫</dt><dd>{selectedCommunicationProfile.carries}</dd></div>
+                  <div><dt>?곌껐寃쎈줈</dt><dd>{selectedCommunicationProfile.path}</dd></div>
                 </dl>
               </section>}
-              <button type="button" onClick={() => setSelectedLocationKey(null)} aria-label="자산 상세 닫기">×</button>
+              <button type="button" onClick={() => setSelectedLocationKey(null)} aria-label="?먯궛 ?곸꽭 ?リ린">횞</button>
             </section></div>}
             {resourceDialogGroup && <div className="resource-modal-backdrop" role="presentation" onMouseDown={() => setResourceDialogGroup(null)}>
-              <section className="resource-status-modal resource-modal" role="dialog" aria-modal="true" aria-label="자산 현황" onMouseDown={(event) => event.stopPropagation()}>
+              <section className="resource-status-modal resource-modal" role="dialog" aria-modal="true" aria-label="?먯궛 ?꾪솴" onMouseDown={(event) => event.stopPropagation()}>
                 <header>
                   <div>
-                    <small>{resourceDialogGroup === "ALL_ASSETS" ? "선택 사건의 배정 장비 현황" : "선택 사건의 실시간 배치 현황"}</small>
-                    <strong>{resourceDialogGroup === "ALL" ? "투입 자산 및 인원" : resourceDialogGroup === "ALL_ASSETS" ? "투입 장비" : resourceGroupLabels[resourceDialogGroup]}</strong>
+                    <small>{resourceDialogGroup === "ALL_ASSETS" ? "?좏깮 ?ш굔??諛곗젙 ?λ퉬 ?꾪솴" : "?좏깮 ?ш굔???ㅼ떆媛?諛곗튂 ?꾪솴"}</small>
+                    <strong>{resourceDialogGroup === "ALL" ? "?ъ엯 ?먯궛 諛??몄썝" : resourceDialogGroup === "ALL_ASSETS" ? "?ъ엯 ?λ퉬" : resourceGroupLabels[resourceDialogGroup]}</strong>
                   </div>
-                  <b>{resourceDialogGroup === "ALL_ASSETS" ? overview.assets.length : dialogLocations.length}건</b>
-                  <button type="button" onClick={() => setResourceDialogGroup(null)} aria-label="자산 현황 닫기">×</button>
+                  <b>{resourceDialogGroup === "ALL_ASSETS" ? overview.assets.length : dialogLocations.length}嫄?/b>
+                  <button type="button" onClick={() => setResourceDialogGroup(null)} aria-label="?먯궛 ?꾪솴 ?リ린">횞</button>
                 </header>
                 {(resourceDialogGroup === "COMMUNICATION" || resourceDialogGroup === "POSITIONING" || resourceDialogGroup === "ALL") && <div className="communication-layer-guide">
-                  <div><b>현장 저속망</b><strong>LPWA</strong><span>대원 위치·RTCM·배터리·비상신호</span></div>
-                  <div><b>현장 고속망</b><strong>이음5G</strong><span>드론 영상·사진·지도·업무 데이터</span></div>
-                  <div><b>외부 연결망</b><strong>LTE·TVWS·LEO</strong><span>지휘차량·현장망과 클라우드 연결</span></div>
+                  <div><b>?꾩옣 ??띾쭩</b><strong>LPWA</strong><span>????꾩튂쨌RTCM쨌諛고꽣由?룸퉬?곸떊??/span></div>
+                  <div><b>?꾩옣 怨좎냽留?/b><strong>?댁쓬5G</strong><span>?쒕줎 ?곸긽쨌?ъ쭊쨌吏?꽷룹뾽臾??곗씠??/span></div>
+                  <div><b>?몃? ?곌껐留?/b><strong>LTE쨌TVWS쨌LEO</strong><span>吏?섏감?됀룻쁽?λ쭩怨??대씪?곕뱶 ?곌껐</span></div>
                 </div>}
-                {(resourceDialogGroup === "COMMUNICATION" || resourceDialogGroup === "POSITIONING" || resourceDialogGroup === "ALL") && <section className="communication-topology" aria-label="통신망 전체 토폴로지">
+                {(resourceDialogGroup === "COMMUNICATION" || resourceDialogGroup === "POSITIONING" || resourceDialogGroup === "ALL") && <section className="communication-topology" aria-label="?듭떊留??꾩껜 ?좏뤃濡쒖?">
                   <header>
-                    <div><small>전체 통신 토폴로지</small><strong>현장 단말 → 현장망 → 지휘·통신차량 → 외부망 → 클라우드</strong></div>
+                    <div><small>?꾩껜 ?듭떊 ?좏뤃濡쒖?</small><strong>?꾩옣 ?⑤쭚 ???꾩옣留???吏?샕룻넻?좎감?????몃?留????대씪?곕뱶</strong></div>
                     <span>{topologyDataStatus}</span>
                   </header>
                   <div className="communication-topology-scroll">
                     <div className="communication-topology-grid">
                       <div className="topology-column topology-endpoints">
-                        <b>현장 단말</b>
+                        <b>?꾩옣 ?⑤쭚</b>
                         {topologyLabels.endpoints.map((label) => <span key={label}>{label}</span>)}
                       </div>
-                      <div className="topology-arrow"><small>접속</small><i /></div>
+                      <div className="topology-arrow"><small>?묒냽</small><i /></div>
                       <div className="topology-column topology-field">
-                        <b>현장 접속망</b>
+                        <b>?꾩옣 ?묒냽留?/b>
                         {topologyLabels.field.map((label) => <span key={label}>{label}</span>)}
                       </div>
-                      <div className="topology-arrow"><small>집선</small><i /></div>
+                      <div className="topology-arrow"><small>吏묒꽑</small><i /></div>
                       <div className="topology-column topology-command">
-                        <b>지휘·통신차량</b>
+                        <b>吏?샕룻넻?좎감??/b>
                         {topologyLabels.command.map((label) => <span key={label}>{label}</span>)}
                       </div>
-                      <div className="topology-arrow"><small>백홀</small><i /></div>
+                      <div className="topology-arrow"><small>諛깊?</small><i /></div>
                       <div className="topology-column topology-external">
-                        <b>외부 연결망</b>
+                        <b>?몃? ?곌껐留?/b>
                         {topologyLabels.backhaul.map((label) => <span key={label}>{label}</span>)}
                       </div>
                       <div className="topology-arrow"><small>IP</small><i /></div>
                       <div className="topology-column topology-cloud">
-                        <b>클라우드</b>
+                        <b>?대씪?곕뱶</b>
                         {topologyLabels.cloud.map((label) => <span key={label}>{label}</span>)}
                       </div>
                     </div>
                   </div>
                   <footer>
-                    <span><i data-kind="field" />현장 내부 통신</span>
-                    <span><i data-kind="backhaul" />외부 백홀</span>
-                    <p>LTE 단말은 통신 상태와 운용 정책에 따라 지휘차량을 거치지 않고 클라우드로 직접 연결할 수 있습니다. TVWS는 단독 인터넷망이 아니라 백홀 구성이 필요합니다.</p>
+                    <span><i data-kind="field" />?꾩옣 ?대? ?듭떊</span>
+                    <span><i data-kind="backhaul" />?몃? 諛깊?</span>
+                    <p>LTE ?⑤쭚? ?듭떊 ?곹깭? ?댁슜 ?뺤콉???곕씪 吏?섏감?됱쓣 嫄곗튂吏 ?딄퀬 ?대씪?곕뱶濡?吏곸젒 ?곌껐?????덉뒿?덈떎. TVWS???⑤룆 ?명꽣?룸쭩???꾨땲??諛깊? 援ъ꽦???꾩슂?⑸땲??</p>
                   </footer>
                 </section>}
                 <div className="resource-status-list">
@@ -2778,12 +2778,12 @@ export default function UnifiedDisasterDashboard() {
                           <em>{korean(asset.operationalStatus ?? asset.status ?? "UNKNOWN")}</em>
                           <small>
                             {String(asset.assetCode ?? "-")}
-                            {asset.modelName ? ` · ${String(asset.modelName)}` : ""}
-                            {asset.mission ? ` · ${String(asset.mission)}` : ""}
+                            {asset.modelName ? ` 쨌 ${String(asset.modelName)}` : ""}
+                            {asset.mission ? ` 쨌 ${String(asset.mission)}` : ""}
                           </small>
                         </button>
                       ))}
-                      {overview.assets.length === 0 && <p>현재 사건에 투입된 장비가 없습니다.</p>}
+                      {overview.assets.length === 0 && <p>?꾩옱 ?ш굔???ъ엯???λ퉬媛 ?놁뒿?덈떎.</p>}
                     </>
                   ) : (
                     <>
@@ -2800,14 +2800,14 @@ export default function UnifiedDisasterDashboard() {
                           <strong>{location.label}</strong>
                           <em>{location.status}</em>
                           <small>
-                            최근 통신 {relativeTime(location.observedAt)}
-                            {location.batteryPct == null ? "" : ` · 배터리 ${location.batteryPct.toFixed(0)}%`}
-                            {location.positioningMethod ? ` · ${korean(location.positioningMethod)}` : ""}
-                            {location.horizontalAccuracyM == null ? "" : ` · ±${location.horizontalAccuracyM.toFixed(2)}m`}
+                            理쒓렐 ?듭떊 {relativeTime(location.observedAt)}
+                            {location.batteryPct == null ? "" : ` 쨌 諛고꽣由?${location.batteryPct.toFixed(0)}%`}
+                            {location.positioningMethod ? ` 쨌 ${korean(location.positioningMethod)}` : ""}
+                            {location.horizontalAccuracyM == null ? "" : ` 쨌 짹${location.horizontalAccuracyM.toFixed(2)}m`}
                           </small>
                         </button>
                       ))}
-                      {dialogLocations.length === 0 && <p>현재 수신된 자산 정보가 없습니다.</p>}
+                      {dialogLocations.length === 0 && <p>?꾩옱 ?섏떊???먯궛 ?뺣낫媛 ?놁뒿?덈떎.</p>}
                     </>
                   )}
                 </div>
@@ -2817,17 +2817,17 @@ export default function UnifiedDisasterDashboard() {
           <div
             className="map-status-pill"
             data-active-pulses={Object.values(changedUntil).filter((until) => until > Date.now()).length}
-          ><i /> 사건 데이터 변화 감지 · 갱신 주기의 30% 동안 테두리 강조</div>
+          ><i /> ?ш굔 ?곗씠??蹂??媛먯? 쨌 媛깆떊 二쇨린??30% ?숈븞 ?뚮몢由?媛뺤“</div>
         </section>
 {(localFieldMode || localE2EMode || SHOW_VALIDATION_UI) && (displayConfig.showVideoDeck || displayConfig.showEventTimeline) && <section className="field-command-footer" aria-label="?? ?? ? ??? ????">
           {displayConfig.showVideoDeck && <div className="field-video-deck">
-            <header><strong>실시간 영상</strong><small>{fieldPreviewMode ? "미리보기 4채널" : "RTSP 연결 상태"}</small></header>
+            <header><strong>?ㅼ떆媛??곸긽</strong><small>{fieldPreviewMode ? "誘몃━蹂닿린 4梨꾨꼸" : "RTSP ?곌껐 ?곹깭"}</small></header>
             <div>
               {[
-                ["MD1000 · 광학", "EO"],
-                ["MD1000 · 열화상", "IR"],
-                ["지휘차량 · 현장", "CMD"],
-                ["공중 자산 · 보조", "AIR"],
+                ["MD1000 쨌 愿묓븰", "EO"],
+                ["MD1000 쨌 ?댄솕??, "IR"],
+                ["吏?섏감??쨌 ?꾩옣", "CMD"],
+                ["怨듭쨷 ?먯궛 쨌 蹂댁“", "AIR"],
               ].map(([label, code], index) => {
                 const channel = fieldVideoChannels[index] ?? null;
                 const streamUri = text(channel?.streamUri, "");
@@ -2853,18 +2853,18 @@ export default function UnifiedDisasterDashboard() {
                           : "WAIT";
 
                 const detailLabel = fieldPreviewMode
-                  ? "DEMO · 실제 영상 미연결"
+                  ? "DEMO 쨌 ?ㅼ젣 ?곸긽 誘몄뿰寃?
                   : playbackState === "LIVE"
-                    ? "실시간 영상 재생 중"
+                    ? "?ㅼ떆媛??곸긽 ?ъ깮 以?
                     : playbackState === "RECONNECTING"
-                      ? "영상 연결 복구 시도 중"
+                      ? "?곸긽 ?곌껐 蹂듦뎄 ?쒕룄 以?
                       : playbackState === "OFFLINE"
-                        ? "영상 소스 응답 없음 · 자동 재연결 대기"
+                        ? "?곸긽 ?뚯뒪 ?묐떟 ?놁쓬 쨌 ?먮룞 ?ъ뿰寃??湲?
                         : reachable
-                          ? "RTSP 확인됨 · HLS 재생 연결 중"
+                          ? "RTSP ?뺤씤??쨌 HLS ?ъ깮 ?곌껐 以?
                           : rtspReady
-                            ? "RTSP 등록 · 연결 확인 필요"
-                            : "영상 소스 연결 대기";
+                            ? "RTSP ?깅줉 쨌 ?곌껐 ?뺤씤 ?꾩슂"
+                            : "?곸긽 ?뚯뒪 ?곌껐 ?湲?;
 
                 return <article
                   key={label}
@@ -2915,16 +2915,16 @@ export default function UnifiedDisasterDashboard() {
             </div>
           </div>}
           {displayConfig.showEventTimeline && <div className="field-timeline-deck">
-            <header><strong>주요 이벤트 타임라인</strong><span><i data-tone="comm" />통신</span><span><i data-tone="asset" />장비</span><span><i data-tone="alert" />경보</span></header>
+            <header><strong>二쇱슂 ?대깽????꾨씪??/strong><span><i data-tone="comm" />?듭떊</span><span><i data-tone="asset" />?λ퉬</span><span><i data-tone="alert" />寃쎈낫</span></header>
             <ol>
               {fieldPreviewMode && <>
-                <li><time>14:25</time><i data-tone="alert" /><strong>중계기 1호</strong><span>신호 세기 저하 감지</span></li>
-                <li><time>14:22</time><i data-tone="comm" /><strong>MD1000</strong><span>영상 전송 지연 감시</span></li>
-                <li><time>14:18</time><i data-tone="alert" /><strong>현장대원 1</strong><span>위치 신호 갱신 지연</span></li>
-                <li><time>14:15</time><i data-tone="asset" /><strong>지휘차량</strong><span>통신 정상 복구</span></li>
+                <li><time>14:25</time><i data-tone="alert" /><strong>以묎퀎湲?1??/strong><span>?좏샇 ?멸린 ???媛먯?</span></li>
+                <li><time>14:22</time><i data-tone="comm" /><strong>MD1000</strong><span>?곸긽 ?꾩넚 吏??媛먯떆</span></li>
+                <li><time>14:18</time><i data-tone="alert" /><strong>?꾩옣???1</strong><span>?꾩튂 ?좏샇 媛깆떊 吏??/span></li>
+                <li><time>14:15</time><i data-tone="asset" /><strong>吏?섏감??/strong><span>?듭떊 ?뺤긽 蹂듦뎄</span></li>
               </>}
-              {!fieldPreviewMode && liveLocations.slice(0, 4).map((location) => <li key={locationKey(location)}><time>{new Date(location.observedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}</time><i data-tone="asset" /><strong>{location.label}</strong><span>{location.status} · 최근 수신 {relativeTime(location.observedAt)}</span></li>)}
-              {!fieldPreviewMode && liveLocations.length === 0 && <li className="empty"><span>실기체 이벤트 수신 대기</span></li>}
+              {!fieldPreviewMode && liveLocations.slice(0, 4).map((location) => <li key={locationKey(location)}><time>{new Date(location.observedAt).toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false })}</time><i data-tone="asset" /><strong>{location.label}</strong><span>{location.status} 쨌 理쒓렐 ?섏떊 {relativeTime(location.observedAt)}</span></li>)}
+              {!fieldPreviewMode && liveLocations.length === 0 && <li className="empty"><span>?ㅺ린泥??대깽???섏떊 ?湲?/span></li>}
             </ol>
           </div>}
         </section>}
@@ -2936,3 +2936,4 @@ export default function UnifiedDisasterDashboard() {
     </main>
   );
 }
+
