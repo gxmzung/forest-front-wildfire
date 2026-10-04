@@ -322,7 +322,7 @@
     .field-command-stage
     .live-location-layout {
     grid-template-columns:
-      300px
+      305px
       minmax(620px, 1fr)
       340px !important;
     gap: 8px !important;
@@ -331,13 +331,13 @@
   .unified-disaster-board.is-field-mode
     .field-command-stage
     .operations-panel {
-    width: 300px !important;
+    width: 305px !important;
   }
 
   .unified-disaster-board.is-field-mode
     .field-command-stage
     .operation-drawer {
-    width: 232px !important;
+    width: 237px !important;
   }
 }
 
