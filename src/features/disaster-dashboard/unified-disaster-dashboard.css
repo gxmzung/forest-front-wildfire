@@ -4505,17 +4505,18 @@
   grid-column: 2 !important;
 }
 
-/* 2026-10-04 Forestry Service showcase branding */
+/* 2026-10-04 ToBeUnicorn showcase branding */
 .service-brand {
-  min-width: 88px !important;
-  max-width: 88px !important;
-  flex: 0 0 88px !important;
+  min-width: 150px !important;
+  max-width: 150px !important;
+  flex: 0 0 150px !important;
   gap: 0 !important;
 }
 
 .service-brand-logo {
-  width: 76px !important;
-  height: 30px !important;
+  width: 140px !important;
+  height: 42px !important;
   object-fit: contain !important;
+  object-position: left center !important;
   flex: 0 0 auto !important;
 }

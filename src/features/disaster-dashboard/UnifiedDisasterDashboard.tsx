@@ -2094,8 +2094,8 @@ export default function UnifiedDisasterDashboard() {
           <div className="service-brand">
             <img
               className="service-brand-logo"
-              src="/brand/korea-forest-service-logo.png"
-              alt="산림청"
+              src="/brand/tobeunicorn.png"
+              alt="투비유니콘"
             />
           </div>
           <label className="event-selector">
