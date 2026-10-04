@@ -4504,3 +4504,18 @@
   .location-map {
   grid-column: 2 !important;
 }
+
+/* 2026-10-04 Forestry Service showcase branding */
+.service-brand {
+  min-width: 88px !important;
+  max-width: 88px !important;
+  flex: 0 0 88px !important;
+  gap: 0 !important;
+}
+
+.service-brand-logo {
+  width: 76px !important;
+  height: 30px !important;
+  object-fit: contain !important;
+  flex: 0 0 auto !important;
+}

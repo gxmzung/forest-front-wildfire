@@ -906,7 +906,10 @@ export default function UnifiedDisasterDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [eventsLoaded, setEventsLoaded] = useState(false);
   const [retrying, setRetrying] = useState(false);
-  const demoMode = FORCE_DEMO_MODE;
+  const demoMode =
+    FORCE_DEMO_MODE ||
+    (window.location.pathname === "/" &&
+      new URLSearchParams(window.location.search).get("live") !== "1");
   const localE2EMode = FORCE_LOCAL_E2E_MODE;
   const localFieldMode = FORCE_LOCAL_FIELD_MODE;
   const fieldPreviewMode = FORCE_FIELD_PREVIEW_MODE;
@@ -1330,7 +1333,7 @@ export default function UnifiedDisasterDashboard() {
 
   useEffect(() => {
     let active = true;
-    if (FORCE_DEMO_MODE) {
+    if (demoMode) {
       const demo = createDemoOverview();
       setEvents([demo.event]);
       setSelectedId(demo.event.eventId);
@@ -1346,7 +1349,7 @@ export default function UnifiedDisasterDashboard() {
       })
       .finally(() => active && setEventsLoaded(true));
     return () => { active = false; };
-  }, [refreshEvents]);
+  }, [demoMode, refreshEvents]);
 
   useEffect(() => {
     if (demoMode || localE2EMode || localFieldMode) return;
@@ -2055,7 +2058,7 @@ export default function UnifiedDisasterDashboard() {
       setEventsLoaded(true);
       setRetrying(false);
     }
-  }, [refreshEvents]);
+  }, [demoMode, refreshEvents]);
 
   return (
 <main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}${SHOW_VALIDATION_UI ? "" : " final-ops-ui"}`} aria-label="?? ?? ?? ??">
@@ -2088,7 +2091,13 @@ export default function UnifiedDisasterDashboard() {
       {overview && (
         <>
         <header className="map-command-header">
-          <div className="service-brand"><span>산</span><div><strong>산림재난 통합상황판</strong><small>COMMON OPERATIONAL PICTURE</small></div></div>
+          <div className="service-brand">
+            <img
+              className="service-brand-logo"
+              src="/brand/korea-forest-service-logo.png"
+              alt="산림청"
+            />
+          </div>
           <label className="event-selector">
             <span>{eventSwitching ? "사건 전환 중" : "재난 사건"}</span>
             <select value={eventSwitching ? overview.event.eventId : selectedId} onChange={(event) => setSelectedId(event.target.value)} aria-label="재난 사건 선택" disabled={eventSwitching}>
