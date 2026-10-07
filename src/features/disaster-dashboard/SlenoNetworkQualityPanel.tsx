@@ -169,7 +169,7 @@ export default function SlenoNetworkQualityPanel() {
 
       <div className="sleno-summary-grid">
         <span>
-          Frame Loss
+          Counter Gap
           <b>
             {quality?.frameLossPct ==
             null
@@ -179,7 +179,7 @@ export default function SlenoNetworkQualityPanel() {
         </span>
 
         <span>
-          전달률
+          Counter 연속률
           <b>
             {quality
               ?.frameDeliveryPct ==
@@ -211,7 +211,9 @@ export default function SlenoNetworkQualityPanel() {
       <small className="sleno-source-note">
         synthetic=false ·
         vendor_integration_message
-        실제 적재 데이터
+        실제 적재 데이터 ·
+        frameCounter 기준 참고 지표 ·
+        실제 패킷 유실률 확정값 아님
       </small>
 
       <div className="sleno-device-list">
@@ -280,14 +282,14 @@ export default function SlenoNetworkQualityPanel() {
               </span>
 
               <span>
-                Lost
+                Counter Gap
                 <b>
                   {row.lostFrames}
                 </b>
               </span>
 
               <span>
-                Loss
+                Gap %
                 <b>
                   {metric(
                     row.frameLossPct,
@@ -297,7 +299,7 @@ export default function SlenoNetworkQualityPanel() {
               </span>
 
               <span>
-                Delivery
+                Counter 연속률
                 <b>
                   {metric(
                     row.frameDeliveryPct,
