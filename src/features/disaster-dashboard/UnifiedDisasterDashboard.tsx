@@ -2,6 +2,8 @@ import { DroneTwinDetail } from "./DroneTwinDetail";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { externalDisasterApi, loadDashboardDisasterAssetsCached, loadEventOverview, loadEventTimeline, type ApiRecord, type EventOverview, type EventTimeline, type ForestEvent } from "../../http-api";
 import { forestApi } from "../../http-api/forest-api";
+import { HttpApiError } from "../../http-api/client";
+import SlenoNetworkQualityPanel from "./SlenoNetworkQualityPanel";
 import { isLocalE2EMode, LOCAL_E2E_EVENT } from "../../http-api/local-e2e";
 import { fieldCoreStatusLabel, fieldEvent, isFieldPreviewMode, isLocalFieldMode } from "../../http-api/field-mode";
 import SemanticMissionPocPanel from "./SemanticMissionPocPanel";
@@ -869,6 +871,7 @@ export default function UnifiedDisasterDashboard() {
   const [overview, setOverview] = useState<EventOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [eventsLoaded, setEventsLoaded] = useState(false);
+  const [disasterNotFound, setDisasterNotFound] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const demoMode = FORCE_DEMO_MODE;
   const localE2EMode = FORCE_LOCAL_E2E_MODE;
@@ -934,18 +937,41 @@ export default function UnifiedDisasterDashboard() {
   const refreshEvents = useCallback(async () => {
     if (localFieldMode) {
       const event = fieldEvent();
+      setDisasterNotFound(false);
       setEvents([event]);
       setSelectedId(event.eventId);
       setError(null);
       return;
     }
     if (localE2EMode) {
+      setDisasterNotFound(false);
       setEvents([LOCAL_E2E_EVENT]);
       setSelectedId(LOCAL_E2E_EVENT.eventId);
       setError(null);
       return;
     }
-    const result = await loadDashboardDisasterAssetsCached(DEFAULT_EVENT_ID);
+    let result;
+    try {
+      result = await loadDashboardDisasterAssetsCached(DEFAULT_EVENT_ID);
+    } catch (caught) {
+      const missingDisaster =
+        caught instanceof HttpApiError &&
+        caught.status === 404 &&
+        typeof caught.payload === "object" &&
+        caught.payload !== null &&
+        "error" in caught.payload &&
+        (caught.payload as { error?: { code?: string } }).error?.code ===
+          "DISASTER_NOT_FOUND";
+      if (!missingDisaster) throw caught;
+      // 등록되지 않은 재난은 API 장애나 재난이 없다는 확정 증거가 아니다.
+      setDisasterNotFound(true);
+      setEvents([]);
+      setSelectedId("");
+      setOverview(null);
+      setError(null);
+      return;
+    }
+    setDisasterNotFound(false);
     const disaster = result.data.disaster;
     const rawDisasterType = String(disaster.disasterType ?? "WILDFIRE").toUpperCase();
     const disasterType: ForestEvent["disasterType"] =
@@ -1294,6 +1320,7 @@ export default function UnifiedDisasterDashboard() {
     let active = true;
     if (FORCE_DEMO_MODE) {
       const demo = createDemoOverview();
+      setDisasterNotFound(false);
       setEvents([demo.event]);
       setSelectedId(demo.event.eventId);
       setOverview(demo);
@@ -2037,12 +2064,17 @@ export default function UnifiedDisasterDashboard() {
           <div className="readiness-body">
             <div className="readiness-symbol" aria-hidden="true"><span /><i /><b /></div>
             <div>
-              <p>{error ? "통합 데이터 연결을 확인해 주세요" : eventsLoaded ? "현재 진행 중인 재난이 없습니다" : "산림재난 운영 정보를 불러오고 있습니다"}</p>
-              <h1>{error ? "상황판을 준비하지 못했습니다" : eventsLoaded ? "정상 대기 상태" : "상황판 준비 중"}</h1>
-              <span>{error ? "기존 데이터는 변경되지 않았습니다. 연결 복구 후 최신 상황을 다시 불러옵니다." : eventsLoaded ? "재난 사건이 접수되면 지도·자원·통신망·경보 현황이 자동으로 표시됩니다." : "사건, 현장 자원, 통신망과 경보 상태를 확인하는 중입니다."}</span>
+              <p>{error ? "통합 데이터 연결을 확인해 주세요" : disasterNotFound ? "기본 재난 ID에 대응하는 등록 정보가 없습니다" : eventsLoaded ? "조회된 재난 정보가 없습니다" : "산림재난 운영 정보를 불러오고 있습니다"}</p>
+              <h1>{error ? "상황판을 준비하지 못했습니다" : disasterNotFound ? "재난 미등록 · 장비 정보 별도 조회" : eventsLoaded ? "재난 조회 대기" : "상황판 준비 중"}</h1>
+              <span>{error ? "기존 데이터는 변경되지 않았습니다. 연결 복구 후 최신 상황을 다시 불러옵니다." : disasterNotFound ? "설정된 기본 재난 ID를 찾지 못했습니다. 실제 재난 발생 여부는 확인되지 않았으며, 아래 Sleno 통신 품질 정보는 별도 운영 API로 조회합니다." : eventsLoaded ? "실제 재난 목록 연동 상태를 확인해 주세요." : "사건, 현장 자원, 통신망과 경보 상태를 확인하는 중입니다."}</span>
               {error && <button type="button" onClick={handleRetry} disabled={retrying}>{retrying ? "다시 연결 중…" : "연결 다시 확인"}</button>}
             </div>
           </div>
+          {disasterNotFound && !error && (
+            <section aria-label="재난 미등록 상태의 독립 Sleno 품질 조회">
+              <SlenoNetworkQualityPanel />
+            </section>
+          )}
           <footer>
             <span><i /> 사건 정보</span><span><i /> 현장 자원</span><span><i /> 통신망 상태</span><span><i /> 위험 경보</span>
           </footer>
