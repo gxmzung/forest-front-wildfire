@@ -2145,7 +2145,7 @@ export default function UnifiedDisasterDashboard() {
                     ? "SYNTHETIC E2E"
                     : demoMode || fieldPreviewMode
                       ? "DEMO DATA"
-                      : "LIVE DATA"}
+                      : "API DATA · 실측 여부 개별 확인"}
               </small>
               {!demoMode && (
                 <div
