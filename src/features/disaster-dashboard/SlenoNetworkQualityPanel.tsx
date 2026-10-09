@@ -152,11 +152,13 @@ export default function SlenoNetworkQualityPanel() {
         </div>
 
         <b>
-          {physicalLive > 0
-            ? "PHYSICAL LIVE"
-            : quality?.deviceCount
-              ? "ACTUAL PIPELINE"
-              : "실데이터 대기"}
+          {error
+            ? "API 조회 오류"
+            : physicalLive > 0
+              ? "API 분류 · PHYSICAL LIVE"
+              : quality?.deviceCount
+                ? "API 수신 데이터"
+                : "데이터 대기"}
         </b>
       </header>
 
@@ -209,11 +211,13 @@ export default function SlenoNetworkQualityPanel() {
       </div>
 
       <small className="sleno-source-note">
-        synthetic=false ·
-        vendor_integration_message
-        실제 적재 데이터 ·
+        {quality
+          ? `API 출처: ${quality.source ?? "미확인"} · 시스템: ${quality.sourceSystem ?? "미확인"} · synthetic: ${String(quality.synthetic ?? "미확인")} · 산출 시각: ${quality.calculatedAt ?? "미확인"}`
+          : "API 데이터 출처 미확인"}
+        {" · "}
+        장비 물리/모의 구분은 API 분류값 기준 ·
         frameCounter 기준 참고 지표 ·
-        실제 패킷 유실률 확정값 아님
+        실제 무선 패킷 유실률 확정값 아님
       </small>
 
       <div className="sleno-device-list">
@@ -423,7 +427,7 @@ export default function SlenoNetworkQualityPanel() {
             <small className="sleno-device-foot">
               {row.isSimulatedDevice
                 ? "SIM 장비 식별자 · 실제 파이프라인 수신"
-                : "실장비 식별자"}
+                : "API 분류상 물리 장비 식별자"}
               {" · "}
               {row.medium ??
                 "medium 미확인"}
