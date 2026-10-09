@@ -1383,7 +1383,9 @@ export default function UnifiedDisasterDashboard() {
               entityType: "ASSET",
               assetType: String(asset.assetType ?? "ASSET"),
               observedAt: String(asset.observedAt),
-              receivedAt: new Date().toISOString(),
+              // 실제 API 관측값의 수신 시각을 시연 타이머로 덮어쓰지 않는다.
+              // 값이 없다면 수신 시각을 추정하지 않는다.
+              receivedAt: typeof asset.receivedAt === "string" ? asset.receivedAt : "",
               sequence,
               latitude: Number(coordinates?.[1]),
               longitude: Number(coordinates?.[0]),
@@ -2063,7 +2065,7 @@ export default function UnifiedDisasterDashboard() {
             <span>{korean(overview.event.severityCode)}</span>
             <small>{text(overview.event.locationName)}</small>
           </div>
-          {demoMode && <div className="demo-mode-badge" title="실제 API 연결 전 화면 검증용 데이터입니다"><b>DEMO</b><span>모의 관제 데이터</span></div>}
+          {demoMode && <div className="demo-mode-badge" title="실제 API 연결 전 화면 검증용 데이터입니다"><b>DEMO</b><span>모의 시나리오 · 별도 API 관측값 포함 가능</span></div>}
           {localE2EMode && <div className="demo-mode-badge" title="실기체가 아닌 로컬 synthetic MAVLink 브라우저 E2E입니다"><b>E2E</b><span>SYNTHETIC · NOT FLIGHT</span></div>}
           {localFieldMode && <div className={`demo-mode-badge field-mode-badge${fieldPreviewMode ? " field-preview-badge" : ""}`} title={fieldPreviewMode ? "화면 확인을 위한 명시적 미리보기 데이터입니다. 실제 비행 증거가 아닙니다." : "실제 MD1000 MAVLink만 수신하는 로컬 현장 모드입니다. Synthetic feed는 사용하지 않습니다."}><b>{fieldPreviewMode ? "미리보기" : "현장"}</b><span>{fieldPreviewMode ? "DEMO DATA · NOT FLIGHT" : "MD1000 실기체 · MAVLink 연동"}</span></div>}
           {demoMode && <label className="demo-scenario-selector"><span>검증 시나리오</span><select aria-label="DEMO 검증 시나리오" value={demoScenario} onChange={(event) => { const params = new URLSearchParams(window.location.search); params.set("demo", "1"); params.set("scenario", event.target.value); window.location.search = params.toString(); }}>{DEMO_SCENARIOS.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.label}</option>)}</select></label>}
