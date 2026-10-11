@@ -8,6 +8,8 @@ import {
 import {
   dashboardDeviceApi,
   extractRegisteredAssetId,
+  extractVendorMapping,
+  recommendedDeviceType,
   type DashboardAssetDetail,
   type DashboardAssetRegistrationRequest,
   type DashboardAssetType,
@@ -18,6 +20,7 @@ import {
 
 const DEVICE_TYPE_SUGGESTIONS: Record<DashboardVendor, string[]> = {
   NDPS: [
+    "UAV",
     "TVWS_BASE",
     "TVWS_CPE",
     "TVWS_NMS",
@@ -26,6 +29,7 @@ const DEVICE_TYPE_SUGGESTIONS: Record<DashboardVendor, string[]> = {
     "OTHER",
   ],
   JININFRA: [
+    "UAV",
     "RTK_TERMINAL",
     "RTK_LPWA_GATEWAY",
     "RTK_BASE_STATION",
@@ -74,7 +78,7 @@ function initialForm(): RegistrationForm {
     specificationsText: "{}",
     vendor: "NDPS",
     vendorDeviceId: "",
-    deviceType: DEVICE_TYPE_SUGGESTIONS.NDPS[0],
+    deviceType: "",
     mappingStatus: "ACTIVE",
   };
 }
@@ -116,21 +120,6 @@ function typeDisplay(
   return type.description
     ? `${type.name} · ${type.description}`
     : type.name;
-}
-
-function recommendedDeviceType(
-  vendor: DashboardVendor,
-  assetTypeName = "",
-) {
-  const normalized = assetTypeName.toUpperCase();
-  if (vendor === "JININFRA") {
-    if (normalized.includes("GATEWAY") || normalized.includes("게이트웨이")) return "RTK_LPWA_GATEWAY";
-    if (normalized.includes("BASE") || normalized.includes("기지국")) return "RTK_BASE_STATION";
-    return "RTK_TERMINAL";
-  }
-  if (normalized.includes("NMS") || normalized.includes("관리")) return "TVWS_NMS";
-  if (normalized.includes("CPE") || normalized.includes("단말")) return "TVWS_CPE";
-  return "TVWS_BASE";
 }
 
 function suggestedAssetCode(
@@ -198,11 +187,13 @@ export default function AssetRegistryModal({
     try {
       const response = await dashboardDeviceApi.assets();
       setRegisteredAssets(response.data);
+      return true;
     } catch (error) {
       setMessage({
         kind: "error",
         text: errorText(error, "등록 장비 목록을 불러오지 못했습니다."),
       });
+      return false;
     } finally {
       setLoadingAssets(false);
     }
@@ -229,6 +220,7 @@ export default function AssetRegistryModal({
             current.assetTypeId ||
             nextTypes[0]?.asset_type_id ||
             "",
+          deviceType: current.deviceType || recommendedDeviceType(current.vendor, nextTypes.find((item) => item.asset_type_id === (current.assetTypeId || nextTypes[0]?.asset_type_id))?.name),
         }));
       } catch (error) {
         setMessage({
@@ -379,6 +371,9 @@ export default function AssetRegistryModal({
         detail = null;
       }
 
+      const mapping = extractVendorMapping(coreResponse.data) ?? detail?.vendor_mappings?.find((item) => item.vendor_code === payload.vendor && item.vendor_device_id === payload.vendorDeviceId);
+      const mappingConfirmed = mapping?.vendor_code === payload.vendor && mapping?.vendor_device_id === payload.vendorDeviceId && mapping?.status === payload.mappingStatus;
+
       const nextResult: RegistrationResult = {
         assetId,
         coreData: coreResponse.data,
@@ -390,12 +385,19 @@ export default function AssetRegistryModal({
       };
 
       setResult(nextResult);
-      await loadRegisteredAssets();
-
-      setMessage({
-        kind: "success",
-        text: "물리 장비 등록과 업체 매핑이 Core에 정상 저장되었습니다.",
-      });
+      const refreshed = await loadRegisteredAssets();
+      if (refreshed) {
+        setMessage({
+          kind: detail && mappingConfirmed ? "success" : "error",
+          text: !mappingConfirmed
+            ? "장비 UUID는 발급되었지만 업체 연결 응답을 확인하지 못했습니다. 다시 등록하지 말고 목록을 확인하세요."
+            : detail
+            ? "물리 장비 등록과 업체 매핑이 Core에 저장되었습니다."
+            : "장비는 저장되었지만 상세 조회에 실패했습니다. 다시 등록하지 말고 목록을 확인하세요.",
+        });
+      } else {
+        setMessage({ kind: "error", text: "장비는 저장되었지만 목록을 갱신하지 못했습니다. 다시 등록하지 말고 목록 새로고침을 실행하세요." });
+      }
 
       onRegistered?.();
     } catch (error) {
@@ -415,6 +417,7 @@ export default function AssetRegistryModal({
     const next = initialForm();
     next.assetTypeId =
       assetTypes[0]?.asset_type_id || "";
+    next.deviceType = recommendedDeviceType(next.vendor, assetTypes[0]?.name);
     setForm(next);
     setResult(null);
     setMessage(null);
@@ -523,19 +526,19 @@ export default function AssetRegistryModal({
                 물리 장비 등록
               </strong>
               <span>
-                빨간색 필수 항목 4개만 입력하면 Core UUID 발급과 업체 연결이 한 번에 완료됩니다.
+                필수 항목 5개를 입력하면 Core UUID 발급과 업체 연결이 한 번에 완료됩니다.
               </span>
             </header>
 
             <div className="asset-required-guide">
               <strong>처음 등록하시나요?</strong>
-              <span>장비 유형·업체·실제 장비번호를 입력하세요. 업체 장비 유형은 선택한 장비 유형을 기준으로 자동 설정됩니다.</span>
+              <span>장비 유형·업체·실제 장비번호를 입력하세요. 업체 장비 유형의 추천값을 확인하고 실제 장비에 맞게 선택하세요.</span>
             </div>
 
             {result && (
               <section className="asset-id-result" aria-live="polite">
                 <div>
-                  <small>장비 등록 완료 · Core 발급 UUID</small>
+                  <small>Core 발급 UUID · 저장 후 확인 결과는 아래 메시지 참조</small>
                   <strong>{result.assetId}</strong>
                   <span>이 값이 통합 시스템에서 장비를 식별하는 assetId입니다.</span>
                 </div>
@@ -654,6 +657,16 @@ export default function AssetRegistryModal({
                 <small>장비 본체나 업체 시스템에서 사용하는 실제 고유번호를 입력하세요.</small>
               </label>
 
+              <label>
+                <span>업체 장비 유형 <b>필수</b></span>
+                <input value={form.deviceType} list="vendor-device-types" required
+                  onChange={(event) => setForm({ ...form, deviceType: event.target.value })}
+                  placeholder="업체 규격의 장비 유형 입력" />
+                <datalist id="vendor-device-types">
+                  {DEVICE_TYPE_SUGGESTIONS[form.vendor].map((value) => <option key={value} value={value} />)}
+                </datalist>
+                <small>자동 추천값을 확인하세요. 추천이 없으면 업체 규격에 맞는 값을 입력하세요.</small>
+              </label>
             </div>
 
             <button className="asset-optional-toggle" type="button" onClick={() => setShowOptional((value) => !value)}>
@@ -704,6 +717,7 @@ export default function AssetRegistryModal({
               <button
                 type="submit"
                 disabled={
+                  Boolean(result) ||
                   saving ||
                   loadingTypes ||
                   !assetTypes.length

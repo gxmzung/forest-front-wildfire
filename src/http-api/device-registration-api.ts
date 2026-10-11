@@ -121,3 +121,21 @@ export const dashboardDeviceApi = {
       `/api/v1/dashboard/assets/${encodeURIComponent(assetId)}`,
     ),
 };
+
+export function recommendedDeviceType(vendor: DashboardVendor, assetTypeName = ""): string {
+  const name = assetTypeName.trim().toUpperCase();
+  if (/UAV|DRONE|드론|무인.*항공/.test(name)) return "UAV";
+  if (/BACKHAUL_ROUTER|백홀.*라우터/.test(name)) return "BACKHAUL_ROUTER";
+  if (/COMMUNICATION_VEHICLE|통신.*차량/.test(name)) return "COMMUNICATION_VEHICLE";
+  if (vendor === "JININFRA") {
+    if (/RTK_LPWA_GATEWAY|LTE_GATEWAY|게이트웨이/.test(name)) return "RTK_LPWA_GATEWAY";
+    if (/RTK_BASE_STATION/.test(name)) return "RTK_BASE_STATION";
+    if (/RTK_TERMINAL/.test(name)) return "RTK_TERMINAL";
+    if (/NETWORK_CONTROLLER/.test(name)) return "NETWORK_CONTROLLER";
+  } else {
+    if (/TVWS_NMS/.test(name)) return "TVWS_NMS";
+    if (/TVWS_CPE/.test(name)) return "TVWS_CPE";
+    if (/TVWS_BASE/.test(name)) return "TVWS_BASE";
+  }
+  return "";
+}
