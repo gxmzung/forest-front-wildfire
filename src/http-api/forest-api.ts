@@ -483,7 +483,7 @@ export async function loadEventTimeline(
 }
 
 export interface EventOverview {
-  liveDroneTelemetry?: { status: string; matched: number; unmatched: number; live: number; stale: number; offline: number };
+  liveDroneTelemetry?: { status: string; matched: number; unmatched: number; live: number; stale: number; offline: number; positionUnknown?: number };
   event: ForestEvent;
   assets: ApiRecord[];
   unregisteredAssets: ApiRecord[];
@@ -565,6 +565,7 @@ export async function loadEventOverview(
         live: twins.states.LIVE,
         stale: twins.states.STALE,
         offline: twins.states.OFFLINE,
+        positionUnknown: twins.positionUnknown,
       },
     };
   }
@@ -586,6 +587,7 @@ export async function loadEventOverview(
         live: twins.states.LIVE,
         stale: twins.states.STALE,
         offline: twins.states.OFFLINE,
+        positionUnknown: twins.positionUnknown,
       },
     };
   }
@@ -653,7 +655,7 @@ export async function loadEventOverview(
         status: disaster.status ?? event.status,
       },
       assets: twins.assets,
-      liveDroneTelemetry: {status:telemetry.status,matched:twins.matched,unmatched:twins.unmatched,live:twins.states.LIVE,stale:twins.states.STALE,offline:twins.states.OFFLINE},
+      liveDroneTelemetry: {status:telemetry.status,matched:twins.matched,unmatched:twins.unmatched,live:twins.states.LIVE,stale:twins.states.STALE,offline:twins.states.OFFLINE,positionUnknown:twins.positionUnknown},
       unregisteredAssets: [],
       personnel: [],
       networks: [],

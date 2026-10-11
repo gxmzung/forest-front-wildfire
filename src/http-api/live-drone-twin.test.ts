@@ -20,6 +20,7 @@ const assets = [
   {
     assetId: "canonical-uuid",
     assetCode: "MD1000-01",
+    assetType: "UAV",
     eventId: "flight",
     assetName: "등록 드론",
     attributes: {
@@ -31,6 +32,7 @@ const assets = [
 const row = {
   assetId: "MD1000-01",
   sourceAssetId: "MD1000-01",
+  assetType: "UAV",
   eventId: "flight",
 
   observedAt: time,
@@ -60,6 +62,10 @@ const row = {
 
     horizontalAccuracy: 0.35,
     verticalAccuracy: 0.65,
+
+    pathEvidence: {
+      coreReceivedAt: time,
+    },
 
     linkQuality: {
       mavlinkVersion: 2,

@@ -53,6 +53,74 @@ function finite(value: unknown): number | undefined {
     : undefined;
 }
 
+function text(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function isUavAsset(asset: ApiRecord): boolean {
+  return [
+    "UAV",
+    "MAIN_RELAY_DRONE",
+    "SERVICE_RELAY_DRONE",
+  ].includes(text(asset.assetType).toUpperCase());
+}
+
+export function isDemonstrationTelemetry(row: ApiRecord): boolean {
+  const attributes = record(row.attributes);
+  const identifiers = [
+    row.assetId,
+    row.sourceAssetId,
+    row.assetCode,
+  ].map(text);
+  const provenance = [
+    row.sourceSystem,
+    row.evidenceScope,
+    row.dataProvenance,
+    attributes.sourceSystem,
+    attributes.evidenceScope,
+    attributes.dataProvenance,
+    record(attributes.pathEvidence).uplinkSource,
+    record(attributes.pathEvidence).transport,
+  ]
+    .map(text)
+    .join(" ")
+    .toUpperCase();
+
+  return row.synthetic === true ||
+    attributes.synthetic === true ||
+    identifiers.some((value) => /^(SIM-|DEMO-)/i.test(value)) ||
+    /(^|[_\s-])(DEMO|MOCK|SIMULATION|SYNTHETIC)([_\s-]|$)/.test(provenance);
+}
+
+export function isVerifiedOperatingDronePosition(row: ApiRecord): boolean {
+  const attributes = record(row.attributes);
+  const pathEvidence = record(attributes.pathEvidence);
+  const positionSource = text(attributes.telemetryPositionSource).toUpperCase();
+  const receivedAt = text(row.receivedAt);
+  const coreReceivedAt = text(pathEvidence.coreReceivedAt);
+  const gpsFixType = finite(attributes.gpsFixType);
+  const positioningMethod = text(row.positioningMethod).toUpperCase();
+
+  return text(row.assetType).toUpperCase() === "UAV" &&
+    !isDemonstrationTelemetry(row) &&
+    typeof row.latitude === "number" &&
+    Number.isFinite(row.latitude) &&
+    Math.abs(row.latitude) <= 90 &&
+    typeof row.longitude === "number" &&
+    Number.isFinite(row.longitude) &&
+    Math.abs(row.longitude) <= 180 &&
+    !(row.latitude === 0 && row.longitude === 0) &&
+    typeof row.altitude === "number" &&
+    Number.isFinite(row.altitude) &&
+    typeof row.observedAt === "string" &&
+    Number.isFinite(Date.parse(row.observedAt)) &&
+    positionSource === "GLOBAL_POSITION_INT(33)" &&
+    Number.isFinite(Date.parse(receivedAt)) &&
+    Number.isFinite(Date.parse(coreReceivedAt)) &&
+    (gpsFixType == null || gpsFixType >= 2) &&
+    !["NO_FIX", "FIX_NOT_AVAILABLE"].includes(positioningMethod);
+}
+
 function normalizedPositioningMethod(
   telemetry: ApiRecord,
 ): string | undefined {
@@ -95,16 +163,7 @@ function validTelemetry(
 ): boolean {
   return (
     row.eventId === eventId &&
-    typeof row.latitude === "number" &&
-    Number.isFinite(row.latitude) &&
-    Math.abs(row.latitude) <= 90 &&
-    typeof row.longitude === "number" &&
-    Number.isFinite(row.longitude) &&
-    Math.abs(row.longitude) <= 180 &&
-    typeof row.altitude === "number" &&
-    Number.isFinite(row.altitude) &&
-    typeof row.observedAt === "string" &&
-    Number.isFinite(Date.parse(row.observedAt))
+    isVerifiedOperatingDronePosition(row)
   );
 }
 
@@ -130,6 +189,9 @@ export function mergeDroneTwins(
   };
 
   const rows = assets.map((asset) => {
+    if (!isUavAsset(asset) || isDemonstrationTelemetry(asset)) {
+      return asset;
+    }
     const source =
       record(asset.specifications)
         .telemetrySourceAssetId;
@@ -245,6 +307,11 @@ export function mergeDroneTwins(
     assets: rows,
     matched: matched.size,
     unmatched: valid.length - matched.size,
+    positionUnknown:
+      assets.filter((asset) =>
+        isUavAsset(asset) &&
+        !isDemonstrationTelemetry(asset)
+      ).length - matched.size,
     states: stateCounts,
   };
 }

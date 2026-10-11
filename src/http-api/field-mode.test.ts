@@ -49,6 +49,7 @@ it("field overview uses local registry metadata but only real Core telemetry row
   vi.spyOn(forestApi, "dashboardDroneTelemetry").mockResolvedValue({
     data: [{
       assetId: "MD1000-01",
+      assetType: "UAV",
       eventId: fieldEventId(),
       observedAt: now,
       receivedAt: now,
@@ -56,6 +57,9 @@ it("field overview uses local registry metadata but only real Core telemetry row
       longitude: 127.38,
       altitude: 120,
       attributes: {
+        telemetryPositionSource: "GLOBAL_POSITION_INT(33)",
+        gpsFixType: 6,
+        pathEvidence: { coreReceivedAt: now },
         mavlinkVersion: 2,
         systemId: 1,
         componentId: 1,
@@ -80,6 +84,7 @@ it("field overview uses local registry metadata but only real Core telemetry row
     live: 1,
     stale: 0,
     offline: 0,
+    positionUnknown: 0,
   });
 });
 

@@ -34,6 +34,7 @@ import {
   getDisplayProfileConfig,
   parseDisplayProfile,
 } from "./displayProfile";
+import { isExplicitDashboardDemo } from "./dashboardMode";
 import "./unified-disaster-dashboard.css";
 import "./field-header-hotfix.css";
 import "./field-interaction-hotfix.css";
@@ -43,7 +44,7 @@ const DEFAULT_CHANGE_HIGHLIGHT_MS = POLL_INTERVAL_MS * 0.3;
 const DEFAULT_EVENT_ID =
   import.meta.env.VITE_DEFAULT_EVENT_ID?.trim() ||
   "10000000-0000-4000-8000-000000000001";
-const FORCE_DEMO_MODE = new URLSearchParams(window.location.search).get("demo") === "1";
+const FORCE_DEMO_MODE = isExplicitDashboardDemo(window.location.search);
 const FORCE_LOCAL_E2E_MODE = isLocalE2EMode();
 const FORCE_LOCAL_FIELD_MODE = isLocalFieldMode() || new URLSearchParams(window.location.search).get("field") === "1";
 const FORCE_FIELD_PREVIEW_MODE = FORCE_LOCAL_FIELD_MODE && (isFieldPreviewMode() || new URLSearchParams(window.location.search).get("preview") === "1");
@@ -902,10 +903,7 @@ export default function UnifiedDisasterDashboard() {
   const [eventsLoaded, setEventsLoaded] = useState(false);
   const [disasterNotFound, setDisasterNotFound] = useState(false);
   const [retrying, setRetrying] = useState(false);
-  const demoMode =
-    FORCE_DEMO_MODE ||
-    (window.location.pathname === "/" &&
-      new URLSearchParams(window.location.search).get("live") !== "1");
+  const demoMode = FORCE_DEMO_MODE;
   const localE2EMode = FORCE_LOCAL_E2E_MODE;
   const localFieldMode = FORCE_LOCAL_FIELD_MODE;
   const fieldPreviewMode = FORCE_FIELD_PREVIEW_MODE;
@@ -2389,6 +2387,7 @@ export default function UnifiedDisasterDashboard() {
                 ? (fieldPreviewMode ? 'PREVIEW ONLY' : fieldCoreStatusLabel(overview.liveDroneTelemetry.status, overview.liveDroneTelemetry.matched))
                 : overview.liveDroneTelemetry.status === 'CONNECTED' ? 'Core 조회 정상' : 'Core 조회 실패 · 마지막 수신값 유지'}
               {' · '}지도 연결 {overview.liveDroneTelemetry.matched}대 · LIVE {overview.liveDroneTelemetry.live} · STALE {overview.liveDroneTelemetry.stale} · OFFLINE {overview.liveDroneTelemetry.offline}
+              {' · '}위치 미확인 {overview.liveDroneTelemetry.positionUnknown ?? 0}대
               {' · '}ID 미연결 {overview.liveDroneTelemetry.unmatched}대
               {overview.liveDroneTelemetry.unmatched > 0 && ' · 자산 코드 또는 telemetrySourceAssetId 확인'}
             </div>}
