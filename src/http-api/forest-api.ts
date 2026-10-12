@@ -454,6 +454,11 @@ export async function loadEventTimeline(
 }
 
 export interface EventOverview {
+  operatingDataStatus?: {
+    state: "DISASTER_NOT_FOUND" | "API_UNAVAILABLE";
+    checkedAt: string;
+    message: string;
+  };
   liveDroneTelemetry?: { status: string; matched: number; unmatched: number; live: number; stale: number; offline: number; positionUnknown?: number; lastKnown?: number };
   event: ForestEvent;
   assets: ApiRecord[];

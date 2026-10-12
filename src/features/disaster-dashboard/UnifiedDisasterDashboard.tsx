@@ -4,7 +4,6 @@ import { DroneTwinDetail } from "./DroneTwinDetail";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { externalDisasterApi, loadDashboardDisasterAssetsCached, loadEventOverview, loadEventTimeline, type ApiRecord, type EventOverview, type EventTimeline, type ForestEvent } from "../../http-api";
 import { forestApi } from "../../http-api/forest-api";
-import { HttpApiError } from "../../http-api/client";
 import SlenoNetworkQualityPanel from "./SlenoNetworkQualityPanel";
 import { isLocalE2EMode, LOCAL_E2E_EVENT } from "../../http-api/local-e2e";
 import { fieldCoreStatusLabel, fieldEvent, isFieldPreviewMode, isLocalFieldMode } from "../../http-api/field-mode";
@@ -37,6 +36,12 @@ import {
 } from "./displayProfile";
 import { isExplicitDashboardDemo } from "./dashboardMode";
 import { markOperatingOverviewUnavailable } from "./operatingOverviewState";
+import {
+  classifyOperatingBootstrapFailure,
+  createOperatingNoDataEvent,
+  createOperatingNoDataOverview,
+  type OperatingBootstrapState,
+} from "./operatingBootstrap";
 import { topologyDataStatus, topologyLabelsFor } from "./topologyDisplay";
 import "./unified-disaster-dashboard.css";
 import "./field-header-hotfix.css";
@@ -878,6 +883,8 @@ export default function UnifiedDisasterDashboard() {
   const [overview, setOverview] = useState<EventOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [eventsLoaded, setEventsLoaded] = useState(false);
+  const [operatingBootstrapState, setOperatingBootstrapState] =
+    useState<OperatingBootstrapState>(FORCE_DEMO_MODE ? "READY" : "CHECKING");
   const [disasterNotFound, setDisasterNotFound] = useState(false);
   const [retrying, setRetrying] = useState(false);
   const demoMode = FORCE_DEMO_MODE;
@@ -955,6 +962,7 @@ export default function UnifiedDisasterDashboard() {
       setEvents([event]);
       setSelectedId(event.eventId);
       setError(null);
+      setOperatingBootstrapState("READY");
       return;
     }
     if (localE2EMode) {
@@ -962,30 +970,29 @@ export default function UnifiedDisasterDashboard() {
       setEvents([LOCAL_E2E_EVENT]);
       setSelectedId(LOCAL_E2E_EVENT.eventId);
       setError(null);
+      setOperatingBootstrapState("READY");
       return;
     }
     let result;
     try {
       result = await loadDashboardDisasterAssetsCached(DEFAULT_EVENT_ID);
     } catch (caught) {
-      const missingDisaster =
-        caught instanceof HttpApiError &&
-        caught.status === 404 &&
-        typeof caught.payload === "object" &&
-        caught.payload !== null &&
-        "error" in caught.payload &&
-        (caught.payload as { error?: { code?: string } }).error?.code ===
-          "DISASTER_NOT_FOUND";
-      if (!missingDisaster) throw caught;
-      // 등록되지 않은 재난은 API 장애나 재난이 없다는 확정 증거가 아니다.
-      setDisasterNotFound(true);
-      setEvents([]);
-      setSelectedId("");
-      setOverview(null);
-      setError(null);
+      const failure = classifyOperatingBootstrapFailure(caught);
+      const unavailableEvent = createOperatingNoDataEvent(DEFAULT_EVENT_ID, failure.state);
+      setDisasterNotFound(failure.state === "DISASTER_NOT_FOUND");
+      setOperatingBootstrapState(failure.state);
+      setEvents([unavailableEvent]);
+      setSelectedId(DEFAULT_EVENT_ID);
+      setOverview((current) =>
+        failure.state === "API_UNAVAILABLE" && current && !current.operatingDataStatus
+          ? markOperatingOverviewUnavailable(current, failure.message)
+          : createOperatingNoDataOverview(unavailableEvent, failure),
+      );
+      setError(failure.state === "API_UNAVAILABLE" ? failure.message : null);
       return;
     }
     setDisasterNotFound(false);
+    setOperatingBootstrapState("READY");
     const disaster = result.data.disaster;
     const rawDisasterType = String(disaster.disasterType ?? "WILDFIRE").toUpperCase();
     const disasterType: ForestEvent["disasterType"] =
@@ -1003,6 +1010,7 @@ export default function UnifiedDisasterDashboard() {
 
     setEvents([currentEvent]);
     setSelectedId((current) => current || currentEvent.eventId);
+    setOverview((current) => current?.operatingDataStatus ? null : current);
     setError(null);
   }, [localE2EMode, localFieldMode]);
 
@@ -1340,6 +1348,7 @@ export default function UnifiedDisasterDashboard() {
       setOverview(demo);
       setLastUpdatedAt(new Date());
       setEventsLoaded(true);
+      setOperatingBootstrapState("READY");
       return () => { active = false; };
     }
     refreshEvents()
@@ -1360,7 +1369,7 @@ export default function UnifiedDisasterDashboard() {
   }, [demoMode, localE2EMode, localFieldMode, refreshEvents]);
 
   useEffect(() => {
-    if (!selectedId) return;
+    if (!selectedId || (!demoMode && !localE2EMode && !localFieldMode && operatingBootstrapState !== "READY")) return;
     let active = true;
     // 20261010 DEMO 갱신과 RTK Core 조회를 분리한다.
     // API 장애는 단말 자체의 OFFLINE 판정과 구분한다.
@@ -1470,7 +1479,7 @@ export default function UnifiedDisasterDashboard() {
     void refresh();
     const timer = window.setInterval(refresh, POLL_INTERVAL_MS);
     return () => { active = false; window.clearInterval(timer); };
-  }, [demoMode, refreshOverview, selectedId]);
+  }, [demoMode, localE2EMode, localFieldMode, operatingBootstrapState, refreshOverview, selectedId]);
 
   useEffect(() => {
     const url = import.meta.env.VITE_TELEMETRY_WS_URL?.trim();
@@ -2110,10 +2119,19 @@ export default function UnifiedDisasterDashboard() {
       setRetrying(false);
     }
   }, [demoMode, refreshEvents]);
+  const operatingDataStatus = overview?.operatingDataStatus;
 
   return (
 <main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}${demoMode ? " is-demo-mode" : ""}${SHOW_VALIDATION_UI ? "" : " final-ops-ui"}`} aria-label="산림재난 통합상황판">
-      {error && <p className="unified-disaster-error" role="status"><strong>데이터 갱신 중단</strong><span>{error}</span><small>{overview ? "화면의 기존 값은 마지막 확인 데이터이며 현재 상태가 아닙니다." : "연결을 다시 확인하고 있습니다."}</small></p>}
+      {(error || operatingDataStatus) && <p className="unified-disaster-error" role="status" data-state={operatingDataStatus?.state}>
+        <strong>{operatingDataStatus?.state === "DISASTER_NOT_FOUND" ? "등록 사건 없음" : "데이터 갱신 중단"}</strong>
+        <span>{operatingDataStatus?.message ?? error}</span>
+        <small>{operatingDataStatus
+          ? "현재 표시 가능한 사건·자산 데이터가 없습니다. 임의 데이터로 대체하지 않습니다."
+          : overview
+            ? "화면의 기존 값은 마지막 확인 데이터이며 현재 상태가 아닙니다."
+            : "연결을 다시 확인하고 있습니다."}</small>
+      </p>}
       {!overview && (
         <section className="dashboard-readiness" aria-live="polite">
           <header>
