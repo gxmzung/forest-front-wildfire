@@ -70,7 +70,7 @@ describe("dashboard disaster asset cache", () => {
     expect(api).toHaveBeenCalledTimes(2);
   });
 
-  it("returns the last successful snapshot when refresh temporarily fails", async () => {
+  it("rejects a refresh failure instead of presenting the last snapshot as current", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-19T00:20:00Z"));
 
@@ -90,12 +90,12 @@ describe("dashboard disaster asset cache", () => {
 
     await expect(
       loadDashboardDisasterAssetsCached(disasterId),
-    ).resolves.toEqual(first);
+    ).rejects.toThrow("temporary outage");
 
     expect(api).toHaveBeenCalledTimes(2);
   });
 
-  it("rejects when the successful snapshot is outside the stale window", async () => {
+  it("retries after a failed refresh instead of caching the failure", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-09-19T00:30:00Z"));
 
@@ -111,13 +111,11 @@ describe("dashboard disaster asset cache", () => {
       loadDashboardDisasterAssetsCached(disasterId),
     ).resolves.toEqual(first);
 
-    vi.advanceTimersByTime(39_000);
+    vi.advanceTimersByTime(10_001);
 
     await expect(
       loadDashboardDisasterAssetsCached(disasterId),
-    ).resolves.toEqual(first);
-
-    vi.advanceTimersByTime(1_001);
+    ).rejects.toThrow("asset API unavailable");
 
     await expect(
       loadDashboardDisasterAssetsCached(disasterId),

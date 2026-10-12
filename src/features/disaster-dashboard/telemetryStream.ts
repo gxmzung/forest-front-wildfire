@@ -226,9 +226,11 @@ export class TelemetryStreamClient {
       }, 1_000);
     };
     this.socket.onmessage = (event) => {
-      this.lastMessageAt = Date.now();
       const message = this.mavlink.push(event.data) ?? parseTelemetryMessage(event.data);
       if (!message || (message.eventId && message.eventId !== this.options.eventId)) return;
+      // 파싱·사건 검증을 통과한 메시지만 실제 수신으로 계산한다.
+      // 미등록 객체는 merge 단계에서 다시 거부된다.
+      this.lastMessageAt = Date.now();
       const previous = this.lastSequence.get(message.assetId);
       if (message.sequence != null && previous != null && message.sequence <= previous) return;
       if (message.sequence != null) this.lastSequence.set(message.assetId, message.sequence);

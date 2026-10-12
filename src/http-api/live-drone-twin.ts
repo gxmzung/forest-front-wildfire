@@ -67,6 +67,7 @@ function isUavAsset(asset: ApiRecord): boolean {
 
 export function isDemonstrationTelemetry(row: ApiRecord): boolean {
   const attributes = record(row.attributes);
+  const specifications = record(row.specifications);
   const identifiers = [
     row.assetId,
     row.sourceAssetId,
@@ -79,6 +80,9 @@ export function isDemonstrationTelemetry(row: ApiRecord): boolean {
     attributes.sourceSystem,
     attributes.evidenceScope,
     attributes.dataProvenance,
+    specifications.sourceSystem,
+    specifications.evidenceScope,
+    specifications.dataProvenance,
     record(attributes.pathEvidence).uplinkSource,
     record(attributes.pathEvidence).transport,
   ]
@@ -88,6 +92,8 @@ export function isDemonstrationTelemetry(row: ApiRecord): boolean {
 
   return row.synthetic === true ||
     attributes.synthetic === true ||
+    specifications.synthetic === true ||
+    row.previewOnly === true ||
     identifiers.some((value) => /^(SIM-|DEMO-)/i.test(value)) ||
     /(^|[_\s-])(DEMO|MOCK|SIMULATION|SYNTHETIC)([_\s-]|$)/.test(provenance);
 }
@@ -189,7 +195,7 @@ export function mergeDroneTwins(
   };
 
   const rows = assets.map((asset) => {
-    if (!isUavAsset(asset) || isDemonstrationTelemetry(asset)) {
+    if (!isUavAsset(asset)) {
       return asset;
     }
     const source =
@@ -282,6 +288,12 @@ export function mergeDroneTwins(
         normalizedHorizontalAccuracyM(value),
 
       qualityStatus: state,
+      positionFetchStatus:
+        state === "LIVE"
+          ? "Core API 조회 성공 · 최근 관측"
+          : state === "STALE"
+            ? "STALE · 마지막 관측 위치"
+            : "OFFLINE · 오래된 마지막 관측 위치",
       sourceSystem: "GCS_UPLINK",
       sourceAssetId: id,
 
@@ -307,23 +319,17 @@ export function mergeDroneTwins(
     assets: rows,
     matched: matched.size,
     unmatched: valid.length - matched.size,
-    positionUnknown:
-      assets.filter((asset) =>
-        isUavAsset(asset) &&
-        !isDemonstrationTelemetry(asset)
-      ).length - matched.size,
+    positionUnknown: Math.max(
+      0,
+      assets.filter(isUavAsset).length - matched.size,
+    ),
     states: stateCounts,
   };
 }
 
-// API 장애 시 마지막 실제 위치를 잠깐 유지한다.
-// DEMO 데이터는 이 캐시에 들어가지 않는다.
 export class LiveDroneTelemetryReader {
-  private cache =
-    new Map<string, ApiRecord[]>();
-
   async read(
-    eventId: string,
+    _eventId: string,
     demo: boolean,
     fetchRows: () => Promise<ApiRecord[]>,
   ) {
@@ -343,20 +349,16 @@ export class LiveDroneTelemetryReader {
         );
       }
 
-      if (this.cache.size > 4) {
-        this.cache.clear();
-      }
-
-      this.cache.set(eventId, rows);
-
       return {
         rows,
         status: "CONNECTED",
       };
     } catch {
       return {
-        rows:
-          this.cache.get(eventId) ?? [],
+        // API 실패 시 이전 좌표를 새 응답처럼 재사용하지 않는다.
+        // 화면에 이미 남아 있는 위치는 상위 UI에서 명시적으로
+        // STALE/OFFLINE 마지막 확인 위치로 강등한다.
+        rows: [] as ApiRecord[],
         status: "UNAVAILABLE",
       };
     }

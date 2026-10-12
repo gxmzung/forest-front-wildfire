@@ -126,6 +126,6 @@ it("field preview generator marks every primary object as preview-only", () => {
 it("field Core status distinguishes reachable-empty from API failure", () => {
   expect(fieldCoreStatusLabel("CONNECTED", 0)).toBe("Core API 정상 · 실기체 위치 대기");
   expect(fieldCoreStatusLabel("CONNECTED", 1)).toBe("Core API 정상");
-  expect(fieldCoreStatusLabel("UNAVAILABLE", 1)).toBe("Core API 재연결 중 · 마지막 유효 위치 유지");
+  expect(fieldCoreStatusLabel("UNAVAILABLE", 1)).toBe("Core API 미연결 · 실기체 위치 확인 불가");
   expect(fieldCoreStatusLabel("OTHER", 0)).toBe("Core API 상태 확인 중");
 });

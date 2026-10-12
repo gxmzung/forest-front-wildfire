@@ -1,4 +1,5 @@
 import { rtkPositionFetchStatus } from "./rtkPositionFreshness";
+import { finiteTelemetryNumber, parsePointGeometry } from "./locationGeometry";
 import { DroneTwinDetail } from "./DroneTwinDetail";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { externalDisasterApi, loadDashboardDisasterAssetsCached, loadEventOverview, loadEventTimeline, type ApiRecord, type EventOverview, type EventTimeline, type ForestEvent } from "../../http-api";
@@ -35,6 +36,8 @@ import {
   parseDisplayProfile,
 } from "./displayProfile";
 import { isExplicitDashboardDemo } from "./dashboardMode";
+import { markOperatingOverviewUnavailable } from "./operatingOverviewState";
+import { topologyDataStatus, topologyLabelsFor } from "./topologyDisplay";
 import "./unified-disaster-dashboard.css";
 import "./field-header-hotfix.css";
 import "./field-interaction-hotfix.css";
@@ -201,12 +204,9 @@ export type LiveLocation = {
 };
 
 function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"]): LiveLocation | null {
-  const geometry = item.geometry as { coordinates?: unknown[] } | undefined;
-  const coordinates = geometry?.coordinates;
-  const longitude = Number(coordinates?.[0]);
-  const latitude = Number(coordinates?.[1]);
-  if (!Number.isFinite(longitude) || !Number.isFinite(latitude)) return null;
-  const altitudeValue = Number(coordinates?.[2]);
+  const position = parsePointGeometry(item.geometry);
+  if (!position) return null;
+  const { longitude, latitude, altitude: altitudeValue } = position;
   const attributes = item.attributes && typeof item.attributes === "object"
     ? item.attributes as Record<string, unknown>
     : {};
@@ -278,7 +278,7 @@ function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"])
     status: korean(kind === "personnel" ? item.activityStatus ?? item.safetyStatus : item.operationalStatus),
     longitude,
     latitude,
-    altitude: Number.isFinite(altitudeValue) ? altitudeValue : null,
+    altitude: altitudeValue,
     observedAt: String(item.observedAt ?? ""),
     category: String(kind === "personnel" ? "PERSONNEL" : item.assetType ?? "ASSET"),
     batteryPct: (item.batteryPct != null && Number.isFinite(Number(item.batteryPct))) ? Number(item.batteryPct) : null,
@@ -346,13 +346,10 @@ function locationFingerprint(item: LiveLocation) {
 
 function telemetrySampleFromLiveAsset(asset: ApiRecord): TelemetrySample | null {
   if (asset.sourceSystem !== "GCS_UPLINK") return null;
-  const geometry = asset.geometry as { coordinates?: unknown[] } | undefined;
-  const coordinates = geometry?.coordinates;
-  const longitude = Number(coordinates?.[0]);
-  const latitude = Number(coordinates?.[1]);
+  const position = parsePointGeometry(asset.geometry);
   const observedAt = typeof asset.observedAt === "string" ? asset.observedAt : "";
   const receivedAt = typeof asset.receivedAt === "string" ? asset.receivedAt : "";
-  if (!Number.isFinite(longitude) || !Number.isFinite(latitude) || !observedAt || !receivedAt) return null;
+  if (!position || !observedAt || !receivedAt) return null;
   return {
     assetId: String(asset.assetId ?? ""),
     entityType: "ASSET",
@@ -360,8 +357,8 @@ function telemetrySampleFromLiveAsset(asset: ApiRecord): TelemetrySample | null 
     observedAt,
     receivedAt,
     sequence: asset.sequence != null && Number.isFinite(Number(asset.sequence)) ? Number(asset.sequence) : undefined,
-    latitude,
-    longitude,
+    latitude: position.latitude,
+    longitude: position.longitude,
   };
 }
 
@@ -655,15 +652,15 @@ function demoRtkAssetsFromTelemetry(
       "",
     ).trim();
 
-    const latitude = Number(row.latitude);
-    const longitude = Number(row.longitude);
-    const altitude = Number(row.altitude);
+    const latitude = finiteTelemetryNumber(row.latitude);
+    const longitude = finiteTelemetryNumber(row.longitude);
+    const altitude = finiteTelemetryNumber(row.altitude);
     const observedAt = String(row.observedAt ?? "");
 
     if (
       !assetId ||
-      !Number.isFinite(latitude) ||
-      !Number.isFinite(longitude) ||
+      latitude === null ||
+      longitude === null ||
       latitude < -90 ||
       latitude > 90 ||
       longitude < -180 ||
@@ -715,19 +712,16 @@ function demoRtkAssetsFromTelemetry(
       observedAt,
 
       receivedAt:
-        String(
-          row.receivedAt ??
-          observedAt
-        ),
+        typeof row.receivedAt === "string"
+          ? row.receivedAt
+          : "",
 
       geometry: {
         type: "Point",
         coordinates: [
           longitude,
           latitude,
-          Number.isFinite(altitude)
-            ? altitude
-            : 0,
+          ...(altitude === null ? [] : [altitude]),
         ],
       },
 
@@ -743,7 +737,7 @@ function demoRtkAssetsFromTelemetry(
         String(
           row.positioningMethod ??
           attributes.fixType ??
-          "GNSS"
+          "UNKNOWN"
         ),
 
       qualityStatus:
@@ -775,30 +769,13 @@ function demoRtkAssetsFromTelemetry(
         ),
 
       eventRegistrationStatus:
-        "REGISTERED",
+        "UNASSIGNED",
 
       attributes,
     });
   }
 
   return [...latest.values()];
-}
-
-const fallbackTopologyLabels: Record<string, string[]> = {
-  ENDPOINT: ["대원 RTK 단말", "드론·영상장비", "400㎒ 무전기"],
-  FIELD: ["LPWA · 저속", "이음5G · 고속", "무전 중계망"],
-  COMMAND: ["게이트웨이·L3 스위치", "RTK 기준국", "현장 상황판"],
-  BACKHAUL: ["LTE", "TVWS", "LEO 위성"],
-  CLOUD: ["수집 API", "PostgreSQL", "통합 상황판"],
-};
-
-function topologyLabelsFor(overview: EventOverview | null, layer: string) {
-  const labels = overview?.topology.nodes
-    .filter((node) => String(node.topologyLayer) === layer && String(node.status) !== "UNAVAILABLE")
-    .sort((left, right) => Number(left.sortOrder ?? 0) - Number(right.sortOrder ?? 0))
-    .map((node) => String(node.nodeName ?? node.nodeCode ?? ""))
-    .filter(Boolean) ?? [];
-  return labels.length ? labels : fallbackTopologyLabels[layer] ?? [];
 }
 
 function buildTimelineSnapshots(timeline: EventTimeline | null, currentAssets: ApiRecord[]): MapTimelineSnapshot[] {
@@ -1486,19 +1463,9 @@ export default function UnifiedDisasterDashboard() {
         if (!active) return;
         const message = caught instanceof Error ? caught.message : "현황 조회 실패";
         setError(message);
-        setOverview((current) =>
-          current
-            ? {
-                ...current,
-                kpis: [],
-                kpiApiStatus: {
-                  state: "ERROR",
-                  checkedAt: new Date().toISOString(),
-                  message,
-                },
-              }
-            : current,
-        );
+        setOverview((current) => current
+          ? markOperatingOverviewUnavailable(current, message)
+          : current);
       });
     void refresh();
     const timer = window.setInterval(refresh, POLL_INTERVAL_MS);
@@ -1786,15 +1753,13 @@ export default function UnifiedDisasterDashboard() {
       || (resourceDialogGroup === "ALL_ASSETS" ? location.kind === "asset" : resourceGroupOf(location) === resourceDialogGroup))
     : [];
   const topologyLabels = {
-    endpoints: topologyLabelsFor(overview, "ENDPOINT"),
-    field: topologyLabelsFor(overview, "FIELD"),
-    command: topologyLabelsFor(overview, "COMMAND"),
-    backhaul: topologyLabelsFor(overview, "BACKHAUL"),
-    cloud: topologyLabelsFor(overview, "CLOUD"),
+    endpoints: topologyLabelsFor(overview?.topology, "ENDPOINT", demoMode),
+    field: topologyLabelsFor(overview?.topology, "FIELD", demoMode),
+    command: topologyLabelsFor(overview?.topology, "COMMAND", demoMode),
+    backhaul: topologyLabelsFor(overview?.topology, "BACKHAUL", demoMode),
+    cloud: topologyLabelsFor(overview?.topology, "CLOUD", demoMode),
   };
-  const topologyDataStatus = overview?.topology.nodes.length
-    ? `${overview.topology.nodes.length}개 노드 · ${overview.topology.links.length}개 연결`
-    : "운용 기준 구성";
+  const topologyStatus = topologyDataStatus(overview?.topology, demoMode);
   const externalIntegrationItems = Object.values(externalIntegrationStatus);
   const failedExternalIntegrations = externalIntegrationItems.filter(
     (item) => item.status === "error",
@@ -2148,7 +2113,7 @@ export default function UnifiedDisasterDashboard() {
 
   return (
 <main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}${SHOW_VALIDATION_UI ? "" : " final-ops-ui"}`} aria-label="?? ?? ?? ??">
-      {error && <p className="unified-disaster-error" role="status"><strong>데이터 갱신 지연</strong><span>{error}</span><small>{overview ? "마지막 정상 데이터를 유지합니다." : "연결을 다시 확인하고 있습니다."}</small></p>}
+      {error && <p className="unified-disaster-error" role="status"><strong>데이터 갱신 중단</strong><span>{error}</span><small>{overview ? "화면의 기존 값은 마지막 확인 데이터이며 현재 상태가 아닙니다." : "연결을 다시 확인하고 있습니다."}</small></p>}
       {!overview && (
         <section className="dashboard-readiness" aria-live="polite">
           <header>
@@ -2385,7 +2350,11 @@ export default function UnifiedDisasterDashboard() {
             >
               {localFieldMode ? (fieldPreviewMode ? 'MD1000 화면 미리보기 · 데모 데이터 · 실비행 아님' : 'MD1000 실시간 기체 위치') : 'MAVLink 위치 연동'} · {localFieldMode
                 ? (fieldPreviewMode ? 'PREVIEW ONLY' : fieldCoreStatusLabel(overview.liveDroneTelemetry.status, overview.liveDroneTelemetry.matched))
-                : overview.liveDroneTelemetry.status === 'CONNECTED' ? 'Core 조회 정상' : 'Core 조회 실패 · 마지막 수신값 유지'}
+                : overview.liveDroneTelemetry.status === 'CONNECTED'
+                  ? 'Core 조회 정상'
+                  : overview.liveDroneTelemetry.status === 'UNAVAILABLE'
+                    ? `Core 미연결 · 마지막 확인 위치 ${overview.liveDroneTelemetry.lastKnown ?? 0}대`
+                    : 'Core 상태 확인 중'}
               {' · '}지도 연결 {overview.liveDroneTelemetry.matched}대 · LIVE {overview.liveDroneTelemetry.live} · STALE {overview.liveDroneTelemetry.stale} · OFFLINE {overview.liveDroneTelemetry.offline}
               {' · '}위치 미확인 {overview.liveDroneTelemetry.positionUnknown ?? 0}대
               {' · '}ID 미연결 {overview.liveDroneTelemetry.unmatched}대
@@ -2916,7 +2885,7 @@ export default function UnifiedDisasterDashboard() {
                 {(resourceDialogGroup === "COMMUNICATION" || resourceDialogGroup === "POSITIONING" || resourceDialogGroup === "ALL") && <section className="communication-topology" aria-label="통신망 전체 토폴로지">
                   <header>
                     <div><small>전체 통신 토폴로지</small><strong>현장 단말 → 현장망 → 지휘·통신차량 → 외부망 → 클라우드</strong></div>
-                    <span>{topologyDataStatus}</span>
+                    <span>{topologyStatus}</span>
                   </header>
                   <div className="communication-topology-scroll">
                     <div className="communication-topology-grid">

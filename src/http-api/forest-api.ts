@@ -1,4 +1,4 @@
-import { LiveDroneTelemetryReader, mergeDroneTwins } from "./live-drone-twin";
+import { isDemonstrationTelemetry, LiveDroneTelemetryReader, mergeDroneTwins } from "./live-drone-twin";
 import type { SlenoNetworkQuality } from "./sleno-quality";
 import {
   emptyE2EOverview,
@@ -124,14 +124,11 @@ export interface IntegrationCapability {
 }
 
 const DASHBOARD_ASSET_CACHE_TTL_MS = 10_000;
-const DASHBOARD_ASSET_STALE_TTL_MS = 30_000;
 const DASHBOARD_ASSET_ONLY_MODE = true;
 
 type DashboardAssetCacheEntry = {
   expiresAt: number;
   request: Promise<DashboardDisasterAssetsResponse>;
-  snapshot?: DashboardDisasterAssetsResponse;
-  snapshotExpiresAt?: number;
 };
 
 const dashboardAssetCache = new Map<string, DashboardAssetCacheEntry>();
@@ -151,37 +148,11 @@ export function loadDashboardDisasterAssetsCached(
   const entry: DashboardAssetCacheEntry = {
     expiresAt: now + DASHBOARD_ASSET_CACHE_TTL_MS,
     request: sourceRequest,
-    snapshot: cached?.snapshot,
-    snapshotExpiresAt: cached?.snapshotExpiresAt,
   };
 
   const request: Promise<DashboardDisasterAssetsResponse> = sourceRequest
-    .then((response) => {
-      if (dashboardAssetCache.get(disasterId) === entry) {
-        entry.snapshot = response;
-        entry.snapshotExpiresAt =
-          Date.now() +
-          DASHBOARD_ASSET_CACHE_TTL_MS +
-          DASHBOARD_ASSET_STALE_TTL_MS;
-      }
-
-      return response;
-    })
+    .then((response) => response)
     .catch((error: unknown) => {
-      if (
-        dashboardAssetCache.get(disasterId) === entry &&
-        entry.snapshot &&
-        entry.snapshotExpiresAt &&
-        entry.snapshotExpiresAt > Date.now()
-      ) {
-        entry.expiresAt = Math.min(
-          Date.now() + DASHBOARD_ASSET_CACHE_TTL_MS,
-          entry.snapshotExpiresAt,
-        );
-        entry.request = Promise.resolve(entry.snapshot);
-        return entry.snapshot;
-      }
-
       if (dashboardAssetCache.get(disasterId) === entry) {
         dashboardAssetCache.delete(disasterId);
       }
@@ -483,7 +454,7 @@ export async function loadEventTimeline(
 }
 
 export interface EventOverview {
-  liveDroneTelemetry?: { status: string; matched: number; unmatched: number; live: number; stale: number; offline: number; positionUnknown?: number };
+  liveDroneTelemetry?: { status: string; matched: number; unmatched: number; live: number; stale: number; offline: number; positionUnknown?: number; lastKnown?: number };
   event: ForestEvent;
   assets: ApiRecord[];
   unregisteredAssets: ApiRecord[];
@@ -643,7 +614,7 @@ export async function loadEventOverview(
         assignedAt: assignment.assigned_at,
         releasedAt: assignment.released_at,
         eventRegistrationStatus: "REGISTERED",
-      }));
+      })).filter((asset) => !isDemonstrationTelemetry(asset));
     const twins = mergeDroneTwins(registeredAssets, telemetry.rows, eventId);
     return {
       event: {

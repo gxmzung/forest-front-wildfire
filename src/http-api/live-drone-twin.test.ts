@@ -377,8 +377,8 @@ describe("live drone twin", () => {
       ).toBe("UNAVAILABLE");
 
       expect(
-        failed.rows[0].observedAt,
-      ).toBe(time);
+        failed.rows,
+      ).toEqual([]);
 
       expect(
         (

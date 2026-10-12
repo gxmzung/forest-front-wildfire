@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mergeDroneTwins } from "./live-drone-twin";
+import { isDemonstrationTelemetry, mergeDroneTwins } from "./live-drone-twin";
 
 const eventId = "event-1";
 const now = Date.parse("2026-10-11T07:00:05Z");
@@ -33,6 +33,11 @@ function verifiedTelemetry(overrides: Record<string, unknown> = {}) {
 }
 
 describe("operating drone provenance", () => {
+  it("treats synthetic asset specifications and preview-only rows as demonstration data", () => {
+    expect(isDemonstrationTelemetry({ specifications: { synthetic: true } })).toBe(true);
+    expect(isDemonstrationTelemetry({ previewOnly: true })).toBe(true);
+  });
+
   it("keeps verified physical GCS telemetry", () => {
     const result = mergeDroneTwins([asset], [verifiedTelemetry()], eventId, now);
     expect(result.matched).toBe(1);
