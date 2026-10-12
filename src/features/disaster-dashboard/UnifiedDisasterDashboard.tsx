@@ -2112,7 +2112,7 @@ export default function UnifiedDisasterDashboard() {
   }, [demoMode, refreshEvents]);
 
   return (
-<main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}${SHOW_VALIDATION_UI ? "" : " final-ops-ui"}`} aria-label="?? ?? ?? ??">
+<main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}${demoMode ? " is-demo-mode" : ""}${SHOW_VALIDATION_UI ? "" : " final-ops-ui"}`} aria-label="산림재난 통합상황판">
       {error && <p className="unified-disaster-error" role="status"><strong>데이터 갱신 중단</strong><span>{error}</span><small>{overview ? "화면의 기존 값은 마지막 확인 데이터이며 현재 상태가 아닙니다." : "연결을 다시 확인하고 있습니다."}</small></p>}
       {!overview && (
         <section className="dashboard-readiness" aria-live="polite">
