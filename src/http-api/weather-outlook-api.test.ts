@@ -36,3 +36,10 @@ it("서비스별 권한 누락·서버 미반영 상태를 표시한다", async 
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({}, { status: 404 })));
   await expect(loadForecast(35.8, 128.1)).rejects.toThrow("404");
 });
+
+it("기상청 특보·예보 접근 거부를 서비스별로 안내한다", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: { code: "KMA_WARNING_ACCESS_DENIED" } }, { status: 502 })));
+  await expect(loadWarnings()).rejects.toThrow("기상특보 조회서비스 접근 거부");
+  vi.stubGlobal("fetch", vi.fn(async () => Response.json({ error: { code: "KMA_FORECAST_ACCESS_DENIED" } }, { status: 502 })));
+  await expect(loadForecast(36, 127)).rejects.toThrow("초단기예보 접근 거부");
+});
