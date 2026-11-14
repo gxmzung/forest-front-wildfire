@@ -5,6 +5,7 @@ import "./styles.css";
 import "./features/disaster-dashboard/reference-command-center.css";
 import "./features/disaster-dashboard/cinematic-exhibition.css";
 import './features/disaster-dashboard/panel-readability.css';
+import './features/disaster-dashboard/header-readability.css';
 
 function normalizedPath() {
   const path = window.location.pathname.replace(/\/+$/, "");
