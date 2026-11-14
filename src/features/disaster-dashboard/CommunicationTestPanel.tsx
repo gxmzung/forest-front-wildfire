@@ -30,21 +30,25 @@ export function CommunicationTestPanel() {
     } catch { setError('시험 요청 실패 · 드라이버 설정과 실행 중인 시험을 확인하세요.'); }
     finally { setPending(false); }
   }
+  const selected = data?.tests.find((r) => r.id === data.selectedRunId);
   return <section className="environment-data-panel" aria-label="통신 종류별 실장비 시험">
     <header><strong>통신 종류별 시험</strong><span>{data ? '로컬 시험 서버 연결' : '연결 대기'}</span></header>
-    <p>선택한 시험 성공 → 경광봉 초록, 실패 → 빨강. 미시험·시험 오류·만료는 소등 요청입니다.</p>
-    {local ? <div className="data-actions"><label>로컬 시험 토큰<input type="password" value={token} autoComplete="off" onChange={(e) => setToken(e.target.value)} /></label><button type="button" disabled={token.length < 24 || Boolean(session)} onClick={() => { setData(null); setSession(token); setToken(''); }}>시험 서버 연결</button><button type="button" disabled={!session} onClick={() => { setSession(''); setData(null); setError(''); }}>화면 연결 해제</button></div> : <p>장치 시험 제어는 노트북 로컬 상황판에서 실행합니다.</p>}
+    <p>선택 시험: {selected ? communicationLabels[selected.transport] : '없음'} · 경광봉: {data ? ({ GREEN: '초록 요청', RED: '빨강 요청', OFF: '소등 요청' }[data.baton.color]) : '연결 대기'}</p>
     {error && <p className="data-warning" role="status">{error}</p>}
     <dl>{communicationTransports.map((transport) => {
       const row = data?.tests.find((t) => t.transport === transport);
       return <div key={transport}><dt>{communicationLabels[transport]}</dt><dd>{row ? communicationStates[row.state] : session ? '결과 미수신' : '미시험'}</dd>
-        {row?.evidence && <small>송신 {row.evidence.sent} / 수신 {row.evidence.received}{row.evidence.latencyMs != null ? ` · ${row.evidence.latencyMs}ms` : ''}</small>}
-        <button type="button" disabled={!data?.configured.includes(transport) || pending || row?.state === 'RUNNING'} onClick={() => void command('/tests/run', { transport })}>시험 실행</button>
+        {row?.evidence && <small>수신 {row.evidence.received}/{row.evidence.sent}{row.evidence.latencyMs != null ? ` · ${row.evidence.latencyMs}ms` : ''}</small>}
+        {data?.configured.includes(transport) && <button type="button" disabled={pending || row?.state === 'RUNNING'} onClick={() => void command('/tests/run', { transport })}>시험 실행</button>}
         {row?.id && <button type="button" disabled={pending || data?.selectedRunId === row.id} onClick={() => void command('/tests/select', { runId: row.id })}>{data?.selectedRunId === row.id ? '경광봉 표시 대상' : '표시 대상으로 선택'}</button>}
       </div>;
     })}</dl>
-    <p>경광봉 요청: {data ? ({ GREEN: '초록', RED: '빨강', OFF: '소등' }[data.baton.color]) : '미수신'} · 출력 상태: {outputLabel(data?.outputs.relay)}</p>
+    <p>경광봉 출력: {outputLabel(data?.outputs.relay)}</p>
+    <details className="operational-disclosure"><summary>시험 연결·출력 설정</summary>
+    {local ? <div className="data-actions"><label>로컬 시험 토큰<input type="password" value={token} autoComplete="off" onChange={(e) => setToken(e.target.value)} /></label><button type="button" disabled={token.length < 24 || Boolean(session)} onClick={() => { setData(null); setSession(token); setToken(''); }}>시험 서버 연결</button><button type="button" disabled={!session} onClick={() => { setSession(''); setData(null); setError(''); }}>화면 연결 해제</button></div> : <p>장치 시험 제어는 노트북 로컬 상황판에서 실행합니다.</p>}
+    <p>성공은 초록, 실패는 빨강, 미시험·시험 중·오류·만료는 소등 요청입니다.</p>
     <p>실제 LED 패널: 한 줄 · 우측 이동 · {outputLabel(data?.outputs.led)}</p>
     <p>어댑터 Up·게이트웨이 접속만으로 통신 성공을 판정하지 않습니다. 장비별 드라이버와 상대 장비 응답 확인이 필요합니다. 화면 연결 해제는 실행 중인 시험을 중지하지 않습니다.</p>
+    </details>
   </section>;
 }

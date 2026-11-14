@@ -15,7 +15,7 @@ const fields: Array<{ key: keyof WeatherObservation; label: string; unit: string
   { key: "precipitationMm", label: "강수량", unit: "mm" },
 ];
 
-export default function WeatherEnvironmentPanel({ observation = null, children, afterContent, statusLabel, staleAfterMs, unsupportedFields = [], showPressure = true }: { observation?: WeatherObservation | null; children?: ReactNode; afterContent?: ReactNode; statusLabel?: string; staleAfterMs?: number; unsupportedFields?: Array<keyof WeatherObservation>; showPressure?: boolean }) {
+export default function WeatherEnvironmentPanel({ observation = null, children, afterContent, statusLabel, staleAfterMs, unsupportedFields = [], hiddenFields = [], compact = false, showPressure = true }: { observation?: WeatherObservation | null; children?: ReactNode; afterContent?: ReactNode; statusLabel?: string; staleAfterMs?: number; unsupportedFields?: Array<keyof WeatherObservation>; hiddenFields?: Array<keyof WeatherObservation>; compact?: boolean; showPressure?: boolean }) {
   const snapshot = evaluateWeatherSnapshot(observation, Date.now(), staleAfterMs);
   const current = snapshot.observation;
   const label = snapshot.status === "LIVE" ? "실측" : snapshot.status === "DEMO" ? "DEMO" : snapshot.status === "STALE" ? "관측 지연" : "관측 대기";
@@ -24,7 +24,7 @@ export default function WeatherEnvironmentPanel({ observation = null, children, 
       <header><strong>현장 기상 종합정보</strong><span>{statusLabel ?? label}</span></header>
       {children}
       <div className="weather-environment-grid">
-        {fields.map(field => {
+        {fields.filter(field => !hiddenFields.includes(field.key)).map(field => {
           const value = current?.[field.key];
           return (
             <article key={field.key}>
@@ -36,9 +36,8 @@ export default function WeatherEnvironmentPanel({ observation = null, children, 
         })}
       </div>
       {showPressure && <p>기압: — hPa (관측 필드 연동 대기)</p>}
-      <p>관측 위치·격자: {current?.stationName ?? "미수신"}</p>
       <p>관측 시각: {current?.observedAt ? `${new Date(current.observedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })} KST` : "미수신"}</p>
-      <p>데이터 출처: {current?.source ?? "미연결"}</p>
+      {compact ? <details className="operational-disclosure"><summary>출처·제공 항목</summary><p>관측 위치·격자: {current?.stationName ?? "미수신"}</p><p>데이터 출처: {current?.source ?? "미연결"}</p>{unsupportedFields.length > 0 && <p>최대순간풍속은 현재 API에서 제공하지 않습니다.</p>}</details> : <><p>관측 위치·격자: {current?.stationName ?? "미수신"}</p><p>데이터 출처: {current?.source ?? "미연결"}</p></>}
       {afterContent}
     </section>
   );

@@ -1364,6 +1364,7 @@ export function OperationsPanel({
 
           </section>}
           {activeTab === "networks" && <section className="operations-records" aria-label="통신망 상태">
+            <details className="operational-disclosure"><summary>통신 연동 상세·개발 진단</summary>
             <SlenoNetworkQualityPanel />
 
             <article
@@ -1585,6 +1586,7 @@ export function OperationsPanel({
               </article>;
             })}
             <p className="operation-readonly-note">상태 {lastUpdatedAt ? relativeTime(lastUpdatedAt.toISOString()) : "측정 중"} · NMS 연계 오류와 현장망 두절은 별도 판정합니다.</p>
+            </details>
           </section>}
           {activeTab === "reports" && <section className="operations-records" aria-label="상황 보고">
             <article className="field-information-card" aria-label="현장 통합정보">
