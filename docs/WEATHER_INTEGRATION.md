@@ -30,3 +30,11 @@ gxmzung/forest-core-server의 feat/kma-weather 변경과 함께 반영한다. �
 5. 회사 서버 반영 후 기존 관제 사이트에서 같은 API·좌표로 재검증한다.
 
 자료: https://www.data.go.kr/data/15084084/openapi.do
+
+## 노트북에서 실제 날씨 연결
+
+Core 저장소 feat/kma-weather를 최신 상태로 받은 뒤 npm run start:weather 를 실행한다. 이 서버는 DB·장비 제어 없이 루프백 18891 포트에서 날씨 경로만 제공한다.
+
+프론트 .env.local에 VITE_WEATHER_API_BASE_URL=http://127.0.0.1:18891 을 설정하고 npm ci 후 npm run dev 로 실행한다. 브라우저 주소는 http://127.0.0.1:15173/ 이다. 기상 패널의 위경도에 실제 조회 위치를 입력한다. 나머지 업무·대시보드 API 주소는 운영 기본값을 유지한다.
+
+VITE_WEATHER_API_BASE_URL을 설정하지 않으면 기존 대시보드 API 주소를 사용한다. 따라서 운영 반영 시 로컬 주소를 .env.production에 추가하지 않는다. 로컬과 운영의 날씨 데이터 원본·서버 처리 코드는 같으며 API 실행 위치만 다르다.

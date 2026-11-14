@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadWeather, validateWeather, weatherIsStale, weatherValue } from "./weather-api";
 const observation = () => ({ data: { observedAt: "2026-11-14T13:00:00+09:00", temperatureC: 12, humidityPct: null, windSpeedMps: 0, windDirectionDeg: 180, grid: { nx: 60, ny: 127 } }, meta: { provider: "기상청 초단기실황", source: "KMA_OBSERVATION", cache: "MISS", stale: false, servedAt: "2026-11-14T05:00:00Z", note: "" } });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 describe("실제 기상정보", () => {
   it("0과 미관측을 구분하고 관측 기준으로 지연을 판정한다", () => {
     const value = validateWeather(observation());
@@ -30,5 +30,15 @@ describe("실제 기상정보", () => {
     await expect(loadWeather(37.5, 127)).rejects.toThrow("인증키");
     vi.stubGlobal("fetch", vi.fn(async () => Response.json({}, { status: 404 })));
     await expect(loadWeather(37.5, 127)).rejects.toThrow("404");
+  });
+  it("날씨 서버만 로컬로 지정해도 다른 관제 API 주소는 바꾸지 않는다", async () => {
+    vi.stubEnv("VITE_WEATHER_API_BASE_URL", "http://127.0.0.1:18891/");
+    const fetcher = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => Response.json(observation()));
+    vi.stubGlobal("fetch", fetcher);
+    await loadWeather(37.5, 127);
+    const { dashboardApi } = await import("./client");
+    await dashboardApi("/health");
+    expect(String(fetcher.mock.calls[0]?.[0])).toMatch(/^http:\/\/127.0.0.1:18891\/api\/v1\/external\/weather/);
+    expect(String(fetcher.mock.calls[1]?.[0])).toBe("https://api.forest.tobeunicorn.kr/health");
   });
 });
