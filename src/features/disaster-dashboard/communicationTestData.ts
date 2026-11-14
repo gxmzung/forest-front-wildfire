@@ -25,6 +25,7 @@ export type CommunicationTestData = {
   configured: string[]; selectedRunId: string | null;
   baton: { color: string }; outputs: { relay: string; led: string };
   gateway?: ExistingGatewayData;
+  vehicle?: { enabled: boolean; manual: boolean; weather: string; led: string; relay: string; audio: string; appliedRelay: {green: boolean; red: boolean} | null };
 };
 export function parseCommunicationTests(value: unknown): CommunicationTestData {
   const data = value as CommunicationTestData;
@@ -37,6 +38,7 @@ export function parseCommunicationTests(value: unknown): CommunicationTestData {
   if (data.selectedRunId !== null && (typeof data.selectedRunId !== 'string' || !data.tests.some((r) => r.id === data.selectedRunId))) throw Error('INVALID_TEST_RESPONSE');
   const selected = data.tests.find((r) => r.id === data.selectedRunId);
   if (data.baton.color !== (selected?.state === 'SUCCESS' ? 'GREEN' : selected?.state === 'FAILURE' ? 'RED' : 'OFF')) throw Error('INVALID_TEST_RESPONSE');
+  if (data.vehicle !== undefined && (!data.vehicle || typeof data.vehicle.enabled !== 'boolean' || typeof data.vehicle.manual !== 'boolean' || !['weather','led','relay','audio'].every((key) => typeof (data.vehicle as unknown as Record<string, unknown>)[key] === 'string') || (data.vehicle.appliedRelay !== null && (typeof data.vehicle.appliedRelay?.green !== 'boolean' || typeof data.vehicle.appliedRelay?.red !== 'boolean')))) throw Error('INVALID_VEHICLE_RESPONSE');
   if (data.gateway !== undefined) data.gateway = parseExistingGateway(data.gateway);
   return data;
 }
