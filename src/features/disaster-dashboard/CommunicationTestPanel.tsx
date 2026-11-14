@@ -1,3 +1,4 @@
+import { subscribeVehicleWeatherTarget } from './vehicleWeatherTarget';
 import { useEffect, useRef, useState } from 'react';
 import { communicationLabels, communicationStates, communicationTransports, parseCommunicationTests, type CommunicationTestData } from './communicationTestData';
 
@@ -26,6 +27,17 @@ export function CommunicationTestPanel() {
     };
     void poll(); return () => { controller.abort(); clearTimeout(timer); ++generation.current; };
   }, [session, local]);
+  const [vehicleError, setVehicleError] = useState('');
+  useEffect(() => {
+    if (!session || !local || !data?.vehicle?.enabled) return;
+    const controller = new AbortController();
+    const unsubscribe = subscribeVehicleWeatherTarget((target) => {
+      void fetch(`${BASE}/vehicle/weather-target`, { method: 'POST', headers: { Authorization: `Bearer ${session}`, 'Content-Type': 'application/json' }, body: JSON.stringify(target), signal: AbortSignal.any([controller.signal, AbortSignal.timeout(3000)]) })
+        .then((response) => { if (!response.ok) throw Error(); if (!controller.signal.aborted) setVehicleError(''); })
+        .catch(() => { if (!controller.signal.aborted) setVehicleError('차량 기상 조회 위치 전달 실패'); });
+    });
+    return () => { unsubscribe(); controller.abort(); };
+  }, [session, local, data?.vehicle?.enabled]);
   async function command(path: string, body: object) {
     setPending(true);
     try {
@@ -37,14 +49,16 @@ export function CommunicationTestPanel() {
   const selected = data?.tests.find((r) => r.id === data.selectedRunId);
   return <section className="environment-data-panel communication-test-panel" aria-label="통신 종류별 실장비 시험">
     <header><strong>통신 종류별 시험</strong><span className="communication-server-status" data-connected={Boolean(data)}>{data ? '로컬 시험 서버 연결' : '연결 대기'}</span></header>
-    <div className="communication-selection"><span>선택 시험 <b>{selected ? communicationLabels[selected.transport] : '없음'}</b></span><span>경광봉 요청 <b>{data ? ({ GREEN: '초록', RED: '빨강', OFF: '소등' }[data.baton.color]) : '연결 대기'}</b></span></div>
+    <div className="communication-selection"><span>선택 시험 <b>{selected ? communicationLabels[selected.transport] : '없음'}</b></span><span>경광봉 요청 <b>{data?.vehicle?.manual ? '수동 제어 중' : data ? ({ GREEN: '초록', RED: '빨강', OFF: '소등' }[data.baton.color]) : '연결 대기'}</b></span></div>
+    {vehicleError && <p className="data-warning" role="status">{vehicleError}</p>}
+    {data?.vehicle?.enabled && <p className="communication-output-status">차량 음성 {({ READY: '준비', PLAYING: '재생 중', PLAYBACK_ERROR: '재생 확인 필요', NOT_CONFIGURED: '설정 대기' }[data.vehicle.audio] ?? '확인 중')} · 기상 전광판 {outputLabel(data.vehicle.led)}{data.vehicle.manual ? ' · 수동 출력 시험 중' : ''}</p>}
     {error && <p className="data-warning" role="status">{error}</p>}
     <dl className="communication-test-grid">{communicationTransports.map((transport) => {
       const row = data?.tests.find((t) => t.transport === transport);
       return <div key={transport} data-test-state={row?.state ?? 'UNTESTED'}><dt>{communicationLabels[transport]}</dt><dd>{row ? communicationStates[row.state] : session ? '결과 미수신' : '미시험'}</dd>
         {row?.evidence && <small>수신 {row.evidence.received}/{row.evidence.sent}{row.evidence.latencyMs != null ? ` · ${row.evidence.latencyMs}ms` : ''}</small>}
-        {data?.configured.includes(transport) && <button type="button" disabled={pending || row?.state === 'RUNNING'} onClick={() => void command('/tests/run', { transport })}>시험 실행</button>}
-        {row?.id && <button type="button" aria-label={`${communicationLabels[transport]} 시험을 경광봉 표시 대상으로 선택`} disabled={pending || data?.selectedRunId === row.id} onClick={() => void command('/tests/select', { runId: row.id })}>{data?.selectedRunId === row.id ? '표시 중' : '경광봉 선택'}</button>}
+        {data?.configured.includes(transport) && <button type="button" disabled={pending || data?.vehicle?.manual || row?.state === 'RUNNING'} onClick={() => void command('/tests/run', { transport })}>시험 실행</button>}
+        {row?.id && <button type="button" aria-label={`${communicationLabels[transport]} 시험을 경광봉 표시 대상으로 선택`} disabled={pending || data?.vehicle?.manual || data?.selectedRunId === row.id} onClick={() => void command('/tests/select', { runId: row.id })}>{data?.selectedRunId === row.id ? '표시 중' : '경광봉 선택'}</button>}
       </div>;
     })}</dl>
     <p className="communication-output-status">경광봉 출력 <strong>{outputLabel(data?.outputs.relay)}</strong></p>

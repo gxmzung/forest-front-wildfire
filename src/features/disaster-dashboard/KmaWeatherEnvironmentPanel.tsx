@@ -1,3 +1,4 @@
+import { publishVehicleWeatherTarget } from './vehicleWeatherTarget';
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { loadWeather, weatherIsStale, type WeatherResponse } from "../../http-api/weather-api";
 import WeatherEnvironmentPanel from "./WeatherEnvironmentPanel";
@@ -50,7 +51,7 @@ export default function KmaWeatherEnvironmentPanel({ latitude, longitude, onTarg
       setLoading(true);
       try {
         const response = await loadWeather(target!.latitude, target!.longitude, current.signal);
-        if (active && !current.signal.aborted) { setReading({ location: `${target!.latitude}:${target!.longitude}`, response }); setError(""); }
+        if (active && !current.signal.aborted) { publishVehicleWeatherTarget(target!); setReading({ location: `${target!.latitude}:${target!.longitude}`, response }); setError(""); }
       } catch (reason) {
         if (active && !current.signal.aborted) setError(reason instanceof Error ? reason.message : "기상정보 수신 실패");
       } finally {
