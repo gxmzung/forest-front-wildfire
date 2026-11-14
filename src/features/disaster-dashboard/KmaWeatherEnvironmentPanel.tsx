@@ -98,15 +98,16 @@ export default function KmaWeatherEnvironmentPanel({ latitude, longitude, onTarg
     setLocating(false); setLocationInfo(null); setLocationError(""); setMode("event");
   }
   const stale = Boolean(error) || Boolean(value && weatherIsStale(value, now));
+  const eventLocationAvailable = typeof latitude === 'number' && Number.isFinite(latitude) && typeof longitude === 'number' && Number.isFinite(longitude);
   return <WeatherEnvironmentPanel observation={value ? asKmaObservation(value) : null} staleAfterMs={3 * 3600_000} unsupportedFields={["windGustMps"]} hiddenFields={["windGustMps"]} compact showPressure={false}
     afterContent={target ? <WeatherOutlookPanel key={`${target.latitude}:${target.longitude}`} latitude={target.latitude} longitude={target.longitude} observation={value} observationError={Boolean(error)} refresh={refresh} /> : undefined}
     statusLabel={loading ? "조회 중" : error ? "연결 확인" : !value ? "관측 대기" : stale ? "갱신 지연" : "기상청 실황"}>
     <p>기상청 5km 격자 · 현장 센서 실측 아님</p>
     <div className="kma-location-actions">
       <button type="button" onClick={() => void useCurrentLocation()} disabled={locating}>{locating ? "위치 확인 중…" : "내 현재 위치로 조회"}</button>
-      <button type="button" onClick={useEventLocation}>사건 위치로 조회</button>
+      <button type="button" onClick={useEventLocation} disabled={!eventLocationAvailable}>사건 위치로 조회</button>
     </div>
-    <p>위치 기준: {mode === "event" ? "현장 사건 위치" : mode === "browser" ? "이 기기의 현재 위치" : "직접 입력"}</p>
+    <p>위치 기준: {mode === "event" ? target ? "현장 사건 위치" : "위치 미선택" : mode === "browser" ? "이 기기의 현재 위치" : "직접 입력"}</p>
     {locationInfo && mode === "browser" && <p>기기 보고 정확도: 약 ±{Math.round(locationInfo.accuracy).toLocaleString()}m · 위치 확인 {new Date(locationInfo.timestamp).toLocaleTimeString("ko-KR")} · GPS 수신 여부는 확인되지 않습니다.</p>}
     {locationError && <p role="status" className="kma-weather-notice">{locationError} 기존 조회 위치를 유지합니다.</p>}
     <details className="operational-disclosure"><summary>조회 좌표 직접 입력</summary><form className="kma-weather-form" onSubmit={submit}>
