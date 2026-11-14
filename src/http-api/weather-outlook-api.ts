@@ -32,6 +32,8 @@ async function read(path: string, signal?: AbortSignal): Promise<unknown> {
     if (signal?.aborted) throw error;
     if (error instanceof HttpApiError) {
       const code = (error.payload as { error?: { code?: string } } | null)?.error?.code;
+      if (code === "KMA_WARNING_ACCESS_DENIED") throw new Error("기상특보 조회서비스 접근 거부 · 활용신청 승인 상태와 인증키 권한 확인 필요");
+      if (code === "KMA_FORECAST_ACCESS_DENIED") throw new Error("초단기예보 접근 거부 · 상세기능 이용 권한 확인 필요");
       if (code === "NOT_CONFIGURED") throw new Error("기상청 인증키 서버 설정 필요");
       if (code === "PROVIDER_REJECTED") throw new Error("해당 기상청 서비스 활용신청·인증키 권한 확인 필요");
       if (code === "NO_DATA") throw new Error("자료 미수신 · 특보 없음으로 판단하지 않습니다.");
