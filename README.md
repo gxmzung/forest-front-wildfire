@@ -32,6 +32,8 @@
 
 ## 실행
 
+운영과 같은 API·Docker 환경으로 확인하는 방법은 [로컬·운영 일치 기준](docs/PRODUCTION_PARITY.md)을 참고한다. 기본 API는 회사 HTTPS 주소이며, 로컬 서버는 명시적으로 설정한 경우에만 사용한다.
+
 ```powershell
 npm.cmd install
 npm.cmd run dev
