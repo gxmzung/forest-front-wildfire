@@ -3,7 +3,7 @@ import { forecastIsStale, loadForecast, loadWarnings, warningsAreStale, type For
 import { weatherValue, type WeatherResponse } from "../../http-api/weather-api";
 import { forecastRain, kstTime, precipitationLabel, weatherTicker } from "./weatherTicker";
 
-export default function WeatherOutlookPanel({ latitude, longitude, observation, observationError, refresh }: { latitude: number; longitude: number; observation: WeatherResponse | null; observationError: boolean; refresh: number }) {
+export default function WeatherOutlookPanel({ latitude, longitude, observation, observationError, refresh, view = "weather" }: { latitude: number; longitude: number; observation: WeatherResponse | null; observationError: boolean; refresh: number; view?: "weather" | "led" }) {
   const [forecast, setForecast] = useState<ForecastResponse | null>(null);
   const [warnings, setWarnings] = useState<WarningResponse | null>(null);
   const [forecastError, setForecastError] = useState("");
@@ -16,15 +16,30 @@ export default function WeatherOutlookPanel({ latitude, longitude, observation, 
     function read() {
       controller?.abort(); controller = new AbortController(); const signal = controller.signal;
       void loadForecast(latitude, longitude, signal).then((value) => { if (active && !signal.aborted) { setForecast(value); setForecastError(""); } }, (error: unknown) => { if (active && !signal.aborted) setForecastError(error instanceof Error ? error.message : "예보 수신 실패"); });
-      void loadWarnings(signal).then((value) => { if (active && !signal.aborted) { setWarnings(value); setWarningError(""); } }, (error: unknown) => { if (active && !signal.aborted) setWarningError(error instanceof Error ? error.message : "특보 수신 실패"); });
+      if (view === "weather") void loadWarnings(signal).then((value) => { if (active && !signal.aborted) { setWarnings(value); setWarningError(""); } }, (error: unknown) => { if (active && !signal.aborted) setWarningError(error instanceof Error ? error.message : "특보 수신 실패"); });
     }
     read(); const timer = window.setInterval(read, 300_000);
     return () => { active = false; controller?.abort(); window.clearInterval(timer); };
-  }, [latitude, longitude, refresh]);
+  }, [latitude, longitude, refresh, view]);
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(timer); }, []);
   const rows = forecast?.data.periods.filter((row) => Date.parse(row.validAt) > now) ?? [];
   const line = weatherTicker(observation, forecast, { latitude, longitude }, now, observationError, Boolean(forecastError));
   const style = { "--ticker-duration": `${Math.max(30, line.length / 5)}s`, animationPlayState: paused ? "paused" : "running" } as CSSProperties;
+  if (view === "led") return <section className="weather-environment-panel kma-outlook" aria-label="전광판 제어">
+    <header><strong>전광판</strong><span>패널 미연결</span></header>
+    <p>현장 기상에서 선택한 조회 위치의 실제 수신값을 사용합니다.</p>
+    <p>조회 위치 {latitude.toFixed(5)}, {longitude.toFixed(5)}</p>
+    {observationError && <p className="kma-weather-notice">관측 갱신 실패 · 마지막 관측값 표시</p>}
+    {forecastError && <p className="kma-weather-notice">예보: {forecastError}</p>}
+    <details open>
+      <summary>전광판 한 줄 미리보기 · 우측 이동</summary>
+      <p>화면 미리보기 · 실제 패널 미연결</p>
+      <div className="kma-led-preview" aria-label="전광판 한 줄 미리보기"><span className="kma-led-line" style={style}>{line}</span></div>
+      <button type="button" className="kma-weather-retry" onClick={() => setPaused((value) => !value)}>{paused ? "이동 재개" : "이동 일시정지"}</button>
+      <details><summary>전체 문구 확인</summary><p>{line}</p></details>
+      <p>현장 특보구역 매칭 전까지 전국 특보는 전광판 문구에 자동 포함하지 않습니다.</p>
+    </details>
+  </section>;
   return <div className="kma-outlook">
     <details open>
       <summary>시간대별 예보 · 관측값과 구분</summary>
@@ -53,13 +68,6 @@ export default function WeatherOutlookPanel({ latitude, longitude, observation, 
       </>}
       <a href="https://www.weather.go.kr/w/weather/warning/status.do" target="_blank" rel="noreferrer">기상청 공식 특보 확인</a>
     </details>
-    <details open>
-      <summary>전광판 한 줄 미리보기 · 우측 이동</summary>
-      <p>화면 미리보기 · 실제 패널 미연결</p>
-      <div className="kma-led-preview" aria-label="전광판 한 줄 미리보기"><span className="kma-led-line" style={style}>{line}</span></div>
-      <button type="button" className="kma-weather-retry" onClick={() => setPaused((value) => !value)}>{paused ? "이동 재개" : "이동 일시정지"}</button>
-      <details><summary>전체 문구 확인</summary><p>{line}</p></details>
-      <p>현장 특보구역 매칭 전까지 전국 특보는 전광판 문구에 자동 포함하지 않습니다.</p>
-    </details>
+
   </div>;
 }

@@ -15,7 +15,7 @@ const fields: Array<{ key: keyof WeatherObservation; label: string; unit: string
   { key: "precipitationMm", label: "강수량", unit: "mm" },
 ];
 
-export default function WeatherEnvironmentPanel({ observation = null, children, afterContent, statusLabel, staleAfterMs }: { observation?: WeatherObservation | null; children?: ReactNode; afterContent?: ReactNode; statusLabel?: string; staleAfterMs?: number }) {
+export default function WeatherEnvironmentPanel({ observation = null, children, afterContent, statusLabel, staleAfterMs, unsupportedFields = [], showPressure = true }: { observation?: WeatherObservation | null; children?: ReactNode; afterContent?: ReactNode; statusLabel?: string; staleAfterMs?: number; unsupportedFields?: Array<keyof WeatherObservation>; showPressure?: boolean }) {
   const snapshot = evaluateWeatherSnapshot(observation, Date.now(), staleAfterMs);
   const current = snapshot.observation;
   const label = snapshot.status === "LIVE" ? "실측" : snapshot.status === "DEMO" ? "DEMO" : snapshot.status === "STALE" ? "관측 지연" : "관측 대기";
@@ -29,13 +29,13 @@ export default function WeatherEnvironmentPanel({ observation = null, children, 
           return (
             <article key={field.key}>
               <span>{field.key === "precipitationMm" && current?.precipitationPeriodMinutes === 60 ? "1시간 강수량" : field.label}</span>
-              <b>{typeof value === "number" && Number.isFinite(value) ? value.toLocaleString("ko-KR") : "—"}</b>
-              <small>{field.unit}</small>
+              <b>{unsupportedFields.includes(field.key) ? "미제공" : typeof value === "number" && Number.isFinite(value) ? value.toLocaleString("ko-KR") : "—"}</b>
+              <small>{unsupportedFields.includes(field.key) ? "현재 기상청 실황 API 미제공" : field.unit}</small>
             </article>
           );
         })}
       </div>
-      <p>기압: — hPa (관측 필드 연동 대기)</p>
+      {showPressure && <p>기압: — hPa (관측 필드 연동 대기)</p>}
       <p>관측 위치·격자: {current?.stationName ?? "미수신"}</p>
       <p>관측 시각: {current?.observedAt ? `${new Date(current.observedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })} KST` : "미수신"}</p>
       <p>데이터 출처: {current?.source ?? "미연결"}</p>
