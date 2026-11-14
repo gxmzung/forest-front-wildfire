@@ -3,7 +3,7 @@ import { asKmaObservation } from "./kmaWeatherObservation";
 import { evaluateWeatherSnapshot } from "./weatherObservation";
 import type { WeatherResponse } from "../../http-api/weather-api";
 
-it("기존 현장 기상 패널에 격자 관측값을 넣고 미제공 순간풍속·강수량을 만들지 않는다", () => {
+it("기존 현장 기상 패널에 격자 관측값을 넣고 미제공 순간풍속을 만들지 않는다", () => {
   const response = { data: { observedAt: "2026-11-14T13:00:00+09:00", temperatureC: 11.1, humidityPct: 90, windSpeedMps: 0, windDirectionDeg: 52, grid: { nx: 60, ny: 127 } } } as WeatherResponse;
   const value = asKmaObservation(response);
   expect(value.windSpeedMps).toBe(0);
@@ -13,4 +13,11 @@ it("기존 현장 기상 패널에 격자 관측값을 넣고 미제공 순간�
   const now = Date.parse("2026-11-14T14:00:00+09:00");
   expect(evaluateWeatherSnapshot(value, now).status).toBe("STALE");
   expect(evaluateWeatherSnapshot(value, now, 3 * 3600_000).status).toBe("LIVE");
+});
+
+
+it("실황 1시간 강수량 0을 기존 패널에 관측 주기와 함께 표시한다", () => {
+  const response = { data: { observedAt: "2026-11-14T13:00:00+09:00", temperatureC: 11.1, humidityPct: 90, windSpeedMps: 0, windDirectionDeg: 52, precipitation1hMm: 0, precipitationType: 0, grid: { nx: 60, ny: 127 } } } as WeatherResponse;
+  expect(asKmaObservation(response).precipitationMm).toBe(0);
+  expect(asKmaObservation(response).precipitationPeriodMinutes).toBe(60);
 });

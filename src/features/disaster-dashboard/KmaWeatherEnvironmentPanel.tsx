@@ -3,6 +3,8 @@ import { loadWeather, weatherIsStale, type WeatherResponse } from "../../http-ap
 import WeatherEnvironmentPanel from "./WeatherEnvironmentPanel";
 import { asKmaObservation } from "./kmaWeatherObservation";
 import { requestWeatherLocation } from "./weatherLocation";
+import WeatherOutlookPanel from "./WeatherOutlookPanel";
+import { precipitationLabel } from "./weatherTicker";
 import "./kma-weather.css";
 
 export default function KmaWeatherEnvironmentPanel({ latitude, longitude }: { latitude?: unknown; longitude?: unknown }) {
@@ -15,7 +17,8 @@ export default function KmaWeatherEnvironmentPanel({ latitude, longitude }: { la
   const [latInput, setLatInput] = useState("");
   const [lonInput, setLonInput] = useState("");
   const [target, setTarget] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [value, setValue] = useState<WeatherResponse | null>(null);
+  const [reading, setReading] = useState<{ location: string; response: WeatherResponse } | null>(null);
+  const value = target && reading?.location === `${target.latitude}:${target.longitude}` ? reading.response : null;
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [refresh, setRefresh] = useState(0);
@@ -31,7 +34,7 @@ export default function KmaWeatherEnvironmentPanel({ latitude, longitude }: { la
   }, [latitude, longitude, mode]);
 
   useEffect(() => {
-    setValue(null); setError("");
+    setReading(null); setError("");
   }, [target]);
 
   useEffect(() => {
@@ -45,7 +48,7 @@ export default function KmaWeatherEnvironmentPanel({ latitude, longitude }: { la
       setLoading(true);
       try {
         const response = await loadWeather(target!.latitude, target!.longitude, current.signal);
-        if (active && !current.signal.aborted) { setValue(response); setError(""); }
+        if (active && !current.signal.aborted) { setReading({ location: `${target!.latitude}:${target!.longitude}`, response }); setError(""); }
       } catch (reason) {
         if (active && !current.signal.aborted) setError(reason instanceof Error ? reason.message : "기상정보 수신 실패");
       } finally {
@@ -94,6 +97,7 @@ export default function KmaWeatherEnvironmentPanel({ latitude, longitude }: { la
   }
   const stale = Boolean(error) || Boolean(value && weatherIsStale(value, now));
   return <WeatherEnvironmentPanel observation={value ? asKmaObservation(value) : null} staleAfterMs={3 * 3600_000}
+    afterContent={target ? <WeatherOutlookPanel key={`${target.latitude}:${target.longitude}`} latitude={target.latitude} longitude={target.longitude} observation={value} observationError={Boolean(error)} refresh={refresh} /> : undefined}
     statusLabel={loading ? "조회 중" : error ? "연결 확인" : !value ? "관측 대기" : stale ? "갱신 지연" : "기상청 실황"}>
     <p>기상청 인근 5km 격자 대표 관측값 · 풍선 센서 실측 아님</p>
     <div className="kma-location-actions">
@@ -108,6 +112,7 @@ export default function KmaWeatherEnvironmentPanel({ latitude, longitude }: { la
       <label>경도<input aria-label="날씨 조회 경도" value={lonInput} onChange={(event) => setLonInput(event.target.value)} inputMode="decimal" /></label>
       <button type="submit" disabled={loading}>조회</button>
     </form>
+    {value && <p>강수 형태: {precipitationLabel(value.data.precipitationType)}</p>}
     {target && <p>조회 위치 {target.latitude.toFixed(5)}, {target.longitude.toFixed(5)}</p>}
     {!target && <p>사건의 지점 좌표 또는 직접 입력한 위치로 조회합니다.</p>}
     {error && <p role="status" className="kma-weather-notice">{error}{value && " · 마지막 관측값 표시"}</p>}

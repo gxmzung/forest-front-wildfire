@@ -14,7 +14,7 @@ export function asKmaObservation(response: WeatherResponse): WeatherObservation 
     windSpeedMps: data.windSpeedMps,
     windDirectionDeg: data.windDirectionDeg,
     windGustMps: null,
-    precipitationMm: null,
-    precipitationPeriodMinutes: null,
+    precipitationMm: data.precipitation1hMm ?? null,
+    precipitationPeriodMinutes: data.precipitation1hMm == null ? null : 60,
   };
 }
