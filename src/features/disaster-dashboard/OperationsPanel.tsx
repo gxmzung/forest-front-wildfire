@@ -30,7 +30,7 @@ import {
   type AlertDeliveryTrace,
 } from "./alertDeliveryTrace";
 
-export type PanelTab = "camera" | "radio" | "weather" | "layers" | "alerts" | "networks" | "reports" | "kpis" | "integrations";
+export type PanelTab = "camera" | "radio" | "weather" | "led" | "layers" | "alerts" | "networks" | "reports" | "kpis" | "integrations";
 
 export type ExternalSourceId =
   | "firms"
@@ -98,6 +98,7 @@ const SHOW_VALIDATION_UI =
 /* weather-operations-navigation-20261011: 시작 화면은 현장 기상 */
 const tabs: Array<{ id: PanelTab; label: string; icon: string }> = [
   { id: "weather", label: "현장 기상", icon: "☀" },
+  { id: "led", label: "전광판", icon: "▤" },
   { id: "radio", label: "무전 통화", icon: "◉" },
   { id: "layers", label: "지도 레이어", icon: "▱" },
   { id: "alerts", label: "현장 경보", icon: "!" },
@@ -1008,7 +1009,7 @@ export function OperationsPanel({
         </header>
         <div className="operations-panel-body">
           <div className="radio-panel-host" hidden={activeTab !== "radio"}><RadioPanel active={activeTab === "radio" && !collapsed} /></div>
-          {activeTab === "weather" && <KmaWeatherEnvironmentPanel latitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[1] : undefined} longitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[0] : undefined} />}
+          {(activeTab === "weather" || activeTab === "led") && <KmaWeatherEnvironmentPanel view={activeTab} latitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[1] : undefined} longitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[0] : undefined} />}
           {activeTab === "layers" && <section className="layer-control-list" aria-label="지도 레이어">
             <section className="layer-level-group" aria-labelledby="resource-layer-title">
               <header><strong id="resource-layer-title">현장 자산</strong></header>

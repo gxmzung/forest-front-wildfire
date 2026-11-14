@@ -32,9 +32,13 @@ describe("전광판 한 줄 실제 기상 문구", () => {
     expect(weatherTicker({ ...observation, meta: { ...observation.meta, stale: true } }, null, location, now)).toContain("갱신 지연");
   });
   it("패널 없는 화면 미리보기임을 표시하고 현장 특보 판정을 만들지 않는다", () => {
-    const markup = renderToStaticMarkup(createElement(WeatherOutlookPanel, { ...location, observation, observationError: false, refresh: 0 }));
+    const weather = renderToStaticMarkup(createElement(WeatherOutlookPanel, { ...location, observation, observationError: false, refresh: 0 }));
+    expect(weather).toContain("현재 조회 위치의 특보 자동 판정은 하지 않습니다");
+    expect(weather).not.toContain("전광판 한 줄 미리보기");
+    expect(weather).not.toContain("전체 문구 확인");
+    const markup = renderToStaticMarkup(createElement(WeatherOutlookPanel, { ...location, observation, observationError: false, refresh: 0, view: "led" }));
     expect(markup).toContain("실제 패널 미연결"); expect(markup).toContain("우측 이동");
-    expect(markup).toContain("현재 조회 위치의 특보 자동 판정은 하지 않습니다");
+    expect(markup).not.toContain("시간대별 예보 · 관측값과 구분");
     expect(markup).not.toContain("특보 없음");
   });
 });

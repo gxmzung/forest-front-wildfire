@@ -1,3 +1,6 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import WeatherEnvironmentPanel from "./WeatherEnvironmentPanel";
 import { expect, it } from "vitest";
 import { asKmaObservation } from "./kmaWeatherObservation";
 import { evaluateWeatherSnapshot } from "./weatherObservation";
@@ -20,4 +23,13 @@ it("실황 1시간 강수량 0을 기존 패널에 관측 주기와 함께 표�
   const response = { data: { observedAt: "2026-11-14T13:00:00+09:00", temperatureC: 11.1, humidityPct: 90, windSpeedMps: 0, windDirectionDeg: 52, precipitation1hMm: 0, precipitationType: 0, grid: { nx: 60, ny: 127 } } } as WeatherResponse;
   expect(asKmaObservation(response).precipitationMm).toBe(0);
   expect(asKmaObservation(response).precipitationPeriodMinutes).toBe(60);
+});
+
+
+it("실황 강수는 기존 카드에 표시하고 미제공 순간풍속은 결측과 구분한다", () => {
+  const response = { data: { observedAt: new Date().toISOString(), temperatureC: 11.1, humidityPct: 90, windSpeedMps: 0, windDirectionDeg: 52, precipitation1hMm: 0, precipitationType: 0, grid: { nx: 60, ny: 127 } } } as WeatherResponse;
+  const markup = renderToStaticMarkup(createElement(WeatherEnvironmentPanel, { observation: asKmaObservation(response), unsupportedFields: ["windGustMps"], showPressure: false }));
+  expect(markup).toContain("1시간 강수량</span><b>0</b>");
+  expect(markup).toContain("최대순간풍속</span><b>미제공</b>");
+  expect(markup).not.toContain("기압:");
 });

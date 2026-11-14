@@ -7,7 +7,7 @@ import WeatherOutlookPanel from "./WeatherOutlookPanel";
 import { precipitationLabel } from "./weatherTicker";
 import "./kma-weather.css";
 
-export default function KmaWeatherEnvironmentPanel({ latitude, longitude }: { latitude?: unknown; longitude?: unknown }) {
+export default function KmaWeatherEnvironmentPanel({ latitude, longitude, view = "weather" }: { latitude?: unknown; longitude?: unknown; view?: "weather" | "led" }) {
   const [mode, setMode] = useState<"event" | "browser" | "manual">("event");
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState("");
@@ -96,7 +96,10 @@ export default function KmaWeatherEnvironmentPanel({ latitude, longitude }: { la
     setLocating(false); setLocationInfo(null); setLocationError(""); setMode("event");
   }
   const stale = Boolean(error) || Boolean(value && weatherIsStale(value, now));
-  return <WeatherEnvironmentPanel observation={value ? asKmaObservation(value) : null} staleAfterMs={3 * 3600_000}
+  if (view === "led") return target
+    ? <WeatherOutlookPanel key={`${target.latitude}:${target.longitude}`} latitude={target.latitude} longitude={target.longitude} observation={value} observationError={Boolean(error)} refresh={refresh} view="led" />
+    : <section className="weather-environment-panel"><strong>전광판</strong><p>현장 기상에서 조회 위치를 선택하세요.</p></section>;
+  return <WeatherEnvironmentPanel observation={value ? asKmaObservation(value) : null} staleAfterMs={3 * 3600_000} unsupportedFields={["windGustMps"]} showPressure={false}
     afterContent={target ? <WeatherOutlookPanel key={`${target.latitude}:${target.longitude}`} latitude={target.latitude} longitude={target.longitude} observation={value} observationError={Boolean(error)} refresh={refresh} /> : undefined}
     statusLabel={loading ? "조회 중" : error ? "연결 확인" : !value ? "관측 대기" : stale ? "갱신 지연" : "기상청 실황"}>
     <p>기상청 인근 5km 격자 대표 관측값 · 풍선 센서 실측 아님</p>
@@ -112,7 +115,8 @@ export default function KmaWeatherEnvironmentPanel({ latitude, longitude }: { la
       <label>경도<input aria-label="날씨 조회 경도" value={lonInput} onChange={(event) => setLonInput(event.target.value)} inputMode="decimal" /></label>
       <button type="submit" disabled={loading}>조회</button>
     </form>
-    {value && <p>강수 형태: {precipitationLabel(value.data.precipitationType)}</p>}
+    {value && !("precipitation1hMm" in value.data) && <p role="status" className="kma-weather-notice">날씨 서버 업데이트 필요 · 현재 서버 응답에 강수량 필드가 없습니다.</p>}
+    {value && <p>{precipitationLabel(value.data.precipitationType)}</p>}
     {target && <p>조회 위치 {target.latitude.toFixed(5)}, {target.longitude.toFixed(5)}</p>}
     {!target && <p>사건의 지점 좌표 또는 직접 입력한 위치로 조회합니다.</p>}
     {error && <p role="status" className="kma-weather-notice">{error}{value && " · 마지막 관측값 표시"}</p>}
