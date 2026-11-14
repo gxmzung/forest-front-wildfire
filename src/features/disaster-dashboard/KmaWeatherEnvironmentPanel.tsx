@@ -7,7 +7,7 @@ import WeatherOutlookPanel from "./WeatherOutlookPanel";
 import { precipitationLabel } from "./weatherTicker";
 import "./kma-weather.css";
 
-export default function KmaWeatherEnvironmentPanel({ latitude, longitude, view = "weather" }: { latitude?: unknown; longitude?: unknown; view?: "weather" | "led" }) {
+export default function KmaWeatherEnvironmentPanel({ latitude, longitude, onTargetChange }: { latitude?: unknown; longitude?: unknown; onTargetChange?: (location: { latitude: number; longitude: number } | null) => void }) {
   const [mode, setMode] = useState<"event" | "browser" | "manual">("event");
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState("");
@@ -32,6 +32,8 @@ export default function KmaWeatherEnvironmentPanel({ latitude, longitude, view =
     setLatInput(String(latitude)); setLonInput(String(longitude));
     setTarget({ latitude, longitude });
   }, [latitude, longitude, mode]);
+
+  useEffect(() => { onTargetChange?.(target); }, [target, onTargetChange]);
 
   useEffect(() => {
     setReading(null); setError("");
@@ -96,9 +98,6 @@ export default function KmaWeatherEnvironmentPanel({ latitude, longitude, view =
     setLocating(false); setLocationInfo(null); setLocationError(""); setMode("event");
   }
   const stale = Boolean(error) || Boolean(value && weatherIsStale(value, now));
-  if (view === "led") return target
-    ? <WeatherOutlookPanel key={`${target.latitude}:${target.longitude}`} latitude={target.latitude} longitude={target.longitude} observation={value} observationError={Boolean(error)} refresh={refresh} view="led" />
-    : <section className="weather-environment-panel"><strong>전광판</strong><p>현장 기상에서 조회 위치를 선택하세요.</p></section>;
   return <WeatherEnvironmentPanel observation={value ? asKmaObservation(value) : null} staleAfterMs={3 * 3600_000} unsupportedFields={["windGustMps"]} showPressure={false}
     afterContent={target ? <WeatherOutlookPanel key={`${target.latitude}:${target.longitude}`} latitude={target.latitude} longitude={target.longitude} observation={value} observationError={Boolean(error)} refresh={refresh} /> : undefined}
     statusLabel={loading ? "조회 중" : error ? "연결 확인" : !value ? "관측 대기" : stale ? "갱신 지연" : "기상청 실황"}>

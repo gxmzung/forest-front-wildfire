@@ -8,6 +8,8 @@ import { buildOperationalEvidence, buildPacketLossQualityAlerts, classifyLinkHea
 import type { TelemetryStreamStatus } from "./telemetryStream";
 import PerformanceKpiPanel from "./PerformanceKpiPanel";
 import KmaWeatherEnvironmentPanel from "./KmaWeatherEnvironmentPanel";
+import { AirQualityDataPanel, WildfireRiskDataPanel } from "./EnvironmentDataPanels";
+import { PositionDataPanel, NetworkDataSummary } from "./DeviceDataPanels";
 import RadioPanel from "./RadioPanel";
 import NetworkSequenceQualityPanel from "./NetworkSequenceQualityPanel";
 import SlenoNetworkQualityPanel from "./SlenoNetworkQualityPanel";
@@ -30,7 +32,7 @@ import {
   type AlertDeliveryTrace,
 } from "./alertDeliveryTrace";
 
-export type PanelTab = "camera" | "radio" | "weather" | "led" | "layers" | "alerts" | "networks" | "reports" | "kpis" | "integrations";
+export type PanelTab = "camera" | "radio" | "weather" | "wildfire" | "air" | "position" | "layers" | "alerts" | "networks" | "reports" | "kpis" | "integrations";
 
 export type ExternalSourceId =
   | "firms"
@@ -98,7 +100,9 @@ const SHOW_VALIDATION_UI =
 /* weather-operations-navigation-20261011: 시작 화면은 현장 기상 */
 const tabs: Array<{ id: PanelTab; label: string; icon: string }> = [
   { id: "weather", label: "현장 기상", icon: "☀" },
-  { id: "led", label: "전광판", icon: "▤" },
+  { id: "wildfire", label: "산불위험", icon: "△" },
+  { id: "air", label: "대기질", icon: "≋" },
+  { id: "position", label: "장비 위치", icon: "◎" },
   { id: "radio", label: "무전 통화", icon: "◉" },
   { id: "layers", label: "지도 레이어", icon: "▱" },
   { id: "alerts", label: "현장 경보", icon: "!" },
@@ -172,6 +176,7 @@ export function OperationsPanel({
   onOpenDroneVideo,
   initiallyCollapsed = false,
 }: OperationsPanelProps) {
+  const [weatherTarget, setWeatherTarget] = useState<{ latitude: number; longitude: number } | null>(null);
   const [fieldResourceKey, setFieldResourceKey] = useState("");
   const fieldResource = locations.find(x => `${x.kind}-${x.id}` === fieldResourceKey);
   const nms = nmsSummary(overview.networks, overview.assets);
@@ -1009,7 +1014,11 @@ export function OperationsPanel({
         </header>
         <div className="operations-panel-body">
           <div className="radio-panel-host" hidden={activeTab !== "radio"}><RadioPanel active={activeTab === "radio" && !collapsed} /></div>
-          {(activeTab === "weather" || activeTab === "led") && <KmaWeatherEnvironmentPanel view={activeTab} latitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[1] : undefined} longitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[0] : undefined} />}
+          <div hidden={activeTab !== "weather"}><KmaWeatherEnvironmentPanel onTargetChange={setWeatherTarget} latitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[1] : undefined} longitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[0] : undefined} /></div>
+          {activeTab === "wildfire" && <WildfireRiskDataPanel />}
+          {activeTab === "air" && (weatherTarget ? <AirQualityDataPanel key={`${weatherTarget.latitude}:${weatherTarget.longitude}`} latitude={weatherTarget.latitude} longitude={weatherTarget.longitude} /> : <section className="environment-data-panel"><strong>대기질</strong><p>현장 기상에서 조회 위치를 선택하세요.</p></section>)}
+          <div hidden={activeTab !== "position"}><PositionDataPanel key={overview.event.eventId} locations={locations} samples={telemetrySamples} /></div>
+          {activeTab === "networks" && <NetworkDataSummary locations={locations} samples={telemetrySamples} />}
           {activeTab === "layers" && <section className="layer-control-list" aria-label="지도 레이어">
             <section className="layer-level-group" aria-labelledby="resource-layer-title">
               <header><strong id="resource-layer-title">현장 자산</strong></header>

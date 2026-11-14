@@ -17,9 +17,19 @@
 .kma-outlook th, .kma-outlook td { padding: 6px 3px; text-align: left; border-bottom: 1px solid #e2eae5; white-space: nowrap; }
 .kma-outlook pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 11px; line-height: 1.6; max-height: 260px; overflow-y: auto; }
 .kma-outlook a { color: #126b54; font-size: 12px; }
-.kma-led-preview { position: relative; height: 48px; overflow: hidden; background: #07100c; border: 2px solid #2d4439; border-radius: 6px; margin: 8px 0; }
-.kma-led-line { position: absolute; top: 10px; left: 0; white-space: nowrap; color: #7fffa6; font: 700 20px/24px monospace; animation: kma-led-right var(--ticker-duration, 50s) linear infinite; }
-@keyframes kma-led-right { from { left: 0; transform: translateX(-100%); } to { left: 100%; transform: translateX(0); } }
-@media (prefers-reduced-motion: reduce) { .kma-led-preview { overflow-x: auto; } .kma-led-line { position: static; display: inline-block; padding: 10px; animation: none; } }
-
 .weather-environment-panel .kma-outlook, .kma-forecast-scroll { min-width: 0; max-width: 100%; }
+
+.environment-data-panel { padding: 12px; color: #214d3e; font-size: 12px; display: grid; gap: 12px; min-width: 0; }
+.environment-data-panel header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.environment-data-panel header strong { font-size: 14px; }
+.environment-data-panel p { margin: 0; line-height: 1.6; overflow-wrap: anywhere; }
+.environment-data-panel form, .environment-data-panel label { display: grid; gap: 6px; }
+.environment-data-panel input, .environment-data-panel select { max-width: 100%; min-width: 0; padding: 8px; border: 1px solid #bdcfc6; border-radius: 5px; background: white; color: #214d3e; }
+.environment-data-panel button { padding: 7px 9px; border: 1px solid #bdcfc6; border-radius: 5px; background: #eff7f2; color: #214d3e; cursor: pointer; }
+.environment-data-panel dl { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 0; }
+.environment-data-panel dl > div { border:1px solid #dce8e1; border-radius: 7px; padding: 10px; background: #f8fcfa; min-width: 0; }
+.environment-data-panel dt { font-size: 11px; color:#647b71; }
+.environment-data-panel dd { margin: 6px 0 0; font-weight: 700; overflow-wrap: anywhere; }
+.environment-data-panel .data-warning { color: #9a5c00; }
+.environment-data-panel .data-actions { display:flex; gap:8px; flex-wrap:wrap; }
+.operations-panel > nav { min-height: 0; overflow-y: auto; flex: 1; scrollbar-width: thin; }
