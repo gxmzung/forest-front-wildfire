@@ -23,8 +23,8 @@ export default function WeatherOutlookPanel({ latitude, longitude, observation, 
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(timer); }, []);
   const rows = forecast?.data.periods.filter((row) => Date.parse(row.validAt) > now) ?? [];
   return <div className="kma-outlook">
-    <details open>
-      <summary>시간대별 예보 · 관측값과 구분</summary>
+    <details>
+      <summary>시간대별 예보 · {forecastError ? '수신 실패' : forecast ? '수신 자료' : '조회 중'}</summary>
       {forecastError && <p role="status" className="kma-weather-notice">{forecastError}{forecast && " · 마지막 예보 표시"}</p>}
       {!forecast && !forecastError && <p>기상청 예보 조회 중…</p>}
       {forecast && <>
@@ -38,7 +38,7 @@ export default function WeatherOutlookPanel({ latitude, longitude, observation, 
       </>}
     </details>
     <details>
-      <summary>기상특보 · 전국 현황 {warningError ? "(연결 확인)" : warnings ? "(수신)" : "(조회 중)"}</summary>
+      <summary>기상특보 · 전국 {warningError ? '확인 불가' : warnings ? '수신 자료' : '조회 중'}</summary>
       <p>전국 원문입니다. 현재 조회 위치의 특보 자동 판정은 하지 않습니다.</p>
       {warningError && <p role="status" className="kma-weather-notice">{warningError} 특보 없음으로 판단하지 않습니다.</p>}
       {warnings && <>
