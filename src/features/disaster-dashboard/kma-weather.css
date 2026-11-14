@@ -7,3 +7,19 @@
 .kma-location-actions { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
 .kma-location-actions button { padding: 7px 9px; border: 1px solid #bdcfc6; border-radius: 5px; background: #eff7f2; color: #214d3e; cursor: pointer; }
 .kma-location-actions button:disabled { opacity: .6; cursor: wait; }
+
+.kma-outlook { margin-top: 16px; border-top: 1px solid #d4e4dc; }
+.kma-outlook > details { padding: 10px 0; border-bottom: 1px solid #d4e4dc; }
+.kma-outlook summary { cursor: pointer; font-size: 12px; font-weight: 700; color: #214d3e; }
+.kma-forecast-scroll { overflow-x: auto; }
+.kma-outlook table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.kma-outlook caption { text-align: left; color: #657d72; padding: 5px 0; }
+.kma-outlook th, .kma-outlook td { padding: 6px 3px; text-align: left; border-bottom: 1px solid #e2eae5; white-space: nowrap; }
+.kma-outlook pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 11px; line-height: 1.6; max-height: 260px; overflow-y: auto; }
+.kma-outlook a { color: #126b54; font-size: 12px; }
+.kma-led-preview { position: relative; height: 48px; overflow: hidden; background: #07100c; border: 2px solid #2d4439; border-radius: 6px; margin: 8px 0; }
+.kma-led-line { position: absolute; top: 10px; left: 0; white-space: nowrap; color: #7fffa6; font: 700 20px/24px monospace; animation: kma-led-right var(--ticker-duration, 50s) linear infinite; }
+@keyframes kma-led-right { from { left: 0; transform: translateX(-100%); } to { left: 100%; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .kma-led-preview { overflow-x: auto; } .kma-led-line { position: static; display: inline-block; padding: 10px; animation: none; } }
+
+.weather-environment-panel .kma-outlook, .kma-forecast-scroll { min-width: 0; max-width: 100%; }

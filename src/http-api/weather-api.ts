@@ -7,6 +7,8 @@ export type WeatherResponse = {
     humidityPct: number | null;
     windSpeedMps: number | null;
     windDirectionDeg: number | null;
+    precipitation1hMm?: number | null;
+    precipitationType?: number | null;
     grid: { nx: number; ny: number };
   };
   meta: { provider: string; source: "KMA_OBSERVATION"; cache: "HIT" | "MISS" | "STALE"; stale: boolean; servedAt: string; note: string };
@@ -21,6 +23,8 @@ export function validateWeather(value: unknown): WeatherResponse {
     const [min, max] = ranges[key];
     if (item !== null && (typeof item !== "number" || !Number.isFinite(item) || item < min || item > max)) throw new Error("유효하지 않은 기상 측정값입니다.");
   }
+  if (result.data.precipitation1hMm != null && (typeof result.data.precipitation1hMm !== "number" || !Number.isFinite(result.data.precipitation1hMm) || result.data.precipitation1hMm < 0 || result.data.precipitation1hMm > 2000)) throw new Error("강수량 응답을 확인하세요.");
+  if (result.data.precipitationType != null && ![0, 1, 2, 3, 5, 6, 7].includes(result.data.precipitationType)) throw new Error("강수 형태 응답을 확인하세요.");
   const { nx, ny } = result.data.grid ?? {};
   if (!Number.isInteger(nx) || !Number.isInteger(ny) || nx < 1 || nx > 149 || ny < 1 || ny > 253 || typeof result.meta.stale !== "boolean") throw new Error("기상 격자·갱신 상태를 확인하세요.");
   return result;
