@@ -33,3 +33,8 @@
 .environment-data-panel .data-warning { color: #9a5c00; }
 .environment-data-panel .data-actions { display:flex; gap:8px; flex-wrap:wrap; }
 .operations-panel > nav { min-height: 0; overflow-y: auto; flex: 1; scrollbar-width: thin; }
+
+.environment-data-panel .risk-value-list { max-height: 280px; overflow-y: auto; }
+.environment-data-panel .risk-value-list table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.environment-data-panel .risk-value-list th, .environment-data-panel .risk-value-list td { padding: 6px 3px; border-bottom: 1px solid #dce8e1; text-align: left; }
+.environment-data-panel .risk-value-list button { padding: 3px; text-align: left; background: transparent; border: 0; }

@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  readonly VITE_AIR_QUALITY_ENABLED?: string;
   readonly VITE_WEATHER_API_BASE_URL?: string;
   readonly VITE_API_BASE_URL?: string;
   readonly VITE_DASHBOARD_API_BASE_URL?: string;
