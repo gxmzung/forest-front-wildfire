@@ -23,6 +23,8 @@ async function request(path: string, signal?: AbortSignal): Promise<unknown> {
     if (signal?.aborted) throw error;
     if (error instanceof HttpApiError) {
       const message = (error.payload as { error?: { message?: unknown; code?: string } } | null)?.error;
+      if (message?.code === "AIR_STATION_AUTH_FAILED") throw new Error("에어코리아 측정소정보 API 인증 거부 · 해당 서비스 승인 상태와 키를 확인하세요.");
+      if (message?.code === "AIR_OBSERVATION_AUTH_FAILED") throw new Error("에어코리아 대기오염정보 API 인증 거부 · 해당 서비스 승인 상태와 키를 확인하세요.");
       if (message?.code === "NOT_CONFIGURED") throw new Error("해당 공공데이터 서비스 활용신청 및 서버 인증키 설정 필요");
       if (message?.code === "PROVIDER_REJECTED") throw new Error("해당 공공데이터 서비스 활용신청·인증키 권한 확인 필요");
       if (error.status === 404) throw new Error("공공데이터 조회 서버 업데이트 필요 (404)");
@@ -36,9 +38,12 @@ export async function loadWildfireRisk(page: number, signal?: AbortSignal) { ret
 // 6시간은 화면의 갱신 안내 정책이며 공식 위험등급이나 발효시간 판정이 아니다.
 export function riskAnalysisStale(raw: string, now = Date.now()): boolean | null {
   let iso = raw;
+  const kst = /^(\d{4}-\d{2}-\d{2})[ T](\d{2})(?::(\d{2}))?(?::(\d{2}))?$/.exec(raw);
   if (/^\d{10}(?:\d{2})?(?:\d{2})?$/.test(raw)) iso = `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}T${raw.slice(8, 10)}:${raw.slice(10, 12) || "00"}:${raw.slice(12, 14) || "00"}+09:00`;
+  else if (kst) iso = `${kst[1]}T${kst[2]}:${kst[3] || "00"}:${kst[4] || "00"}+09:00`;
   else if (!/(?:Z|[+-]\d{2}:\d{2})$/.test(raw)) return null;
   const stamp = Date.parse(iso);
   if (!Number.isFinite(stamp)) return null;
+  if (iso.endsWith("+09:00") && new Date(stamp + 9 * 3600_000).toISOString().slice(0, 19) !== iso.slice(0, 19)) return null;
   return now - stamp > 6 * 3600_000 || stamp - now > 300_000;
 }
