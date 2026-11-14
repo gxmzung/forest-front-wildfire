@@ -1,11 +1,6 @@
-const API_HOST =
-  typeof window === "undefined"
-    ? "127.0.0.1"
-    : window.location.hostname;
-
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL?.trim() ||
-  `http://${API_HOST}:18000`
+  "https://api.forest.tobeunicorn.kr"
 ).replace(/\/+$/, "");
 
 const DASHBOARD_API_BASE_URL = (
