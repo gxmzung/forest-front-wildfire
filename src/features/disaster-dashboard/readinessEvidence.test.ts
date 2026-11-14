@@ -85,10 +85,11 @@ describe("operations tab contracts", () => {
   }));
   it("분야별 데이터 탭을 제공하고 LED 모양·전광판 탭을 표시하지 않는다", () => {
     const weather = renderPanel("weather");
-    for (const label of ["현장 기상", "산불위험", "대기질", "장비 위치", "통신망"]) expect(weather).toContain(`aria-label="${label}"`);
+    for (const label of ["현장 기상", "산불위험", "장비 위치", "통신망"]) expect(weather).toContain(`aria-label="${label}"`);
     expect(weather).not.toContain('aria-label="전광판"');
     expect(weather).not.toContain("전광판 한 줄 미리보기");
-    expect(renderPanel("air")).toContain("현장 기상에서 조회 위치를 선택하세요.");
+    expect(weather).not.toContain('aria-label="대기질"');
+    expect(renderPanel("air")).not.toContain('aria-label="대기질 데이터"');
     expect(renderPanel("position")).toContain("장비 수신 대기");
     expect(renderPanel("wildfire")).toContain("산림청 국립산림과학원");
   });

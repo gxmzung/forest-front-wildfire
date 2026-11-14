@@ -115,7 +115,8 @@ const tabs: Array<{ id: PanelTab; label: string; icon: string }> = [
 // 20261011 이영준
 // 현장 KPI는 운영 및 DEMO 화면에서 모두 접근 가능하도록 유지
 // 실측 여부는 PerformanceKpiPanel 내부에서 별도 구분
-const visibleTabs = tabs;
+const AIR_QUALITY_ENABLED = import.meta.env.VITE_AIR_QUALITY_ENABLED === "1";
+const visibleTabs = tabs.filter((tab) => tab.id !== "air" || AIR_QUALITY_ENABLED);
 
 
 const statusLabels: Record<string, string> = {
@@ -1016,7 +1017,7 @@ export function OperationsPanel({
           <div className="radio-panel-host" hidden={activeTab !== "radio"}><RadioPanel active={activeTab === "radio" && !collapsed} /></div>
           <div hidden={activeTab !== "weather"}><KmaWeatherEnvironmentPanel onTargetChange={setWeatherTarget} latitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[1] : undefined} longitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[0] : undefined} /></div>
           {activeTab === "wildfire" && <WildfireRiskDataPanel />}
-          {activeTab === "air" && (weatherTarget ? <AirQualityDataPanel key={`${weatherTarget.latitude}:${weatherTarget.longitude}`} latitude={weatherTarget.latitude} longitude={weatherTarget.longitude} /> : <section className="environment-data-panel"><strong>대기질</strong><p>현장 기상에서 조회 위치를 선택하세요.</p></section>)}
+          {AIR_QUALITY_ENABLED && activeTab === "air" && (weatherTarget ? <AirQualityDataPanel key={`${weatherTarget.latitude}:${weatherTarget.longitude}`} latitude={weatherTarget.latitude} longitude={weatherTarget.longitude} /> : <section className="environment-data-panel"><strong>대기질</strong><p>현장 기상에서 조회 위치를 선택하세요.</p></section>)}
           <div hidden={activeTab !== "position"}><PositionDataPanel key={overview.event.eventId} locations={locations} samples={telemetrySamples} /></div>
           {activeTab === "networks" && <NetworkDataSummary locations={locations} samples={telemetrySamples} />}
           {activeTab === "layers" && <section className="layer-control-list" aria-label="지도 레이어">

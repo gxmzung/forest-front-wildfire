@@ -58,7 +58,7 @@ function WildfireRiskPage({ page, onPage }: { page: number; onPage: (page: numbe
   const [query, setQuery] = useState("");
   const [selectedKey, setSelectedKey] = useState("");
   const rows = value?.data.filter((row) => `${row.province} ${row.district}`.includes(query.trim())) ?? [];
-  const key = (row: (typeof rows)[number], index: number) => `${row.regionCode}:${row.sigunguCode}:${row.analyzedAt}:${index}`;
+  const key = (row: (typeof rows)[number], index: number) => row.sigunguCode || row.regionCode || `${row.province}:${row.district}:${index}`;
   const selectedIndex = rows.findIndex((row, index) => key(row, index) === selectedKey);
   const selected = rows[selectedIndex];
   return <section className="environment-data-panel" aria-label="산불위험 데이터">
@@ -68,13 +68,19 @@ function WildfireRiskPage({ page, onPage }: { page: number; onPage: (page: numbe
     {value?.meta.stale && <p className="data-warning">갱신 지연 · 마지막 수신 자료</p>}
     <label>지역 검색<input value={query} onChange={(event) => { setQuery(event.target.value); setSelectedKey(""); }} placeholder="예: 성주, 합천, 예산" /></label>
     <label>조회 지역<select value={selected ? key(selected, selectedIndex) : ""} onChange={(event) => setSelectedKey(event.target.value)}><option value="">지역 선택</option>{rows.map((row, index) => <option key={key(row, index)} value={key(row, index)}>{row.province} {row.district} · {row.analyzedAt || "분석시각 미수신"}</option>)}</select></label>
+    {value && <p>{value.data.length}개 지역 수신 · 아래 목록에서 현장 행정구역을 선택하세요.</p>}
+    {!selected && rows.length > 0 && <div className="kma-forecast-scroll risk-value-list"><table>
+      <caption>수신된 공식 위험지수 · 현장 자동 선택 아님</caption>
+      <thead><tr><th>지역</th><th>평균</th><th>최대</th><th>최소</th></tr></thead>
+      <tbody>{rows.map((row, index) => <tr key={key(row, index)}><td><button type="button" onClick={() => setSelectedKey(key(row, index))}>{row.province} {row.district}</button></td><td>{metric(row.mean)}</td><td>{metric(row.max)}</td><td>{metric(row.min)}</td></tr>)}</tbody>
+    </table></div>}
     {selected ? <>
       <p>선택 지역: {selected.province} {selected.district}</p>
       <dl><div><dt>평균 위험지수</dt><dd>{metric(selected.mean)}</dd></div><div><dt>최대 위험지수</dt><dd>{metric(selected.max)}</dd></div><div><dt>최소 위험지수</dt><dd>{metric(selected.min)}</dd></div></dl>
       {riskAnalysisStale(selected.analyzedAt) !== false && <p className="data-warning">{riskAnalysisStale(selected.analyzedAt) === null ? "분석시각 형식 확인 필요 · 최신 여부 미확인" : "분석시각이 오래됐거나 기기 시각과 맞지 않습니다. 최신 자료 여부를 확인하세요."}</p>}
       <p>분석 시각(제공 원문): {selected.analyzedAt || "미수신"}</p>
       <p>조회 확인: {value?.meta.servedAt ? kstTime(value.meta.servedAt) + " KST" : "미수신"}</p>
-    </> : <p>{loading ? "산불위험 자료 조회 중" : "해당 지역 자료 미수신"}</p>}
+    </> : <p>{loading ? "산불위험 자료 조회 중" : rows.length > 0 ? "지역을 선택하면 상세 값을 표시합니다." : "해당 지역 자료 미수신"}</p>}
     <p>현장 행정구역을 직접 확인해 선택하세요. 좌표 기반 자동 지역 매칭이나 위험등급 임의 산정은 하지 않습니다.</p>
     <div className="data-actions"><button type="button" disabled={page <= 1 || loading} onClick={() => onPage(page - 1)}>이전</button><span>{page}쪽</span><button type="button" disabled={loading || !value || value.data.length < 300 && !(value.meta.totalCount && value.meta.totalCount > page * 300)} onClick={() => onPage(page + 1)}>다음</button></div>
   </section>;
