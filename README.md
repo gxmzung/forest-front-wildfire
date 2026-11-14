@@ -32,8 +32,6 @@
 
 ## 실행
 
-운영과 같은 API·Docker 환경으로 확인하는 방법은 [로컬·운영 일치 기준](docs/PRODUCTION_PARITY.md)을 참고한다. 기본 API는 회사 HTTPS 주소이며, 로컬 서버는 명시적으로 설정한 경우에만 사용한다.
-
 ```powershell
 npm.cmd install
 npm.cmd run dev
@@ -41,7 +39,7 @@ npm.cmd run dev
 
 기본 주소는 `http://127.0.0.1:15173`이다. API 주소는 `VITE_API_BASE_URL`, Gateway 실시간 스트림은 `VITE_TELEMETRY_WS_URL`로 주입하며 프론트 환경에 Supabase 서버 키나 장비 인증키를 넣지 않는다. 스트림 메시지는 `assetId`, `observedAt`, 위·경도와 선택적인 GNSS/RTK·MAVLink 변환 상태를 받으며 사건 ID와 sequence를 검증한 뒤 최신 좌표만 반영한다.
 
-산림청 UI/UX 시연에서는 `http://127.0.0.1:15173/?demo=1`로 접속한다. 이 경로는 외부 API나 현장망 장애와 무관하게 산불·산사태 공간 레이어, 실시간 드론 궤적, 운영 경보, 통신 상태와 KPI 증적을 고정 시나리오로 재현한다. 화면 상단의 `DEMO · 모의 관제 데이터` 표시는 공식 실측값과 혼동되지 않도록 유지한다.
+기본 홈 화면은 실제 운영 API만 조회한다. `demo`, `preview`, `e2e` 파라미터로 모의 데이터가 생성되지 않으며, 등록 장비·관측값이 없으면 빈 상태나 수신 대기를 표시한다.
 
 ## 검증
 
@@ -62,3 +60,8 @@ npm.cmd run build
 - 실제 Gateway WebSocket 인증·부하 시험과 오프라인 캐시
 
 `src/entities`, `src/pages`, 일부 `src/features`와 `src/shared`의 README는 향후 모듈 분리 경계를 설명한다. 해당 디렉터리에 README만 있는 경우 구현 완료 기능을 의미하지 않는다.
+
+
+## 개인 개발과 회사 UI 기준
+
+회사 UI 기준 커밋과 실제 기상청 연동 절차는 [WEATHER_INTEGRATION.md](docs/WEATHER_INTEGRATION.md)에 기록한다. 운영과 같은 API·배포 검증 설정은 [PRODUCTION_PARITY.md](docs/PRODUCTION_PARITY.md)를 따른다.

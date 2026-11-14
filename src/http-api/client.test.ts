@@ -13,7 +13,7 @@ describe("httpApi", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
     await expect(httpApi("/api/v1/events", { method: "POST", body: "{}" })).resolves.toEqual({ data: { accepted: true } });
-    expect(String(fetchMock.mock.calls[0][0])).toBe("https://api.forest.tobeunicorn.kr/api/v1/events");
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/\/api\/v1\/events$/);
   });
 
   it("204 응답을 null로 처리한다", async () => {

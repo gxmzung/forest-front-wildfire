@@ -4,15 +4,17 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "check:parity": "node scripts/check-production-parity.mjs",
     "dev": "vite build --configLoader runner && vite preview --configLoader runner --host 0.0.0.0 --port 15173 --strictPort",
     "build": "tsc -b && vite build --configLoader runner",
     "preview": "vite preview --configLoader runner",
-    "test": "vitest run --configLoader runner"
+    "test": "vitest run --configLoader runner",
+    "check:parity": "node scripts/check-production-parity.mjs"
   },
   "dependencies": {
+    "geotiff": "^3.0.5",
     "hls.js": "^1.7.3",
     "maplibre-gl": "^5.24.0",
+    "proj4": "^2.22.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },

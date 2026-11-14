@@ -1,8 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { loadWeather, weatherIsStale, weatherValue, type WeatherResponse } from "../../http-api/weather-api";
-import "./weather-panel.css";
+import { loadWeather, weatherIsStale, type WeatherResponse } from "../../http-api/weather-api";
+import WeatherEnvironmentPanel from "./WeatherEnvironmentPanel";
+import { asKmaObservation } from "./kmaWeatherObservation";
+import "./kma-weather.css";
 
-export default function WeatherPanel({ latitude, longitude }: { latitude?: unknown; longitude?: unknown }) {
+export default function KmaWeatherEnvironmentPanel({ latitude, longitude }: { latitude?: unknown; longitude?: unknown }) {
   const [latInput, setLatInput] = useState("");
   const [lonInput, setLonInput] = useState("");
   const [target, setTarget] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -61,30 +63,18 @@ export default function WeatherPanel({ latitude, longitude }: { latitude?: unkno
     setTarget({ latitude: lat, longitude: lon });
   }
   const stale = Boolean(error) || Boolean(value && weatherIsStale(value, now));
-  return <details className="weather-panel" open>
-    <summary>기상청 실제 날씨 <span>{loading ? "조회 중" : error ? "연결 확인" : !value ? "위치 설정" : stale ? "갱신 지연" : "실황 수신"}</span></summary>
-    <div className="weather-panel-body">
-      <p>인근 5km 격자 대표 관측값 · 풍선 센서 실측 아님</p>
-      <form onSubmit={submit}>
-        <label>위도<input aria-label="날씨 조회 위도" value={latInput} onChange={(event) => setLatInput(event.target.value)} inputMode="decimal" placeholder="위도" /></label>
-        <label>경도<input aria-label="날씨 조회 경도" value={lonInput} onChange={(event) => setLonInput(event.target.value)} inputMode="decimal" placeholder="경도" /></label>
-        <button type="submit" disabled={loading}>조회</button>
-      </form>
-      {target && <small>조회 위치 {target.latitude.toFixed(5)}, {target.longitude.toFixed(5)}</small>}
-      {error && <p role="status" className="weather-error">{error}{value && " · 마지막 관측값 표시"}</p>}
-      {!target && <p>사건의 지점 좌표 또는 직접 입력한 위치로 조회합니다.</p>}
-      {value && <>
-        <dl data-stale={stale}>
-          <div><dt>기온</dt><dd>{weatherValue(value.data.temperatureC, "℃")}</dd></div>
-          <div><dt>습도</dt><dd>{weatherValue(value.data.humidityPct, "%")}</dd></div>
-          <div><dt>풍속</dt><dd>{weatherValue(value.data.windSpeedMps, "m/s")}</dd></div>
-          <div><dt>풍향</dt><dd>{weatherValue(value.data.windDirectionDeg, "°")}</dd></div>
-        </dl>
-        <small>관측 {new Date(value.data.observedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })} KST</small>
-        <small>출처: 기상청 초단기실황 · 격자 {value.data.grid.nx}, {value.data.grid.ny}</small>
-        {stale && <p className="weather-error">갱신 지연 · 현재 현장 측정값으로 사용하지 마세요.</p>}
-      </>}
-      {target && <button type="button" onClick={() => setRefresh((count) => count + 1)} disabled={loading}>다시 확인</button>}
-    </div>
-  </details>;
+  return <WeatherEnvironmentPanel observation={value ? asKmaObservation(value) : null} staleAfterMs={3 * 3600_000}
+    statusLabel={loading ? "조회 중" : error ? "연결 확인" : !value ? "관측 대기" : stale ? "갱신 지연" : "기상청 실황"}>
+    <p>기상청 인근 5km 격자 대표 관측값 · 풍선 센서 실측 아님</p>
+    <form className="kma-weather-form" onSubmit={submit}>
+      <label>위도<input aria-label="날씨 조회 위도" value={latInput} onChange={(event) => setLatInput(event.target.value)} inputMode="decimal" /></label>
+      <label>경도<input aria-label="날씨 조회 경도" value={lonInput} onChange={(event) => setLonInput(event.target.value)} inputMode="decimal" /></label>
+      <button type="submit" disabled={loading}>조회</button>
+    </form>
+    {target && <p>조회 위치 {target.latitude.toFixed(5)}, {target.longitude.toFixed(5)}</p>}
+    {!target && <p>사건의 지점 좌표 또는 직접 입력한 위치로 조회합니다.</p>}
+    {error && <p role="status" className="kma-weather-notice">{error}{value && " · 마지막 관측값 표시"}</p>}
+    {value && stale && <p className="kma-weather-notice">갱신 지연 · 마지막 관측값입니다.</p>}
+    {target && <button type="button" className="kma-weather-retry" onClick={() => setRefresh((count) => count + 1)} disabled={loading}>다시 확인</button>}
+  </WeatherEnvironmentPanel>;
 }

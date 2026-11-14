@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   extractRegisteredAssetId,
+  recommendedDeviceType,
   extractVendorMapping,
 } from "./device-registration-api";
 
@@ -41,5 +42,19 @@ describe("device registration helpers", () => {
       vendor_code: "NDPS",
       status: "ACTIVE",
     });
+  });
+});
+
+describe("device type recommendations", () => {
+  it.each(["UAV", "무인 항공기", "드론"])("keeps %s as UAV", (name) => {
+    expect(recommendedDeviceType("NDPS", name)).toBe("UAV");
+  });
+  it("preserves router and vehicle types", () => {
+    expect(recommendedDeviceType("NDPS", "BACKHAUL_ROUTER")).toBe("BACKHAUL_ROUTER");
+    expect(recommendedDeviceType("JININFRA", "COMMUNICATION_VEHICLE")).toBe("COMMUNICATION_VEHICLE");
+  });
+  it("requires explicit input for unknown types", () => {
+    expect(recommendedDeviceType("NDPS", "unknown")).toBe("");
+    expect(recommendedDeviceType("JININFRA", "unknown")).toBe("");
   });
 });

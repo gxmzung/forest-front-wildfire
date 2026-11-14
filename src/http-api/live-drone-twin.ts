@@ -101,8 +101,6 @@ function validTelemetry(
     typeof row.longitude === "number" &&
     Number.isFinite(row.longitude) &&
     Math.abs(row.longitude) <= 180 &&
-    typeof row.altitude === "number" &&
-    Number.isFinite(row.altitude) &&
     typeof row.observedAt === "string" &&
     Number.isFinite(Date.parse(row.observedAt))
   );
@@ -196,7 +194,7 @@ export function mergeDroneTwins(
         coordinates: [
           value.longitude,
           value.latitude,
-          value.altitude,
+          ...(finite(value.altitude) == null ? [] : [value.altitude]),
         ],
       },
 
@@ -220,7 +218,8 @@ export function mergeDroneTwins(
         normalizedHorizontalAccuracyM(value),
 
       qualityStatus: state,
-      sourceSystem: "GCS_UPLINK",
+      sourceSystem: valueAttributes.sourceSystem ?? "GCS_UPLINK",
+      positionFetchStatus: value.positionFetchStatus,
       sourceAssetId: id,
 
       attributes: {
@@ -257,16 +256,8 @@ export class LiveDroneTelemetryReader {
 
   async read(
     eventId: string,
-    demo: boolean,
     fetchRows: () => Promise<ApiRecord[]>,
   ) {
-    if (demo) {
-      return {
-        rows: [] as ApiRecord[],
-        status: "DEMO",
-      };
-    }
-
     try {
       const rows = await fetchRows();
 

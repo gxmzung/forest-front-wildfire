@@ -1,0 +1,4 @@
+.network-availability {display:grid;gap:8px;padding:14px;border:1px solid #ccdcd5;border-radius:8px;background:#f5f9f7;color:#213c4c;margin:12px 0;}
+.network-availability header {display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14px;}
+.network-availability > .network-recovery-time {font-size:18px;overflow-wrap:anywhere;}
+.network-availability small {font-size:11px;line-height:1.6;color:#536c7d;}

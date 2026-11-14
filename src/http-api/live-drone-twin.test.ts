@@ -79,6 +79,19 @@ const row = {
 };
 
 describe("live drone twin", () => {
+  it("shows vehicle latitude and longitude when altitude is unavailable", () => {
+    for (const altitude of [null, undefined, NaN]) {
+      const result = mergeDroneTwins(
+        [{ ...assets[0], assetType: "COMMAND_VEHICLE" }],
+        [{ ...row, altitude }], "flight", now,
+      );
+      expect(result.matched).toBe(1);
+      expect(result.assets[0]).toMatchObject({
+        assetType: "COMMAND_VEHICLE",
+        geometry: { type: "Point", coordinates: [row.longitude, row.latitude] },
+      });
+    }
+  });
   it(
     "preserves canonical identity and maps GPS quality",
     () => {
@@ -329,21 +342,6 @@ describe("live drone twin", () => {
         (
           await reader.read(
             "flight",
-            true,
-            fetch,
-          )
-        ).rows,
-      ).toEqual([]);
-
-      expect(
-        fetch,
-      ).not.toHaveBeenCalled();
-
-      expect(
-        (
-          await reader.read(
-            "flight",
-            false,
             async () => {
               throw Error();
             },
@@ -353,14 +351,12 @@ describe("live drone twin", () => {
 
       await reader.read(
         "flight",
-        false,
         fetch,
       );
 
       const failed =
         await reader.read(
           "flight",
-          false,
           async () => {
             throw Error();
           },
@@ -378,7 +374,6 @@ describe("live drone twin", () => {
         (
           await reader.read(
             "other",
-            false,
             async () => {
               throw Error();
             },
