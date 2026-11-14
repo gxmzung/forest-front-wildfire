@@ -1,0 +1,146 @@
+/*
+ * FIELD DASHBOARD — AUTHORITATIVE DESKTOP LAYOUT
+ *
+ * 68px rail + 340px drawer = 408px left
+ * flexible map
+ * 296px inspector
+ */
+
+@media (min-width: 1101px) {
+
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .live-location-panel
+    > .live-location-layout {
+    display: grid !important;
+    grid-template-columns:
+      408px
+      minmax(0, 1fr)
+      296px !important;
+
+    column-gap: 8px !important;
+    row-gap: 0 !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  /* 실제 운영화면: inspector 없음 */
+  .unified-disaster-board.is-field-mode.final-ops-ui
+    .dashboard-map-stage.field-command-stage
+    .live-location-panel
+    > .live-location-layout {
+    grid-template-columns:
+      408px
+      minmax(0, 1fr) !important;
+  }
+
+  /* 좌측 전체 = rail 68 + drawer 340 */
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .operations-panel {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+
+    width: 408px !important;
+    min-width: 408px !important;
+    max-width: 408px !important;
+
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 흰색 drawer */
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .operation-drawer {
+    left: 68px !important;
+    right: auto !important;
+
+    width: 340px !important;
+    min-width: 340px !important;
+    max-width: 340px !important;
+
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* drawer 내부가 다시 폭을 밀어내지 못하게 */
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .operations-panel-body,
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .operations-panel-body > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .operations-panel-body {
+    overflow-x: hidden !important;
+  }
+
+  /* 지도는 좌측 408px 바로 다음부터 시작 */
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .location-map {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+
+    box-sizing: border-box !important;
+  }
+
+  /* 검증 화면 우측 inspector 유지 */
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .field-command-inspector {
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+
+    display: block !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* 운영 화면에서는 inspector 제거 */
+  .unified-disaster-board.is-field-mode.final-ops-ui
+    .dashboard-map-stage.field-command-stage
+    .field-command-inspector {
+    display: none !important;
+  }
+
+  /* 과거 map shift 제거 */
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+
+  /* 지도 상태 pill도 새 경계에 맞춤 */
+  .unified-disaster-board.is-field-mode
+    .dashboard-map-stage.field-command-stage
+    .map-status-pill {
+    left: 420px !important;
+  }
+}

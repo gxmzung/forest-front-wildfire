@@ -1,0 +1,33 @@
+.camera-panel { display:grid; gap:16px; padding:16px; color:#213c4c; }
+.camera-panel p { margin:0; font-size:13px; line-height:1.6; }
+.camera-panel form { display:grid; gap:10px; }
+.camera-panel label { color:#213c4c; font-size:12px; font-weight:600; }
+.camera-panel input:not([type=checkbox]) { box-sizing:border-box; width:100%; min-width:0; border:1px solid #40536d; border-radius:6px; background:#0e1b2c; color:#e8f1ff; padding:11px; }
+.camera-address-toggle { display:flex; align-items:center; gap:7px; }
+.camera-actions { display:flex; gap:8px; }
+.camera-actions button { border:1px solid #486480; background:#203f5d; color:#fff; padding:9px 12px; border-radius:6px; cursor:pointer; }
+.camera-actions button:disabled { opacity:.5; cursor:default; }
+.camera-screen { background:#060c15; border:1px solid #2d435d; border-radius:8px; min-height:190px; overflow:hidden; display:grid; align-items:center; text-align:center; }
+.camera-screen video { display:block; width:100%; max-height:340px; }
+.camera-panel .camera-error { color:#a92320; }
+.camera-panel small { font-size:11px; line-height:1.7; color:#536c7d; }
+
+.camera-panel > p { color:#40586b; }
+.camera-screen p { color:#dbe8f6; }
+
+.camera-screen .video-playback { position:relative; overflow:hidden; isolation:isolate; }
+.camera-screen .video-playback__status,
+.camera-screen .video-playback__error { pointer-events:none; }
+
+.camera-performance-targets {display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+.camera-performance-targets > div {display:grid;gap:8px;padding:13px;border:1px solid #ccdcd5;border-radius:8px;background:#f5f9f7;}
+.camera-performance-targets header {display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:14px;}
+.camera-performance-targets header b {font-size:11px;padding:5px 7px;border-radius:4px;background:#e5f1eb;color:#14583d;}
+.camera-performance-targets > div > span {font-size:12px;color:#59736b;}
+.camera-performance-targets span strong {display:block;font-size:22px;color:#164f3b;}
+.camera-indicator-state {padding:8px;border-radius:5px;background:#edf0f3;color:#536c7d;font-size:13px;font-weight:700;}
+.camera-indicator-state[data-state=NORMAL],.camera-indicator-state[data-state=PASS] {background:#dfefe6;color:#226344;}
+.camera-indicator-state[data-state=STALLED],.camera-indicator-state[data-state=DELAYED],.camera-indicator-state[data-state=FAIL],.camera-indicator-state[data-state=UNCONFIRMED] {background:#fff0dc;color:#8a4a00;}
+.camera-performance-targets details {border-top:1px solid #dce5e2;padding-top:8px;}
+.camera-performance-targets summary {cursor:pointer;font-size:12px;color:#536c7d;}
+.camera-panel .camera-metric-note {font-size:12px;background:#fff0dc;color:#8a4a00;padding:8px;border-radius:4px;}

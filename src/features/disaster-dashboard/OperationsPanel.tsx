@@ -1,3 +1,4 @@
+import { CHUNGNAM_VIEWSHED_CONFIG } from "./chungnamViewshedConfig";
 import { nmsSummary, receivedNumber } from "./nmsSummary";
 import { OFFICIAL_RFP_BASELINE, PROJECT_ENHANCED_TARGET } from "./officialRfpGaps";
 import { useEffect, useMemo, useState } from "react";
@@ -5,8 +6,9 @@ import type { ApiRecord, EventOverview } from "../../http-api";
 import type { LiveLocation, ResourceGroup } from "./UnifiedDisasterDashboard";
 import { buildOperationalEvidence, buildPacketLossQualityAlerts, classifyLinkHealth, type TelemetrySample } from "./operationalEvidence";
 import type { TelemetryStreamStatus } from "./telemetryStream";
-import { createAlertAudit, transitionAlert, type AlertWorkflowAction, type AlertWorkflowStatus } from "./alertWorkflow";
 import PerformanceKpiPanel from "./PerformanceKpiPanel";
+import KmaWeatherEnvironmentPanel from "./KmaWeatherEnvironmentPanel";
+import RadioPanel from "./RadioPanel";
 import NetworkSequenceQualityPanel from "./NetworkSequenceQualityPanel";
 import SlenoNetworkQualityPanel from "./SlenoNetworkQualityPanel";
 import {
@@ -14,8 +16,21 @@ import {
   getFieldLinkAlertSummary,
   type FieldLinkAlertSummary,
 } from "../../http-api/fieldlink-api";
+import {
+  canLaunchFieldLinkWebUi,
+  getFieldLinkConfig,
+  probeFieldLinkHealth,
+  type FieldLinkStatus,
+} from "../../http-api/fieldlink-config";
+import {
+  appendAlertDeliveryTrace,
+  createDeliveredAlertTrace,
+  createFailedAlertTrace,
+  normalizeAlertDeliveryTraces,
+  type AlertDeliveryTrace,
+} from "./alertDeliveryTrace";
 
-export type PanelTab = "layers" | "alerts" | "networks" | "reports" | "kpis" | "integrations";
+export type PanelTab = "camera" | "radio" | "weather" | "layers" | "alerts" | "networks" | "reports" | "kpis" | "integrations";
 
 export type ExternalSourceId =
   | "firms"
@@ -52,6 +67,7 @@ interface OperationsPanelProps {
   telemetryStreamStatus: TelemetryStreamStatus;
   telemetrySamples: TelemetrySample[];
   onOpenDroneVideo: (location: LiveLocation) => void;
+  initiallyCollapsed?: boolean;
 }
 
 const resourceGroups: Array<{ id: ResourceGroup; label: string; description: string }> = [
@@ -75,7 +91,14 @@ function resourceGroupOf(location: LiveLocation): ResourceGroup {
   return "UNASSIGNED";
 }
 
+const SHOW_VALIDATION_UI =
+  typeof window !== "undefined" &&
+  new URLSearchParams(window.location.search).get("debug") === "1";
+
+/* weather-operations-navigation-20261011: 시작 화면은 현장 기상 */
 const tabs: Array<{ id: PanelTab; label: string; icon: string }> = [
+  { id: "weather", label: "현장 기상", icon: "☀" },
+  { id: "radio", label: "무전 통화", icon: "◉" },
   { id: "layers", label: "지도 레이어", icon: "▱" },
   { id: "alerts", label: "현장 경보", icon: "!" },
   { id: "networks", label: "통신망", icon: "⌁" },
@@ -83,6 +106,12 @@ const tabs: Array<{ id: PanelTab; label: string; icon: string }> = [
   { id: "kpis", label: "현장 KPI", icon: "✓" },
   { id: "integrations", label: "연계 상태", icon: "↔" },
 ];
+
+// 20261011 이영준
+// 현장 KPI는 운영 및 DEMO 화면에서 모두 접근 가능하도록 유지
+// 실측 여부는 PerformanceKpiPanel 내부에서 별도 구분
+const visibleTabs = tabs;
+
 
 const statusLabels: Record<string, string> = {
   ACTIVE: "정상 운용", INACTIVE: "비활성", DEGRADED: "성능 저하", FAILED: "장애",
@@ -140,24 +169,33 @@ export function OperationsPanel({
   telemetryStreamStatus,
   telemetrySamples,
   onOpenDroneVideo,
+  initiallyCollapsed = false,
 }: OperationsPanelProps) {
   const [fieldResourceKey, setFieldResourceKey] = useState("");
   const fieldResource = locations.find(x => `${x.kind}-${x.id}` === fieldResourceKey);
   const nms = nmsSummary(overview.networks, overview.assets);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(initiallyCollapsed);
 
-  const fieldLinkUrl =
-    typeof window === "undefined"
-      ? "http://127.0.0.1:18080"
-      : `${window.location.protocol}//${window.location.hostname}:18080`;
+  const fieldLinkConfig = useMemo(
+    () => getFieldLinkConfig(),
+    [],
+  );
+  const fieldLinkUrl = fieldLinkConfig.apiUrl;
 
   const [fieldLinkStatus, setFieldLinkStatus] =
-    useState<"checking" | "online" | "offline">("checking");
+    useState<FieldLinkStatus>("checking");
+  const [fieldLinkStatusReason, setFieldLinkStatusReason] =
+    useState("FieldLink 상태 확인 중");
 
   useEffect(() => {
     let disposed = false;
 
     const checkFieldLink = async () => {
+      if (!disposed) {
+        setFieldLinkStatus("checking");
+        setFieldLinkStatusReason("FieldLink 상태 확인 중");
+      }
+
       const controller = new AbortController();
       const timeout = window.setTimeout(
         () => controller.abort(),
@@ -165,19 +203,18 @@ export function OperationsPanel({
       );
 
       try {
-        await fetch(`${fieldLinkUrl}/health`, {
-          method: "GET",
-          mode: "no-cors",
-          cache: "no-store",
-          signal: controller.signal,
-        });
+        const result = await probeFieldLinkHealth(
+          fieldLinkUrl,
+          controller.signal,
+        );
 
         if (!disposed) {
-          setFieldLinkStatus("online");
-        }
-      } catch {
-        if (!disposed) {
-          setFieldLinkStatus("offline");
+          setFieldLinkStatus(result.status);
+          setFieldLinkStatusReason(
+            fieldLinkConfig.apiConfigurationIssue
+              ? `${result.reason} ${fieldLinkConfig.apiConfigurationIssue}`
+              : result.reason,
+          );
         }
       } finally {
         window.clearTimeout(timeout);
@@ -195,7 +232,15 @@ export function OperationsPanel({
       disposed = true;
       window.clearInterval(interval);
     };
-  }, [fieldLinkUrl]);
+  }, [fieldLinkConfig.apiConfigurationIssue, fieldLinkUrl]);
+  const fieldLinkLaunchReason =
+    fieldLinkStatus !== "online"
+      ? fieldLinkStatusReason
+      : fieldLinkConfig.webConfigurationIssue;
+  const canLaunchFieldLink = canLaunchFieldLinkWebUi(
+    fieldLinkStatus,
+    fieldLinkConfig,
+  );
   const [fieldLinkPin, setFieldLinkPin] = useState("");
   const [fieldLinkAlertSummary, setFieldLinkAlertSummary] =
     useState<FieldLinkAlertSummary | null>(null);
@@ -204,8 +249,74 @@ export function OperationsPanel({
   const [fieldLinkSendingId, setFieldLinkSendingId] =
     useState("");
 
-  const [alertOverrides, setAlertOverrides] = useState<Record<string, AlertWorkflowStatus>>({});
-  const [alertAudit, setAlertAudit] = useState<Array<ReturnType<typeof createAlertAudit>>>([]);
+  const fieldLinkTraceStorageKey =
+    `fieldlink.alert.traces:${String(
+      overview.event.eventId,
+    )}`;
+
+  const [
+    fieldLinkAlertTraces,
+    setFieldLinkAlertTraces,
+  ] = useState<
+    AlertDeliveryTrace[]
+  >([]);
+
+  useEffect(() => {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
+      return;
+    }
+
+    try {
+      const raw =
+        window.sessionStorage
+          .getItem(
+            fieldLinkTraceStorageKey,
+          );
+
+      setFieldLinkAlertTraces(
+        raw
+          ? normalizeAlertDeliveryTraces(
+              JSON.parse(raw),
+            )
+          : [],
+      );
+    } catch {
+      setFieldLinkAlertTraces(
+        [],
+      );
+    }
+  }, [
+    fieldLinkTraceStorageKey,
+  ]);
+
+  useEffect(() => {
+    if (
+      typeof window ===
+      "undefined"
+    ) {
+      return;
+    }
+
+    try {
+      window.sessionStorage
+        .setItem(
+          fieldLinkTraceStorageKey,
+          JSON.stringify(
+            fieldLinkAlertTraces,
+          ),
+        );
+    } catch {
+      // sessionStorage 비활성 환경에서도
+      // 현장 전달 자체는 계속 수행한다.
+    }
+  }, [
+    fieldLinkAlertTraces,
+    fieldLinkTraceStorageKey,
+  ]);
+
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
@@ -300,17 +411,80 @@ export function OperationsPanel({
         return;
       }
 
+      const alertType =
+        value(
+          alert,
+          [
+            "alertType",
+            "type",
+          ],
+          "UNKNOWN",
+        );
+
+      const title =
+        value(
+          alert,
+          [
+            "title",
+            "alertType",
+            "type",
+          ],
+          "현장 경보",
+        );
+
+      const message =
+        value(
+          alert,
+          [
+            "message",
+            "description",
+          ],
+          "현장 경보가 발령되었습니다.",
+        );
+
       const alertId =
         value(
           alert,
-          ["alertId", "id"],
-          `FIELD-${Date.now()}`,
+          [
+            "alertId",
+            "id",
+          ],
+          `${alertType}-${message}`,
         );
+
+      const detectedAtRaw =
+        value(
+          alert,
+          [
+            "issuedAt",
+            "createdAt",
+            "detectedAt",
+          ],
+          "",
+        );
+
+      const descriptor = {
+        sourceAlertId:
+          alertId,
+
+        alertType,
+
+        title,
+
+        message,
+
+        detectedAt:
+          detectedAtRaw ||
+          null,
+      };
 
       const rawSeverity =
         value(
           alert,
-          ["severity", "severityCode"],
+          [
+            "severity",
+            "severityCode",
+          ],
           "WARNING",
         ).toUpperCase();
 
@@ -319,41 +493,74 @@ export function OperationsPanel({
         | "WATCH"
         | "WARNING"
         | "CRITICAL" =
-        ["CRITICAL", "SEVERE", "HIGH"]
-          .includes(rawSeverity)
+        [
+          "CRITICAL",
+          "SEVERE",
+          "HIGH",
+        ].includes(
+          rawSeverity,
+        )
           ? "CRITICAL"
-          : ["CAUTION", "WATCH"]
-              .includes(rawSeverity)
+          : [
+              "CAUTION",
+              "WATCH",
+            ].includes(
+              rawSeverity,
+            )
             ? "WATCH"
-            : rawSeverity === "INFO" ||
-                rawSeverity === "NORMAL"
+            : rawSeverity ===
+                  "INFO" ||
+                rawSeverity ===
+                  "NORMAL"
               ? "INFO"
               : "WARNING";
 
-      setFieldLinkSendingId(alertId);
+      const attemptedAt =
+        new Date()
+          .toISOString();
+
+      setFieldLinkSendingId(
+        alertId,
+      );
 
       try {
-        await deliverFieldLinkAlert(
-          fieldLinkUrl,
-          fieldLinkPin,
-          {
-            sourceAlertId: alertId,
-            severity,
-            title: value(
-              alert,
-              ["title", "alertType", "type"],
-              "현장 경보",
+        const delivery =
+          await deliverFieldLinkAlert(
+            fieldLinkUrl,
+            fieldLinkPin,
+            {
+              sourceAlertId:
+                alertId,
+
+              severity,
+
+              title,
+
+              message,
+
+              source:
+                "INTEGRATED_COMMAND",
+            },
+          );
+
+        const trace =
+          createDeliveredAlertTrace(
+            descriptor,
+            delivery,
+            attemptedAt,
+          );
+
+        setFieldLinkAlertTraces(
+          (current) =>
+            appendAlertDeliveryTrace(
+              current,
+              trace,
             ),
-            message: value(
-              alert,
-              ["message", "description"],
-              "현장 경보가 발령되었습니다.",
-            ),
-            source: "INTEGRATED_COMMAND",
-          },
         );
 
-        setFieldLinkAlertError("");
+        setFieldLinkAlertError(
+          "",
+        );
 
         const summary =
           await getFieldLinkAlertSummary(
@@ -361,15 +568,34 @@ export function OperationsPanel({
             fieldLinkPin,
           );
 
-        setFieldLinkAlertSummary(summary);
+        setFieldLinkAlertSummary(
+          summary,
+        );
       } catch (error) {
+        const trace =
+          createFailedAlertTrace(
+            descriptor,
+            error,
+            attemptedAt,
+          );
+
+        setFieldLinkAlertTraces(
+          (current) =>
+            appendAlertDeliveryTrace(
+              current,
+              trace,
+            ),
+        );
+
         setFieldLinkAlertError(
           error instanceof Error
             ? error.message
             : "FIELDLINK_ERROR",
         );
       } finally {
-        setFieldLinkSendingId("");
+        setFieldLinkSendingId(
+          "",
+        );
       }
     };
 
@@ -394,20 +620,14 @@ export function OperationsPanel({
       ...overview.alerts,
     ];
 
-    return rows.map((alert) => ({ ...alert, status: alertOverrides[value(alert, ["alertId", "id"], "")] ?? alert.status }))
+    return rows
       .filter((alert) => !["RESOLVED", "EXPIRED", "CANCELLED"].includes(value(alert, ["status"])))
       .sort((a, b) =>
         (rank[value(a, ["severity", "severityCode"])] ?? 5) - (rank[value(b, ["severity", "severityCode"])] ?? 5)
         || Date.parse(value(b, ["issuedAt", "createdAt"], "0")) - Date.parse(value(a, ["issuedAt", "createdAt"], "0")),
       );
-  }, [overview.alerts, alertOverrides, sequenceQualityAlerts]);
-  const demoAlertWorkflow = overview.domainDetail?.mode === "SIMULATION";
-  const handleAlertAction = (alertId: string, currentStatus: string, action: AlertWorkflowAction) => {
-    const normalized: AlertWorkflowStatus = ["ACKNOWLEDGED", "RESOLVED"].includes(currentStatus) ? currentStatus as AlertWorkflowStatus : "ACTIVE";
-    const next = transitionAlert(normalized, action);
-    setAlertOverrides((current) => ({ ...current, [alertId]: next }));
-    setAlertAudit((current) => [createAlertAudit(alertId, action, "DEMO 관제자"), ...current].slice(0, 20));
-  };
+  }, [overview.alerts, sequenceQualityAlerts]);
+
   const linkHealthSummary = useMemo(() => {
     const now = new Date();
     const rows = locations.map((location) => ({
@@ -605,11 +825,13 @@ export function OperationsPanel({
     { id: "external-landslide-regional-risk", label: "산사태 지역위험", description: "지역 위험등급·예상피해", count: overview.domainLayers["external-landslide-regional-risk"]?.length ?? externalIntegrationStatus.landslideRegionalRisk.count },
   ];
 
+  const chungnamLayers = [CHUNGNAM_VIEWSHED_CONFIG.tvws, CHUNGNAM_VIEWSHED_CONFIG.term];
   const allLayerIds = [
     "resources",
     "topology",
     "event",
     ...domainLayers.map((layer) => layer.id),
+    ...chungnamLayers.map((layer) => layer.layerId),
     ...externalMapLayers.map((layer) => layer.id),
   ];
   const layerRows = (id: string) => id === "resources" ? [...overview.assets, ...overview.personnel]
@@ -710,7 +932,7 @@ export function OperationsPanel({
     <aside className={`operations-panel${collapsed ? " is-collapsed" : ""}`} aria-label="지도 운영 도구">
       <div className="operation-rail-brand" aria-hidden="true"><b>산림</b><span>통합상황</span></div>
       <nav aria-label="운영 정보 선택">
-        {tabs.map((tab) => (
+        {visibleTabs.map((tab) => (
           <button key={tab.id} type="button" className={activeTab === tab.id && !collapsed ? "active" : ""} onClick={() => { onActiveTabChange(tab.id); setCollapsed(false); }} aria-label={tab.label}>
             <i>{tab.icon}</i><span>{tab.label}</span>{tab.id === "alerts" && activeAlerts.length > 0 ? <b>{activeAlerts.length}</b> : null}
           </button>
@@ -719,14 +941,25 @@ export function OperationsPanel({
         <button
           type="button"
           className="fieldlink-launch-button"
-          aria-label="현장 메신저 새 창으로 열기"
-          title={`FieldLink · ${fieldLinkUrl}`}
+          aria-label={
+            canLaunchFieldLink
+              ? "현장 메신저 새 창으로 열기"
+              : `현장 메신저 실행 불가: ${fieldLinkLaunchReason}`
+          }
+          title={
+            canLaunchFieldLink
+              ? `FieldLink 메신저 · ${fieldLinkConfig.webUrl}`
+              : fieldLinkLaunchReason ?? "FieldLink 메신저 실행 불가"
+          }
+          disabled={!canLaunchFieldLink}
           onClick={() => {
-            window.open(
-              fieldLinkUrl,
-              "fieldlink-lan-messenger",
-              "noopener,noreferrer",
-            );
+            if (fieldLinkConfig.webUrl) {
+              window.open(
+                fieldLinkConfig.webUrl,
+                "fieldlink-lan-messenger",
+                "noopener,noreferrer",
+              );
+            }
           }}
         >
           <i aria-hidden="true">✉</i>
@@ -736,23 +969,29 @@ export function OperationsPanel({
             className={`fieldlink-status fieldlink-status-${fieldLinkStatus}`}
             aria-label={
               fieldLinkStatus === "online"
-                ? "FieldLink 온라인"
+                ? fieldLinkConfig.webUrl
+                  ? "FieldLink API 온라인, 메신저 웹 UI 실행 가능"
+                  : `FieldLink API 온라인, ${fieldLinkConfig.webConfigurationIssue}`
                 : fieldLinkStatus === "offline"
-                  ? "FieldLink 오프라인"
+                  ? `FieldLink 오프라인: ${fieldLinkStatusReason}`
                   : "FieldLink 상태 확인 중"
             }
+            role="status"
+            aria-live="polite"
             title={
               fieldLinkStatus === "online"
-                ? "FieldLink 온라인"
+                ? fieldLinkConfig.webUrl
+                  ? "FieldLink API 온라인 · 메신저 실행 가능"
+                  : fieldLinkConfig.webConfigurationIssue ?? "FieldLink API 온라인"
                 : fieldLinkStatus === "offline"
-                  ? "FieldLink 오프라인"
+                  ? fieldLinkStatusReason
                   : "상태 확인 중"
             }
           />
         </button>
       </nav>
       <button className="operation-collapse" type="button" onClick={() => setCollapsed((current) => !current)} aria-expanded={!collapsed} aria-label={collapsed ? "운영 패널 펼치기" : "운영 패널 접기"}>{collapsed ? "›" : "‹"}</button>
-      {!collapsed && <section className="operation-drawer">
+      <section className="operation-drawer" hidden={collapsed}>
         <header>
           <div><strong>{tabs.find((tab) => tab.id === activeTab)?.label}</strong><small>{overview.event.disasterType === "LANDSLIDE" ? "산사태 구조·통신 통합" : "산불 대응·통신 통합"}</small></div>
           {activeTab === "layers" && <button type="button" className="layer-reset" onClick={resetLayers}>기본값</button>}
@@ -768,6 +1007,8 @@ export function OperationsPanel({
           )}
         </header>
         <div className="operations-panel-body">
+          <div className="radio-panel-host" hidden={activeTab !== "radio"}><RadioPanel active={activeTab === "radio" && !collapsed} /></div>
+          {activeTab === "weather" && <KmaWeatherEnvironmentPanel latitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[1] : undefined} longitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[0] : undefined} />}
           {activeTab === "layers" && <section className="layer-control-list" aria-label="지도 레이어">
             <section className="layer-level-group" aria-labelledby="resource-layer-title">
               <header><strong id="resource-layer-title">현장 자산</strong></header>
@@ -791,6 +1032,14 @@ export function OperationsPanel({
                   </div>;
                 })}
               </div>
+            </section>
+            <section className="layer-level-group" aria-labelledby="chungnam-layer-title">
+              <header><strong id="chungnam-layer-title">충남대학교 분석 데이터</strong></header>
+              {chungnamLayers.map((layer) => (
+                <button key={layer.layerId} type="button" className={visibleLayerIds.has(layer.layerId) ? "enabled" : ""} onClick={() => onLayerToggle(layer.layerId)} aria-pressed={visibleLayerIds.has(layer.layerId)}>
+                  <span>{layer.label}</span><i />
+                </button>
+              ))}
             </section>
             <section className="layer-level-group" aria-labelledby="analysis-layer-title">
               <header><strong id="analysis-layer-title">AI 분석 결과 레이어</strong></header>
@@ -818,7 +1067,7 @@ export function OperationsPanel({
                   ? <><strong>예측 결과 근거</strong><span>{value(latestPrediction, ["modelName"], "모델 미상")} {value(latestPrediction, ["modelVersion"], "")}</span><small>기준 {occurredAt(latestPrediction, ["baseTime"])} · 예측 {occurredAt(latestPrediction, ["forecastTime"])} · 신뢰도 {numeric(latestPrediction, ["confidence"]) == null ? "없음" : `${(numeric(latestPrediction, ["confidence"])! * 100).toFixed(0)}%`}</small></>
                   : <><strong>확산 예측</strong><span>분석 대기 또는 미제공</span><small>관측 화선은 계속 표시됩니다.</small></>
               ) : (
-                <><strong>구조 추정 후보</strong><span>{victimCandidates.length ? `${victimCandidates.length}건 · AI 추정값` : "관측 부족 · 추가 탐색 필요"}</span><small>추정 후보는 구조 지휘관 확정 전까지 실제 위치로 간주하지 않습니다.</small></>
+                <><strong>구조 추정 후보</strong><span>{victimCandidates.length ? `${victimCandidates.length}건 · AI 추정값` : "관측 부족 · 추가 탐색 필요"}</span></>
               )}
             </div>
           </section>}
@@ -853,9 +1102,6 @@ export function OperationsPanel({
                 );
               })}
 
-              <p className="operation-readonly-note">
-                좌표가 없는 기관 행정구역 자료는 시군구 대표영역으로 공간화해 표시하며, 상세 경계 데이터가 제공되면 동일 레이어에서 교체됩니다.
-              </p>
             </section>}
 
           {activeTab === "alerts" && <section className="operations-records" aria-label="활성 경보" aria-live="polite">
@@ -969,6 +1215,112 @@ export function OperationsPanel({
                     : "현장 PIN 입력 후 연결 확인을 눌러주세요."}
               </small>
             </section>
+
+            {fieldLinkAlertTraces.length > 0 && (
+              <section
+                className="fieldlink-alert-traces"
+                aria-label="ALERT-03 현장 전달 추적"
+              >
+                <header>
+                  <div>
+                    <strong>
+                      ALERT-03 전달 추적
+                    </strong>
+                    <small>
+                      접근 판정 → FieldLink → 현장 확인
+                    </small>
+                  </div>
+
+                  <span>
+                    최근 {Math.min(
+                      fieldLinkAlertTraces.length,
+                      5,
+                    )}건
+                  </span>
+                </header>
+
+                {fieldLinkAlertTraces
+                  .slice(0, 5)
+                  .map((trace) => (
+                    <article
+                      key={trace.traceId}
+                      data-status={
+                        trace.deliveryStatus
+                      }
+                    >
+                      <div>
+                        <strong>
+                          {trace.classification ===
+                          "FIRELINE_APPROACH"
+                            ? "화선 접근 경보"
+                            : trace.title}
+                        </strong>
+
+                        <span>
+                          {trace.deliveryStatus ===
+                          "ACKNOWLEDGED"
+                            ? "현장 확인"
+                            : trace.deliveryStatus ===
+                                "DELIVERED"
+                              ? "전달 완료"
+                              : "전달 실패"}
+                        </span>
+                      </div>
+
+                      <small>
+                        alert ·{" "}
+                        {trace.sourceAlertId}
+                      </small>
+
+                      <small>
+                        delivery ·{" "}
+                        {trace.deliveryId ??
+                          "-"}
+                      </small>
+
+                      <small>
+                        판정{" "}
+                        {trace.detectedAt
+                          ? relativeTime(
+                              trace.detectedAt,
+                            )
+                          : "시각 미수신"}
+                        {" · "}
+                        전달{" "}
+                        {trace.sentAt
+                          ? relativeTime(
+                              trace.sentAt,
+                            )
+                          : "실패"}
+                      </small>
+
+                      <small>
+                        수신 대상{" "}
+                        {trace.recipients}명
+                        {" · "}
+                        ACK{" "}
+                        {trace.acknowledged}명
+                        {" · "}
+                        성공률{" "}
+                        {trace.successRatePct ==
+                        null
+                          ? "-"
+                          : `${trace.successRatePct}%`}
+                      </small>
+
+                      {trace.error && (
+                        <small
+                          className="fieldlink-trace-error"
+                        >
+                          오류 ·{" "}
+                          {trace.error}
+                        </small>
+                      )}
+                    </article>
+                  ))}
+              </section>
+            )}
+
             {activeAlerts.length === 0 && <p className="operation-empty-state"><b>현재 활성 경보 없음</b><span>정상 상태입니다.</span></p>}
             {activeAlerts.slice(0, 12).map((alert) => {
               const severity = value(alert, ["severity", "severityCode"], "WARNING");
@@ -997,14 +1349,10 @@ export function OperationsPanel({
                     ? "FieldLink 전달 중"
                     : "FieldLink 전달"}
                 </button>
-                {demoAlertWorkflow && <div className="demo-alert-actions">
-                  <button type="button" disabled={value(alert, ["status"]) === "ACKNOWLEDGED"} onClick={() => handleAlertAction(alertKey, value(alert, ["status"], "ACTIVE"), "ACKNOWLEDGE")}>경보 확인</button>
-                  <button type="button" onClick={() => handleAlertAction(alertKey, value(alert, ["status"], "ACTIVE"), "RESOLVE")}>조치 후 해제</button>
-                </div>}
+
               </article>;
             })}
-            {demoAlertWorkflow && alertAudit.length > 0 && <section className="demo-alert-audit" aria-label="경보 조치 이력"><strong>DEMO 조치 이력</strong>{alertAudit.slice(0, 5).map((audit) => <small key={audit.auditId}>{audit.alertId} · {audit.action === "ACKNOWLEDGE" ? "확인" : "해제"} · {new Date(audit.occurredAt).toLocaleTimeString("ko-KR")}</small>)}</section>}
-            <p className="operation-readonly-note">DEMO 조치는 브라우저 세션에서만 유지됩니다. 운영 저장은 명령센터 권한 및 감사 이력 API 연계 후 사용합니다.</p>
+
           </section>}
           {activeTab === "networks" && <section className="operations-records" aria-label="통신망 상태">
             <SlenoNetworkQualityPanel />
@@ -1192,7 +1540,7 @@ export function OperationsPanel({
               <dl><div><dt>최저 배터리</dt><dd>{nms.minBatteryPct == null ? "미수신" : `${nms.minBatteryPct}%`}</dd></div><div><dt>잔량 ≤20%</dt><dd>{nms.lowBatteryCount == null ? "미수신" : `${nms.lowBatteryCount}대`}</dd></div><div><dt>수신 장비</dt><dd>{nms.batteriesReceived}/{overview.assets.length}</dd></div></dl>
               <small>최저 수신 전압: {nms.minVoltageV == null ? "미수신" : `${nms.minVoltageV.toFixed(2)} V`} · MAVLink 상태값</small>
               <small>온도·전원 상태: Core API 계약 미확인 · 현장 연계 대기</small>
-              <small>마지막 상태수신 {nms.lastReceivedAt ? relativeTime(nms.lastReceivedAt) : "미수신"} · 잔량 기준은 저전압 측정이 아닙니다.</small>
+              <small>마지막 상태수신 {nms.lastReceivedAt ? relativeTime(nms.lastReceivedAt) : "미수신"}</small>
             </article>
             <NetworkSequenceQualityPanel
               telemetrySamples={telemetrySamples}
@@ -1206,7 +1554,7 @@ export function OperationsPanel({
             <article data-status={telemetryStreamStatus === "CONNECTED" ? "ACTIVE" : telemetryStreamStatus === "ERROR" ? "FAILED" : "INACTIVE"} className="network-detail-card">
               <div><strong>Gateway 실시간 스트림</strong><span>{telemetryStreamStatus === "CONNECTED" ? "연결" : telemetryStreamStatus === "CONNECTING" ? "연결 중" : telemetryStreamStatus === "RECONNECTING" ? "재연결 중" : telemetryStreamStatus === "ERROR" ? "오류" : "미설정"}</span></div>
               <p>WebSocket 위치·GNSS/RTK·MAVLink 변환 텔레메트리 수신</p>
-              <small>운영 주소는 VITE_TELEMETRY_WS_URL로 주입하며 브라우저에 장비 인증키를 저장하지 않습니다.</small>
+
             </article>
             {overview.networks.length === 0 && <p className="operation-empty-state"><b>연계된 통신망 없음</b><span>측정값 0이 아닌 미연계 상태입니다.</span></p>}
             {overview.networks.map((network) => {
@@ -1338,9 +1686,6 @@ export function OperationsPanel({
               </article>;
             })}
 
-            <p className="operation-readonly-note">
-              외부 API 인증정보 누락 또는 요청 실패는 정상 상태로 표시하지 않습니다.
-            </p>
 
             <p className="operation-section-title"><strong>시스템 연계 기능 계약</strong></p>
             {overview.integrations.length === 0 && <p className="operation-empty-state"><b>등록된 연계 기능 없음</b><span>처리건 0이 아닌 연계 미등록 상태입니다.</span></p>}
@@ -1352,7 +1697,7 @@ export function OperationsPanel({
             <p className="operation-readonly-note">송수신 대사·오류 원인·재처리는 운영자 권한과 감사로그 API가 연결된 경우에만 제공합니다.</p>
           </section>}
         </div>
-      </section>}
+      </section>
     </aside>
   );
 }

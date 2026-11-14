@@ -3177,6 +3177,9 @@
 .asset-catalog-row em { padding: 2px 6px; border-radius: 999px; background: #edf5f2; color: #256652; font-size: 8px; font-style: normal; font-weight: 850; }
 .asset-catalog-row em[data-status="SUSPENDED"], .asset-catalog-row em[data-status="LOST"] { background: #fff0e8; color: #b34f1b; }
 .asset-catalog-row > strong { display: block; margin-top: 3px; color: #1d342e; font-size: 12px; }
+.asset-name-editor { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.asset-name-editor input { width: 100%; min-width: 0; padding: 8px; border: 1px solid #a6b8af; border-radius: 4px; }
+.asset-name-editor button { padding: 6px 10px; }
 .asset-catalog-row > small { display: block; margin-top: 2px; color: #74857f; font-size: 9px; }
 .asset-catalog-row dl { margin: 8px 0 0; display: grid; grid-template-columns: .9fr 1.5fr .8fr; gap: 8px; }
 .asset-catalog-row dl div { min-width: 0; padding-top: 6px; border-top: 1px solid #e5ebe8; }
@@ -4409,3 +4412,720 @@
     left: 274px !important;
   }
 }
+
+/* ALERT-03 FieldLink delivery trace */
+
+.fieldlink-alert-traces {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 14px;
+  padding: 10px;
+  border: 1px solid
+    rgba(15, 23, 42, 0.12);
+  border-radius: 10px;
+  background:
+    rgba(248, 250, 252, 0.9);
+}
+
+.fieldlink-alert-traces > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fieldlink-alert-traces > header div {
+  display: grid;
+  gap: 2px;
+}
+
+.fieldlink-alert-traces > header small,
+.fieldlink-alert-traces > header span {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.fieldlink-alert-traces article {
+  display: grid;
+  gap: 3px;
+  padding: 9px;
+  border: 1px solid
+    rgba(15, 23, 42, 0.1);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.fieldlink-alert-traces article > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.fieldlink-alert-traces article > div span {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.fieldlink-alert-traces article[data-status="ACKNOWLEDGED"] {
+  border-color:
+    rgba(22, 163, 74, 0.35);
+}
+
+.fieldlink-alert-traces article[data-status="DELIVERED"] {
+  border-color:
+    rgba(37, 99, 235, 0.3);
+}
+
+.fieldlink-alert-traces article[data-status="FAILED"] {
+  border-color:
+    rgba(220, 38, 38, 0.35);
+}
+
+.fieldlink-alert-traces small {
+  overflow-wrap: anywhere;
+}
+
+.fieldlink-trace-error {
+  font-weight: 700;
+}
+
+/* FINAL_OPERATION_UI_CLEANUP */
+.unified-disaster-board.is-field-mode.final-ops-ui {
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 8px;
+}
+
+.unified-disaster-board.is-field-mode.final-ops-ui
+  .field-command-stage
+  .live-location-layout {
+  grid-template-columns: 330px minmax(0, 1fr) !important;
+}
+
+.unified-disaster-board.is-field-mode.final-ops-ui
+  .field-command-stage
+  .location-map {
+  grid-column: 2 !important;
+}
+
+/* 2026-10-04 ToBeUnicorn showcase branding */
+.service-brand {
+  min-width: 150px !important;
+  max-width: 150px !important;
+  flex: 0 0 150px !important;
+  gap: 0 !important;
+}
+
+.service-brand-logo {
+  width: 140px !important;
+  height: 42px !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  flex: 0 0 auto !important;
+}
+
+
+/* FIELD RIGHT DOCK 20261011 */
+/* The left operations rail stays untouched; dock never occupies map hit targets outside itself. */
+.dashboard-map-stage .field-right-dock {
+  position: absolute;
+  z-index: 11;
+  top: 12px;
+  right: 12px;
+  width: clamp(276px, 23vw, 350px);
+  max-width: calc(100% - 24px);
+  max-height: calc(100% - 24px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(117,150,173,.55);
+  border-radius: 12px;
+  background: rgba(248,252,255,.97);
+  color: #172c40;
+  box-shadow: 0 10px 28px rgba(0,0,0,.20);
+}
+.field-right-dock-tabs { display:flex; flex:0 0 auto; gap:3px; padding:5px; background:#e8f0f6; }
+.field-right-dock-tabs button { flex:1; min-width:0; padding:9px 3px; border:0; border-radius:7px; background:transparent; color:#3b566d; font-size:11px; font-weight:800; cursor:pointer; }
+.field-right-dock-tabs button.is-active { background:#fff; color:#125b8d; box-shadow:0 1px 5px #bacbd999; }
+.field-right-dock-body { padding:15px; overflow:auto; font-size:12px; }
+.field-right-dock-body p { margin:9px 0; line-height:1.5; }
+.field-right-dock-body > button { padding:8px 12px; border:1px solid #9cbbc9; border-radius:6px; background:#f2faff; color:#164e70; cursor:pointer; }
+.field-right-dock-semantic { padding:7px; overflow:auto; min-height:0; }
+.field-right-dock-fieldlink { padding:5px; min-height:0; overflow:auto; }
+.field-right-dock [hidden] { display:none !important; }
+.field-right-dock .semantic-mission-poc { width:100%; }
+@media (max-width: 760px) {
+  .dashboard-map-stage .field-right-dock { top:auto; bottom:10px; right:10px; width:min(330px,calc(100% - 20px)); max-height:min(68%,470px); }
+}
+
+
+/* FIELD LEFT DRAWER 20261011 */
+/* Closed by default; preserves existing right-side telemetry panel. */
+.dashboard-map-stage .field-right-dock.field-left-drawer {
+  position: absolute;
+  z-index: 24;
+  top: auto;
+  bottom: 48px;
+  left: 118px;
+  right: auto;
+  flex-direction: column-reverse;
+  width: auto;
+  max-width: min(350px, calc(100% - 20px));
+  max-height: min(72%, 570px);
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  align-items: flex-start;
+}
+.field-left-drawer-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid #8caeba;
+  border-radius: 9px;
+  color: #184d67;
+  background: #f6fbff;
+  box-shadow: 0 3px 12px #1a354033;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.field-left-drawer-toggle:focus-visible { outline: 3px solid #3d91c8; outline-offset: 2px; }
+.field-left-drawer-toggle > span:first-child { font-size: 17px; line-height: 1; }
+.field-left-drawer-content {
+  display: none;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  width: clamp(276px, 23vw, 350px);
+  max-width: calc(100vw - 30px);
+  max-height: min(60dvh, 530px);
+  margin-bottom: 6px;
+  overflow: hidden;
+  background: rgba(248,252,255,.98);
+  border: 1px solid rgba(117,150,173,.55);
+  border-radius: 12px;
+  box-shadow: 0 12px 34px #102a3c40;
+}
+.field-left-drawer.is-open .field-left-drawer-content { display: flex; }
+.field-left-drawer-content > .field-right-dock-body,
+.field-left-drawer-content > .field-right-dock-semantic,
+.field-left-drawer-content > .field-right-dock-fieldlink {
+  overflow-y: auto;
+  min-height: 0;
+}
+.field-left-drawer-content > .field-right-dock-fieldlink { flex: 1 1 auto; }
+.field-left-drawer-content .fieldlink-chat-widget.is-embedded .fieldlink-chat-panel {
+  height: min(380px, 48dvh);
+}
+@media (max-width: 760px) {
+  .dashboard-map-stage .field-right-dock.field-left-drawer {
+    top: auto;
+    bottom: 45px;
+    left: 62px;
+    right: auto;
+    max-height: 68%;
+  }
+  .field-left-drawer-content { width: min(320px, calc(100vw - 26px)); }
+}
+
+
+/* FIELD TOOL RAIL POSITION FIX 20261011 */
+/* Use the unused lower portion of the vertical tool rail, not the KPI card. */
+.dashboard-map-stage .field-right-dock.field-left-drawer {
+  position: static;
+  width: 0;
+  height: 0;
+  max-height: none;
+  max-width: none;
+}
+.dashboard-map-stage .field-left-drawer-toggle {
+  position: fixed;
+  z-index: 90;
+  left: 70px;
+  bottom: 176px;
+  width: 44px;
+  min-height: 50px;
+  padding: 6px 3px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  line-height: 1.2;
+  text-align: center;
+  box-shadow: none;
+}
+.dashboard-map-stage .field-left-drawer-toggle > span:first-child {
+  font-size: 15px;
+}
+.dashboard-map-stage .field-left-drawer-content {
+  position: fixed;
+  z-index: 89;
+  left: 126px;
+  bottom: 176px;
+  margin: 0;
+  max-height: min(58dvh, 530px);
+  width: min(340px, calc(100vw - 148px));
+}
+@media (max-height: 800px) {
+  .dashboard-map-stage .field-left-drawer-toggle,
+  .dashboard-map-stage .field-left-drawer-content {
+    bottom: 118px;
+  }
+}
+@media (max-width: 760px) {
+  .dashboard-map-stage .field-left-drawer-toggle {
+    left: 18px;
+    bottom: 118px;
+  }
+  .dashboard-map-stage .field-left-drawer-content {
+    left: 72px;
+    bottom: 118px;
+    width: min(300px, calc(100vw - 90px));
+  }
+}
+
+/* 2026-10-11: header entry for existing field tools drawer */
+.map-command-header .field-header-tool-toggle {
+  position: static;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid #b9d3ca;
+  border-radius: 8px;
+  background: #f4faf7;
+  color: #175a4c;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.map-command-header .field-header-tool-toggle:hover {
+  background: #e7f4ee;
+}
+.map-command-header .field-header-tool-toggle[aria-expanded="true"] {
+  border-color: #178165;
+  background: #def1e8;
+}
+@media (max-width: 1100px) {
+  .map-command-header .field-header-tool-toggle {
+    min-height: 32px;
+    padding: 6px 9px;
+    font-size: 11px;
+  }
+}
+
+/* field-header-nav-20261011: header actions and non-obstructing details popover */
+.map-command-header .field-header-tools-nav {
+  display: flex; align-items: center; gap: 5px; flex: 0 0 auto;
+  min-width: 0;
+}
+.map-command-header .field-header-tools-nav button {
+  position: static; min-height: 35px; padding: 6px 10px;
+  border-radius: 8px; border: 1px solid #cadbd8;
+  background: #ffffff; color: #28554e;
+  font-size: 11px; font-weight: 750; white-space: nowrap; cursor: pointer;
+}
+.map-command-header .field-header-tools-nav button:hover { background: #eef8f4; }
+.map-command-header .field-header-tools-nav button.is-active {
+  border-color: #15836a; background: #dff2e9; color: #135a49;
+}
+/* The existing panel stays mounted (preserving FieldLink state); only its tab bar moves. */
+.field-left-drawer.field-right-dock {
+  position: fixed !important;
+  top: 180px !important;
+  left: min(50vw, calc(100vw - 370px)) !important;
+  right: auto !important; bottom: auto !important;
+  width: min(340px, calc(100vw - 24px)) !important;
+  max-height: min(550px, calc(100dvh - 195px)) !important;
+  transform: none !important; z-index: 1250 !important;
+  margin: 0 !important;
+}
+.field-left-drawer.field-right-dock:not(.is-open) {
+  display: none !important;
+}
+.field-left-drawer.field-right-dock .field-left-drawer-content {
+  max-height: min(540px, calc(100dvh - 205px));
+  overflow: auto;
+}
+@media (max-width: 1100px) {
+  .map-command-header .field-header-tools-nav { gap: 3px; }
+  .map-command-header .field-header-tools-nav button { min-height: 31px; padding: 5px 7px; font-size: 10px; }
+  .field-left-drawer.field-right-dock { left: 12px !important; top: 175px !important; }
+}
+@media (max-width: 640px) {
+  .map-command-header .field-header-tools-nav { flex-wrap: wrap; }
+  .field-left-drawer.field-right-dock {
+    top: 200px !important;
+    max-height: calc(100dvh - 215px) !important;
+  }
+}
+
+/* MAP LEGEND TOP-LEFT 20261011 */
+/* Keep the legend clear of the bottom live timeline and right-side map controls. */
+.map-meaning-legend.command-center-legend {
+  position: absolute !important;
+  top: 12px !important;
+  left: 12px !important;
+  right: auto !important;
+  bottom: auto !important;
+  inset-inline-start: 12px !important;
+  inset-inline-end: auto !important;
+  transform: none !important;
+  margin: 0 !important;
+  max-width: min(340px, calc(100% - 24px));
+  z-index: 15;
+}
+@media (max-width: 760px) {
+  .map-meaning-legend.command-center-legend {
+    top: 52px !important;
+    max-width: min(280px, calc(100% - 24px));
+  }
+}
+
+
+/* legend-compact-top-left-fix-20261011 */
+/* Override prior right-side overlay sizing without touching map or timeline logic. */
+.location-map .map-meaning-legend.command-center-legend,
+.map-meaning-legend.command-center-legend {
+  position: absolute !important;
+  inset: 10px auto auto 10px !important;
+  top: 10px !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 10px !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: min(294px, calc(100% - 20px)) !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 7px 9px !important;
+  display: flex !important;
+  flex-flow: row wrap !important;
+  align-items: center !important;
+  align-content: flex-start !important;
+  justify-content: flex-start !important;
+  gap: 4px 7px !important;
+  overflow: visible !important;
+  border: 1px solid #cbded7 !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  box-shadow: 0 2px 9px rgba(22, 65, 50, 0.1) !important;
+  z-index: 35 !important;
+  transform: none !important;
+  grid-area: auto !important;
+  flex: 0 0 auto !important;
+}
+.map-meaning-legend.command-center-legend > strong {
+  display: inline-block !important;
+  flex: 0 0 100% !important;
+  margin: 0 0 1px !important;
+  font-size: 10px !important;
+  line-height: 14px !important;
+}
+.map-meaning-legend.command-center-legend > span {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-items: center !important;
+  gap: 3px !important;
+  white-space: nowrap !important;
+  font-size: 9px !important;
+  line-height: 14px !important;
+}
+@media (max-width: 760px) {
+  .location-map .map-meaning-legend.command-center-legend,
+  .map-meaning-legend.command-center-legend {
+    inset: 8px auto auto 8px !important;
+    max-width: min(252px, calc(100% - 16px)) !important;
+    padding: 5px 7px !important;
+  }
+}
+
+
+/* legend-geometry-repair-20261011-v3 */
+/* The element itself was 369px wide and map-height tall, so override ALL
+   physical/logical geometry. Use direct-child selector to outrank prior rules. */
+.location-map .live-map-shell > section.map-meaning-legend.command-center-legend,
+.live-map-shell > section.map-meaning-legend.command-center-legend {
+  position: absolute !important;
+  inset: 9px auto auto 9px !important;
+  top: 9px !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 9px !important;
+  inset-inline-start: 9px !important;
+  inset-inline-end: auto !important;
+  inset-block-start: 9px !important;
+  inset-block-end: auto !important;
+  width: 294px !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 18px) !important;
+  height: max-content !important;
+  min-height: 0 !important;
+  max-height: 90px !important;
+  inline-size: 294px !important;
+  min-inline-size: 0 !important;
+  max-inline-size: calc(100% - 18px) !important;
+  block-size: max-content !important;
+  min-block-size: 0 !important;
+  max-block-size: 90px !important;
+  aspect-ratio: auto !important;
+  transform: none !important;
+  translate: none !important;
+  margin: 0 !important;
+  padding: 6px 8px !important;
+  display: flex !important;
+  flex-flow: row wrap !important;
+  align-content: flex-start !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 3px 7px !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  background: rgba(255,255,255,.95) !important;
+  border: 1px solid #cbded7 !important;
+  border-radius: 7px !important;
+  box-shadow: 0 2px 8px rgba(22,65,50,.12) !important;
+  z-index: 35 !important;
+  flex: none !important;
+  grid-area: auto !important;
+}
+@media (max-width: 760px) {
+  .live-map-shell > section.map-meaning-legend.command-center-legend {
+    width: 260px !important;
+    inline-size: 260px !important;
+    max-width: calc(100% - 16px) !important;
+    max-inline-size: calc(100% - 16px) !important;
+    top: 8px !important;
+    left: 8px !important;
+    inset: 8px auto auto 8px !important;
+  }
+}
+
+/* 20261011: attribution and measurement controls final adjustment */
+
+/* 2번: 지도 제공자 출처를 작고 단정하게 유지 */
+.live-basemap .maplibregl-ctrl-attrib {
+  margin: 0 5px 5px 0;
+  padding: 0;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+  font-size: 9px;
+}
+
+.live-basemap .maplibregl-ctrl-attrib.maplibregl-compact {
+  min-height: 23px;
+  border-radius: 6px;
+}
+
+/* 3번: 측정 제어 버튼 네 개를 2행으로 안정적으로 배치 */
+.unified-disaster-board .operations-panel .performance-session-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 5px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* 기존 강제 nowrap 규칙보다 우선하도록 처리 */
+.unified-disaster-board .operations-panel .performance-session-actions > button {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  min-height: 34px !important;
+  height: auto !important;
+  padding: 6px 5px !important;
+  box-sizing: border-box !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: anywhere !important;
+  text-align: center !important;
+  line-height: 1.25 !important;
+  font-size: 10px !important;
+}
+
+/* 20261011: left weather tab and top capability shortcuts */
+.field-capability-shortcuts { display:flex; flex:0 1 auto; min-width:0; align-items:center; gap:5px; }
+.map-command-header .field-capability-shortcuts button { flex:0 0 auto; min-height:34px; padding:6px 9px; border:1px solid #b9d8cd; border-radius:7px; background:#f5faf7; color:#1a594a; font-size:10px; font-weight:800; white-space:nowrap; cursor:pointer; }
+.map-command-header .field-capability-shortcuts button:hover,
+.map-command-header .field-capability-shortcuts button.is-active { background:#e0f2e9; border-color:#378d73; }
+.field-capability-panel { position:fixed; z-index:1450; top:168px; left:50%; width:min(480px,calc(100vw - 24px)); max-height:min(620px,calc(100dvh - 190px)); transform:translateX(-50%); overflow:auto; padding:14px; border:1px solid #c9dcd5; border-radius:12px; background:#fff; box-shadow:0 12px 30px #103d302b; font-size:12px; }
+.field-capability-panel > header { display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:10px; border-bottom:1px solid #e3ece8; }
+.field-capability-panel > header strong { font-size:16px; }
+.field-capability-panel > header button { border:0; background:transparent; font-size:23px; cursor:pointer; }
+.field-capability-panel p { color:#556b61; line-height:1.6; }
+.field-capability-panel .field-capability-tiles { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:12px 0; }
+.field-capability-panel article { display:grid; gap:5px; padding:12px; min-width:0; border:1px solid #dbe7e1; border-radius:8px; background:#f7fbf9; }
+.field-capability-panel article span { color:#49675c; }
+.field-capability-panel article small { color:#8c645a; }
+.field-capability-panel > div > button { padding:8px 12px; border:1px solid #90bcaa; border-radius:7px; background:#e7f4ed; color:#135a46; cursor:pointer; }
+.field-capability-panel footer { margin-top:12px; padding-top:9px; border-top:1px solid #e5efea; color:#6a8177; font-size:10px; }
+.field-capability-choice { display:flex; flex-wrap:wrap; gap:5px; margin:12px 0; }
+.field-capability-choice button { padding:7px 10px; border:1px solid #cbded5; border-radius:6px; background:#f7fbf9; cursor:pointer; }
+.field-capability-choice button[aria-pressed="true"] { background:#dff2e9; color:#12664d; border-color:#4a9d7e; }
+.weather-environment-panel { padding:12px; display:grid; gap:12px; }
+.weather-environment-panel header { display:flex; justify-content:space-between; align-items:center; gap:8px; }
+.weather-environment-panel header strong { font-size:13px; }
+.weather-environment-panel header span { padding:4px 7px; border-radius:12px; background:#f2f4f3; color:#547066; font-size:10px; }
+.weather-environment-panel .weather-environment-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+.weather-environment-panel .weather-environment-grid article { min-width:0; display:grid; gap:5px; padding:12px; border:1px solid #dce8e1; border-radius:8px; background:#f8fcfa; }
+.weather-environment-panel .weather-environment-grid article span { font-size:11px; color:#647b71; }
+.weather-environment-panel .weather-environment-grid article b { font-size:20px; color:#214d3e; }
+.weather-environment-panel .weather-environment-grid article small { font-size:9px; color:#81958c; }
+.weather-environment-panel > p { color:#647b71; font-size:11px; line-height:1.5; }
+@media (max-width:1450px) { .field-capability-shortcuts { max-width:360px; overflow-x:auto; scrollbar-width:thin; } .map-command-header .field-capability-shortcuts button { font-size:9px; padding:5px 7px; } }
+
+/* HYBRID EXHIBITION MODE 20261017
+ * Query-gated presentation layer. Existing polling, coordinates, map modes and
+ * operational layout remain unchanged when the root class is absent. */
+.unified-disaster-board.hybrid-exhibition-mode {
+  --hybrid-panel-offset: 82px;
+  background: #d7e5df;
+}
+
+.unified-disaster-board.hybrid-exhibition-mode .map-command-header {
+  right: 12px;
+  left: var(--hybrid-panel-offset);
+}
+
+.hybrid-exhibition-mode .hybrid-status-bar {
+  position: absolute;
+  z-index: 61;
+  top: 76px;
+  right: 12px;
+  left: var(--hybrid-panel-offset);
+  min-height: 54px;
+  padding: 6px;
+  display: grid;
+  grid-template-columns: minmax(190px, 1.25fr) repeat(3, minmax(150px, 1fr));
+  gap: 6px;
+  border: 1px solid rgba(255, 255, 255, .86);
+  border-radius: 10px;
+  background: rgba(244, 250, 247, .94);
+  box-shadow: 0 8px 26px rgba(18, 53, 42, .15);
+  backdrop-filter: blur(12px);
+}
+
+.hybrid-status-bar .hybrid-mode-label,
+.hybrid-status-bar article {
+  min-width: 0;
+  padding: 7px 10px;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  border-radius: 7px;
+}
+
+.hybrid-status-bar .hybrid-mode-label {
+  background: linear-gradient(135deg, #075f4c, #0d7b63);
+  color: #fff;
+}
+
+.hybrid-status-bar .hybrid-mode-label small { color: #aee4d5; font-size: 7px; font-weight: 900; letter-spacing: .14em; }
+.hybrid-status-bar .hybrid-mode-label strong { font-size: 12px; }
+.hybrid-status-bar .hybrid-mode-label span { color: #d9f2eb; font-size: 8px; }
+.hybrid-status-bar article { border: 1px solid #d8e7e1; background: rgba(255, 255, 255, .9); }
+.hybrid-status-bar article > span { color: #6f837c; font-size: 8px; font-weight: 850; }
+.hybrid-status-bar article strong { overflow: hidden; color: #173f34; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.hybrid-status-bar article small { overflow: hidden; color: #70857d; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.hybrid-status-bar article[data-tone="warning"] { border-color: #e8cc91; background: #fffaf0; }
+.hybrid-status-bar article[data-tone="alert"] { border-color: #edb0aa; background: #fff5f3; }
+.hybrid-status-bar article[data-tone="alert"] strong { color: #b23b32; }
+
+.hybrid-exhibition-mode .operations-panel.is-collapsed {
+  width: 68px !important;
+  height: 100%;
+  border-radius: 0 !important;
+  background: #075f4c !important;
+}
+
+.hybrid-exhibition-mode .operations-panel.is-collapsed .operation-drawer { display: none !important; }
+.unified-disaster-board.is-field-mode.final-ops-ui.hybrid-exhibition-mode
+  .field-command-stage
+  .live-location-layout:has(.operations-panel.is-collapsed) {
+  grid-template-columns: 68px minmax(0, 1fr) !important;
+}
+.unified-disaster-board.is-field-mode.final-ops-ui.hybrid-exhibition-mode
+  .field-command-stage
+  .operations-panel.is-collapsed {
+  width: 68px !important;
+}
+.hybrid-exhibition-mode .telemetry-connection-status { top: 138px; right: 12px; left: var(--hybrid-panel-offset); }
+.hybrid-exhibition-mode .map-coordinate-warning { top: 138px; }
+.hybrid-exhibition-mode .basemap-switch { top: 158px !important; }
+
+.hybrid-exhibition-mode .resource-modal-backdrop:has(.selected-location-drawer) {
+  z-index: 95;
+  padding: 0;
+  place-items: stretch end;
+  background: transparent;
+  backdrop-filter: none;
+  pointer-events: none;
+}
+
+.hybrid-exhibition-mode .dashboard-map-stage .selected-location-drawer.resource-modal {
+  width: min(410px, calc(100vw - 110px));
+  max-width: 410px;
+  max-height: calc(100dvh - 154px);
+  margin: 140px 14px 14px 0;
+  padding: 18px;
+  overflow-y: auto;
+  border-color: rgba(84, 126, 111, .48);
+  border-radius: 12px;
+  box-shadow: 0 18px 54px rgba(11, 37, 30, .28);
+  pointer-events: auto;
+}
+
+.hybrid-exhibition-mode .dashboard-map-stage .selected-location-drawer.resource-modal dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hybrid-exhibition-mode .map-timeline-player {
+  width: min(720px, calc(100% - 260px));
+}
+
+@media (max-width: 1180px) {
+  .hybrid-exhibition-mode .hybrid-status-bar {
+    grid-template-columns: repeat(3, minmax(130px, 1fr));
+  }
+  .hybrid-status-bar .hybrid-mode-label { display: none; }
+}
+
+@media (max-width: 760px) {
+  .unified-disaster-board.hybrid-exhibition-mode { --hybrid-panel-offset: 60px; }
+  .hybrid-exhibition-mode .hybrid-status-bar {
+    top: 62px;
+    right: 8px;
+    grid-template-columns: repeat(3, minmax(112px, 1fr));
+    overflow-x: auto;
+  }
+  .hybrid-exhibition-mode .basemap-switch { top: 136px !important; }
+  .hybrid-exhibition-mode .dashboard-map-stage .selected-location-drawer.resource-modal {
+    width: calc(100vw - 76px);
+    max-width: none;
+    max-height: calc(100dvh - 132px);
+    margin: 116px 8px 8px 0;
+  }
+}
+@media (max-width:760px) { .field-capability-panel { top:112px; max-height:calc(100dvh - 125px); } .field-capability-panel .field-capability-tiles { grid-template-columns:1fr; } }

@@ -1,3 +1,4 @@
+import {browserVideoReceiving} from "./videoSharingMetrics";
 import Hls from "hls.js";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { resolveBrowserPlaybackUri } from "./videoPlaybackUri";
@@ -13,6 +14,7 @@ type VideoPlaybackProps = {
   verificationStatus?: string | null;
   label?: string;
   className?: string;
+  onReceptionChange?: (receiving:boolean,at:number)=>void;
   onPlaybackStateChange?: (state: VideoPlaybackState) => void;
 };
 
@@ -42,6 +44,7 @@ export default function VideoPlayback({
   label = "영상",
   className = "",
   onPlaybackStateChange,
+  onReceptionChange,
 }: VideoPlaybackProps) {
   const sourceUri = streamUri?.trim() ?? "";
 
@@ -56,6 +59,9 @@ export default function VideoPlayback({
   );
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const receptionCallback=useRef(onReceptionChange);
+  receptionCallback.current=onReceptionChange;
+  const receptionData=useRef<{at:number|null;maxAgeMs:number}>({at:null,maxAgeMs:6000});
   const retryAttemptsRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -96,7 +102,9 @@ export default function VideoPlayback({
       return;
     }
 
-    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+    // Chromium may report native HLS support but fail on MPEG-TS streams.
+    // Prefer hls.js/MSE; use native HLS only when MSE is unavailable.
+    if (!Hls.isSupported() && video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = playbackUri;
 
       void video.play().catch(() => {
@@ -189,6 +197,10 @@ export default function VideoPlayback({
       });
     });
 
+    hls.on(Hls.Events.FRAG_LOADED,(_event,data)=>{
+      if(navigator.onLine)receptionData.current={at:performance.now(),maxAgeMs:Math.max(3000,data.frag.duration*2000+2000)};
+    });
+
     hls.on(Hls.Events.FRAG_BUFFERED, () => {
       if (!video.paused && video.readyState >= 2) {
         markLive();
@@ -196,10 +208,12 @@ export default function VideoPlayback({
     });
 
     hls.on(Hls.Events.ERROR, (_event, data) => {
+      if(data.type===Hls.ErrorTypes.NETWORK_ERROR)receptionData.current.at=null;
       if (!data.fatal) {
         return;
       }
 
+      receptionData.current.at=null;
       if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
         scheduleRecovery(() => hls.startLoad());
         return;
@@ -221,6 +235,46 @@ export default function VideoPlayback({
       hls.destroy();
     };
   }, [enabled, kind, playbackUri]);
+
+  useEffect(()=>{
+    const video=videoRef.current;
+    if(!video || !enabled || !playbackUri || !receptionCallback.current)return;
+    receptionData.current.at=null;
+    let frameAt:number|null=null,lastTime=video.currentTime,frameId:number|undefined;
+    let lastReported:boolean|undefined;
+    const report=()=>{
+      const now=performance.now();
+      const receiving=browserVideoReceiving(navigator.onLine,!video.paused && !video.ended && !video.error,frameAt,receptionData.current.at,receptionData.current.maxAgeMs,now);
+      if(receiving!==lastReported){
+        const staleAt=frameAt===null ? now : Math.min(frameAt+1000,receptionData.current.at===null ? now : receptionData.current.at+receptionData.current.maxAgeMs);
+        lastReported=receiving;receptionCallback.current?.(receiving,receiving ? now : Math.min(now,staleAt));
+      }
+    };
+    const frame=()=>{report();frameAt=performance.now();report();frameId=video.requestVideoFrameCallback(frame);};
+    if(typeof video.requestVideoFrameCallback==="function")frameId=video.requestVideoFrameCallback(frame);
+    const timer=setInterval(()=>{
+      // Hidden players may stop frame callbacks while playback and network reception continue.
+      if((frameId===undefined || video.getClientRects().length===0) && video.currentTime!==lastTime){frameAt=performance.now();lastTime=video.currentTime;}
+      report();
+    },250);
+    const waiting=()=>{frameAt=null;report();};
+    const offline=()=>{receptionData.current.at=null;report();};
+    const progress=()=>{if(navigator.onLine && (kind!=="HLS" || !Hls.isSupported()))receptionData.current={at:performance.now(),maxAgeMs:6000};};
+    window.addEventListener("offline",offline);
+    video.addEventListener("progress",progress);
+    video.addEventListener("waiting",waiting);
+    video.addEventListener("pause",report);
+    report();
+    return ()=>{
+      clearInterval(timer);
+      if(frameId!==undefined)video.cancelVideoFrameCallback(frameId);
+      window.removeEventListener("offline",offline);
+      video.removeEventListener("progress",progress);
+      video.removeEventListener("waiting",waiting);
+      video.removeEventListener("pause",report);
+      receptionCallback.current?.(false,performance.now());
+    };
+  },[enabled,kind,playbackUri]);
 
   if (!enabled || !sourceUri) {
     return (
@@ -298,6 +352,7 @@ export default function VideoPlayback({
     return (
       <div className={`video-playback video-playback--native ${className}`}>
         <video
+          ref={videoRef}
           src={playbackUri}
           muted
           autoPlay
