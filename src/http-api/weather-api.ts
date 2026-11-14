@@ -37,7 +37,7 @@ export function weatherValue(value: number | null, unit: string) {
 
 export async function loadWeather(latitude: number, longitude: number, signal?: AbortSignal): Promise<WeatherResponse> {
   try {
-    return validateWeather(await dashboardApi(`/api/v1/external/weather?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}`, { signal }));
+    return validateWeather(await dashboardApi(`/api/v1/external/weather?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}`, { signal }, import.meta.env.VITE_WEATHER_API_BASE_URL?.trim() || undefined));
   } catch (error) {
     if (signal?.aborted) throw error;
     if (error instanceof HttpApiError) {

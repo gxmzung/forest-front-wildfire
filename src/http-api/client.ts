@@ -87,6 +87,7 @@ export async function httpApi<T>(
 export async function dashboardApi<T>(
   path: string,
   init: RequestInit = {},
+  baseUrl = DASHBOARD_API_BASE_URL,
 ): Promise<T> {
   const headers = new Headers(init.headers);
 
@@ -101,7 +102,7 @@ export async function dashboardApi<T>(
   }
 
   const response = await fetch(
-    `${DASHBOARD_API_BASE_URL}${path}`,
+    `${baseUrl.replace(/\/+$/, "")}${path}`,
     {
       ...init,
       headers,
