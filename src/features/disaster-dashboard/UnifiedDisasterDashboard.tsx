@@ -264,7 +264,7 @@ function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"])
             : String(rawPathEvidence.coreReceivedAt),
       }
     : null;
-  const horizontalAccuracyM = Number(item.horizontalAccuracyM);
+  const horizontalAccuracyM = item.horizontalAccuracyM == null ? NaN : Number(item.horizontalAccuracyM);
   const expectedTelemetryIntervalSec = Number(
     item.expectedTelemetryIntervalSec
     ?? attributes.expectedTelemetryIntervalSec

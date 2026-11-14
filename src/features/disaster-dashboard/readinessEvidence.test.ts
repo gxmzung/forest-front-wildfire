@@ -78,16 +78,19 @@ describe("NMS/BMS received values", () => {
 
 
 describe("operations tab contracts", () => {
-  const renderPanel = (activeTab: "networks" | "reports" | "weather" | "led") => renderToStaticMarkup(createElement(OperationsPanel, {
+  const renderPanel = (activeTab: "networks" | "reports" | "weather" | "wildfire" | "air" | "position") => renderToStaticMarkup(createElement(OperationsPanel, {
     overview:createDemoOverview(new Date("2026-09-07T00:00:00Z"), "WILDFIRE"), visibleLayerIds:new Set<string>(), onLayerToggle:()=>{}, visibleResourceGroups:new Set<import("./UnifiedDisasterDashboard").ResourceGroup>(), onResourceGroupToggle:()=>{}, onResourceGroupInspect:()=>{}, locations:[], lastUpdatedAt:null, activeTab, onActiveTabChange:()=>{},
     externalIntegrationStatus:Object.fromEntries(["firms","wildfireRisk","landslideForecast","landslideHistory","landslideRegionalRisk"].map(id=>[id,{status:"idle",count:0,checkedAt:null}])) as ExternalIntegrationStatus,
     onRefreshExternalIntegrations:()=>{}, telemetryStreamStatus:"DISABLED",telemetrySamples:[],onOpenDroneVideo:()=>{},
   }));
-  it("전광판 탭을 제공하고 현장 기상에 전광판 미리보기를 섞지 않는다", () => {
+  it("분야별 데이터 탭을 제공하고 LED 모양·전광판 탭을 표시하지 않는다", () => {
     const weather = renderPanel("weather");
-    expect(weather).toContain('aria-label="전광판"');
+    for (const label of ["현장 기상", "산불위험", "대기질", "장비 위치", "통신망"]) expect(weather).toContain(`aria-label="${label}"`);
+    expect(weather).not.toContain('aria-label="전광판"');
     expect(weather).not.toContain("전광판 한 줄 미리보기");
-    expect(renderPanel("led")).toContain("현장 기상에서 조회 위치를 선택하세요.");
+    expect(renderPanel("air")).toContain("현장 기상에서 조회 위치를 선택하세요.");
+    expect(renderPanel("position")).toContain("장비 수신 대기");
+    expect(renderPanel("wildfire")).toContain("산림청 국립산림과학원");
   });
   it("shows NMS data without unrelated layer controls and preserves active versus primary paths", () => {
     const html = renderPanel("networks");
