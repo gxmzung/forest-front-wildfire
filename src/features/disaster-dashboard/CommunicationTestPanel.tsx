@@ -3,6 +3,10 @@ import { communicationLabels, communicationStates, communicationTransports, pars
 
 const BASE = 'http://127.0.0.1:18892';
 const outputLabel = (value?: string) => ({ NOT_CONFIGURED: '장치 설정 대기', SENDING: '전송 중', ACKNOWLEDGED: '드라이버 적용 응답 수신', DELIVERY_ERROR: '장치 전송 오류' }[value ?? ''] ?? '연결 대기');
+const gatewayState = (state: string) => ({ RECEIVED: '수신', STALE: '갱신 지연', BLOCKED: '실장비 입력 아님', ERROR: '연결 확인', WAITING: '수신 대기' }[state] ?? '미설정');
+const linkState = (state: string) => ({ CONNECTED_REPORTED: '연결 보고', DISCONNECTED_REPORTED: '단절 보고', API_ERROR: '관리 API 오류', STALE: '이전 수신값', UNKNOWN: '미확인' }[state] ?? '미확인');
+const legacyLabel = (type: string) => ({ LTE_5G: 'LTE·5G 통합', LPWA: 'LPWA(LoRa 구분 전)', LEO: '저궤도 위성', WIFI: 'Wi-Fi', TVWS: 'TVWS', ETHERNET: '이더넷' }[type] ?? type);
+const metric = (value: number | null, unit: string) => value === null ? '미수신' : `${value.toLocaleString('ko-KR', { maximumFractionDigits: 2 })}${unit}`;
 export function CommunicationTestPanel() {
   const local = typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname);
   const [token, setToken] = useState(''); const [session, setSession] = useState('');
@@ -44,6 +48,18 @@ export function CommunicationTestPanel() {
       </div>;
     })}</dl>
     <p>경광봉 출력: {outputLabel(data?.outputs.relay)}</p>
+    {data?.gateway && data.gateway.state !== 'NOT_CONFIGURED' && <details className="operational-disclosure"><summary>기존 게이트웨이 수신 · {gatewayState(data.gateway.state)}</summary>
+      {data.gateway.observedAt && <p>수집 시각: {new Date(data.gateway.observedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })} KST</p>}
+      <dl>{data.gateway.links.map((link) => <div key={link.type}><dt>{legacyLabel(link.type)}</dt><dd>{linkState(link.state)}</dd>
+        <p>지연 {metric(link.latencyMs, 'ms')} · 손실 {metric(link.packetLossPct, '%')}</p>
+        <p>신호 {metric(link.signalStrengthDbm, 'dBm')} · 처리량 {metric(link.throughputMbps, 'Mbps')}</p>
+        <p>보고 연결 비율 {metric(link.reportedAvailabilityPct, '%')} · 표본 {link.sampleCount}개</p>
+        {!link.sourceObservedAt && <small>장비 측정 시각 미제공</small>}
+      </div>)}</dl>
+      <p>기존 장비 보고값입니다. 개별 통신 시험 합격이나 경광봉 출력으로 자동 변환하지 않습니다.</p>
+      {data.gateway.state === 'ERROR' && <p>게이트웨이 경로·원본 로그 형식을 확인하세요.</p>}
+      {data.gateway.state === 'BLOCKED' && <p>모사·재생 자료는 실장비 상태로 표시하지 않습니다.</p>}
+    </details>}
     <details className="operational-disclosure"><summary>시험 연결·출력 설정</summary>
     {local ? <div className="data-actions"><label>로컬 시험 토큰<input type="password" value={token} autoComplete="off" onChange={(e) => setToken(e.target.value)} /></label><button type="button" disabled={token.length < 24 || Boolean(session)} onClick={() => { setData(null); setSession(token); setToken(''); }}>시험 서버 연결</button><button type="button" disabled={!session} onClick={() => { setSession(''); setData(null); setError(''); }}>화면 연결 해제</button></div> : <p>장치 시험 제어는 노트북 로컬 상황판에서 실행합니다.</p>}
     <p>성공은 초록, 실패는 빨강, 미시험·시험 중·오류·만료는 소등 요청입니다.</p>
