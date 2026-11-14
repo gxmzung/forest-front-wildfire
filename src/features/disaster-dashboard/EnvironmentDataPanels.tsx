@@ -57,7 +57,8 @@ function WildfireRiskPage({ page, onPage }: { page: number; onPage: (page: numbe
   const { value, error, loading, refresh } = usePublicData(load);
   const [query, setQuery] = useState("");
   const [selectedKey, setSelectedKey] = useState("");
-  const rows = value?.data.filter((row) => `${row.province} ${row.district}`.includes(query.trim())) ?? [];
+  const terms = query.split(/[,，\s]+/).map((term) => term.trim()).filter(Boolean);
+  const rows = value?.data.filter((row) => !terms.length || terms.some((term) => `${row.province} ${row.district}`.includes(term))) ?? [];
   const key = (row: (typeof rows)[number], index: number) => row.sigunguCode || row.regionCode || `${row.province}:${row.district}:${index}`;
   const selectedIndex = rows.findIndex((row, index) => key(row, index) === selectedKey);
   const selected = rows[selectedIndex];
@@ -66,13 +67,13 @@ function WildfireRiskPage({ page, onPage }: { page: number; onPage: (page: numbe
     <p>산림청 국립산림과학원 · 시군구별 공식 예보 원자료</p>
     {error && <p role="status" className="data-warning">{error}{value && " · 마지막 수신값"}</p>}
     {value?.meta.stale && <p className="data-warning">갱신 지연 · 마지막 수신 자료</p>}
-    <label>지역 검색<input value={query} onChange={(event) => { setQuery(event.target.value); setSelectedKey(""); }} placeholder="예: 성주, 합천, 예산" /></label>
+    <label>지역 검색·비교<input value={query} onChange={(event) => { setQuery(event.target.value); setSelectedKey(""); }} placeholder="비교할 지역: 성주, 합천" /></label>
     <label>조회 지역<select value={selected ? key(selected, selectedIndex) : ""} onChange={(event) => setSelectedKey(event.target.value)}><option value="">지역 선택</option>{rows.map((row, index) => <option key={key(row, index)} value={key(row, index)}>{row.province} {row.district} · {row.analyzedAt || "분석시각 미수신"}</option>)}</select></label>
     {value && <p>{value.data.length}개 지역 수신 · 아래 목록에서 현장 행정구역을 선택하세요.</p>}
     {!selected && rows.length > 0 && <div className="kma-forecast-scroll risk-value-list"><table>
       <caption>수신된 공식 위험지수 · 현장 자동 선택 아님</caption>
-      <thead><tr><th>지역</th><th>평균</th><th>최대</th><th>최소</th></tr></thead>
-      <tbody>{rows.map((row, index) => <tr key={key(row, index)}><td><button type="button" onClick={() => setSelectedKey(key(row, index))}>{row.province} {row.district}</button></td><td>{metric(row.mean)}</td><td>{metric(row.max)}</td><td>{metric(row.min)}</td></tr>)}</tbody>
+      <thead><tr><th>지역</th><th>평균</th><th>최대</th><th>최소</th><th>분석시각</th></tr></thead>
+      <tbody>{rows.map((row, index) => <tr key={key(row, index)}><td><button type="button" onClick={() => setSelectedKey(key(row, index))}>{row.province} {row.district}</button></td><td>{metric(row.mean)}</td><td>{metric(row.max)}</td><td>{metric(row.min)}</td><td>{row.analyzedAt || "미수신"}</td></tr>)}</tbody>
     </table></div>}
     {selected ? <>
       <p>선택 지역: {selected.province} {selected.district}</p>
