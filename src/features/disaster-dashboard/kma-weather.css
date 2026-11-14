@@ -3,3 +3,7 @@
 .kma-weather-form input { min-width: 0; width: 100%; box-sizing: border-box; padding: 6px; border: 1px solid #bdcfc6; border-radius: 5px; background: #fff; color: #214d3e; }
 .kma-weather-form button, .kma-weather-retry { padding: 6px 9px; border: 1px solid #bdcfc6; border-radius: 5px; background: #eff7f2; color: #214d3e; cursor: pointer; }
 .weather-environment-panel .kma-weather-notice { color: #9a5c00; }
+
+.kma-location-actions { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
+.kma-location-actions button { padding: 7px 9px; border: 1px solid #bdcfc6; border-radius: 5px; background: #eff7f2; color: #214d3e; cursor: pointer; }
+.kma-location-actions button:disabled { opacity: .6; cursor: wait; }
