@@ -8,6 +8,7 @@ import SemanticMissionPocPanel from "./SemanticMissionPocPanel";
 import { decideSemanticFallback } from "./semanticFallback";
 import { encodeSemanticMissionMock } from "./semanticMissionEncoder";
 import LivePositionMap from "./LivePositionMap";
+import WeatherPanel from "./WeatherPanel";
 import MapTimelinePlayer, { type MapTimelineSnapshot } from "./MapTimelinePlayer";
 import {
   OperationsPanel,
@@ -1809,6 +1810,10 @@ export default function UnifiedDisasterDashboard() {
 
   return (
 <main className={`unified-disaster-board ${displayClassName}${commandShellMode ? " is-field-mode" : ""}`} aria-label="?? ?? ?? ??">
+      <WeatherPanel
+        latitude={overview?.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[1] : undefined}
+        longitude={overview?.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[0] : undefined}
+      />
       {error && <p className="unified-disaster-error" role="status"><strong>데이터 갱신 지연</strong><span>{error}</span><small>{overview ? "마지막 정상 데이터를 유지합니다." : "연결을 다시 확인하고 있습니다."}</small></p>}
       {!overview && (
         <section className="dashboard-readiness" aria-live="polite">
