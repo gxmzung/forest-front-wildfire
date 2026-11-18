@@ -1544,7 +1544,6 @@ export default function UnifiedDisasterDashboard() {
       {overview && (
         <>
         <header className="map-command-header">
-          <UsbRelayControl />
           <div className="service-brand">
             <img
               className="service-brand-logo"
@@ -1558,6 +1557,7 @@ export default function UnifiedDisasterDashboard() {
               {events.map((event) => <option key={event.eventId} value={event.eventId}>{korean(event.disasterType, "재난")} · {text(event.eventName, event.eventCode)}</option>)}
             </select>
           </label>
+          <UsbRelayControl />
           <div className="header-event-state">
             <b data-type={overview.event.disasterType}>{korean(overview.event.disasterType, "재난")}</b>
             <span>{korean(overview.event.status)}</span>

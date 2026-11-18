@@ -48,3 +48,19 @@
   background: #fff2f1;
   color: #842524;
 }
+
+@media (max-width: 560px) {
+  .unified-disaster-board.is-field-mode .map-command-header:has(> .usb-relay-controls) .service-brand {
+    max-width: 76px !important;
+  }
+
+  .unified-disaster-board.is-field-mode .map-command-header:has(> .usb-relay-controls) .service-brand-logo {
+    max-width: 100%;
+    object-fit: contain;
+  }
+
+  .unified-disaster-board.is-field-mode .map-command-header:has(> .usb-relay-controls) .event-selector {
+    flex: 0 1 116px !important;
+    min-width: 0 !important;
+  }
+}
