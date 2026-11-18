@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import "./usb-relay-control.css";
 
 type RelayDevice = {
@@ -18,7 +17,7 @@ type Hid = EventTarget & {
 };
 
 const filter = { vendorId: 0x16c0, productId: 0x05df };
-const channels = ["소리", "빨강", "노랑", "초록"] as const;
+const channels = [[2, "빨강"], [3, "노랑"], [4, "초록"], [1, "부저"]] as const;
 
 function isRelay(device: RelayDevice) {
   return device.vendorId === filter.vendorId && device.productId === filter.productId
@@ -35,7 +34,6 @@ async function readState(device: RelayDevice) {
 
 export default function UsbRelayControl() {
   const hid = (navigator as Navigator & { hid?: Hid }).hid;
-  const dialog = useRef<HTMLDialogElement>(null);
   const current = useRef<RelayDevice | null>(null);
   const [state, setState] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
@@ -128,34 +126,22 @@ export default function UsbRelayControl() {
     }
   }
 
+  const unsupported = "Chrome 또는 Edge의 HTTPS 화면에서 장비를 연동할 수 있습니다.";
   return (
-    <>
-      <button type="button" aria-haspopup="dialog" onClick={() => dialog.current?.showModal()}>USB 릴레이</button>
-      {createPortal(<dialog ref={dialog} className="usb-relay-dialog" aria-labelledby="usb-relay-title">
-        <header>
-          <h2 id="usb-relay-title">USB 릴레이</h2>
-          <form method="dialog"><button type="submit">닫기</button></form>
-        </header>
-        <p role="status">
-          {state !== null ? "USBRelay4 연결됨" : hid ? "연결된 USBRelay4 없음" : "Chrome 또는 Edge의 HTTPS 화면에서 연결할 수 있습니다."}
-        </p>
-        {hid && state === null && <button type="button" disabled={busy} onClick={() => void connect()}>장치 연결</button>}
-        {error && <p role="alert">{error}</p>}
-        <ul>
-          {channels.map((label, index) => {
-            const enabled = state !== null && Boolean(state & (1 << index));
-            return (
-              <li key={label}>
-                <span>{index + 1}번 {label}</span>
-                <button type="button" aria-label={`${index + 1}번 ${label}`} aria-pressed={state === null ? undefined : enabled}
-                  disabled={state === null || busy} onClick={() => void toggle(index + 1)}>
-                  {state === null ? "연결 필요" : enabled ? "켜짐" : "꺼짐"}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </dialog>, document.body)}
-    </>
+    <div className="usb-relay-controls" role="group" aria-label="USB 릴레이 제어">
+      {state === null ? (
+        <button type="button" disabled={busy} title={!hid ? unsupported : undefined}
+          onClick={() => hid ? void connect() : setError(unsupported)}>
+          장비 연동
+        </button>
+      ) : channels.map(([channel, label]) => (
+        <button key={channel} type="button" data-channel={channel} disabled={busy}
+          aria-pressed={Boolean(state & (1 << (channel - 1)))}
+          onClick={() => void toggle(channel)}>
+          {label}
+        </button>
+      ))}
+      {error && <span className="usb-relay-error" role="alert">{error}</span>}
+    </div>
   );
 }
