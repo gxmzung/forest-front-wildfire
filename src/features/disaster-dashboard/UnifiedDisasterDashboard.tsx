@@ -1,3 +1,4 @@
+import UsbRelayControl from "./UsbRelayControl";
 import RtkPacketPanel from "./RtkPacketPanel";
 import { DroneTwinDetail } from "./DroneTwinDetail";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -1566,6 +1567,7 @@ export default function UnifiedDisasterDashboard() {
 
 {/* restore-field-header-nav-20261011: existing field tools in header */}
           <nav className="field-header-tools-nav" aria-label="현장 도구 선택">
+            <UsbRelayControl />
             <button type="button" className={toolDrawerOpen && rightDockTab === "status" ? "is-active" : ""} aria-pressed={toolDrawerOpen && rightDockTab === "status"} aria-controls="field-left-drawer-content" onClick={() => { setRightDockTab("status"); setToolDrawerOpen(value => rightDockTab === "status" ? !value : true); }}>현장 상태</button>
             <button type="button" className={toolDrawerOpen && rightDockTab === "semantic" ? "is-active" : ""} aria-pressed={toolDrawerOpen && rightDockTab === "semantic"} aria-controls="field-left-drawer-content" title={"Semantic AI 상세정보는 디버그·시연 모드에서만 제공됩니다"} onClick={() => { setRightDockTab("semantic"); setToolDrawerOpen(value => rightDockTab === "semantic" ? !value : true); }}>Semantic AI</button>
             <button type="button" className={toolDrawerOpen && rightDockTab === "fieldlink" ? "is-active" : ""} aria-pressed={toolDrawerOpen && rightDockTab === "fieldlink"} aria-controls="field-left-drawer-content" onClick={() => { setRightDockTab("fieldlink"); setToolDrawerOpen(value => rightDockTab === "fieldlink" ? !value : true); }}>FieldLink</button>
