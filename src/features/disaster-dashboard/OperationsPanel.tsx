@@ -1008,7 +1008,7 @@ export function OperationsPanel({
         </header>
         <div className="operations-panel-body">
           <div className="radio-panel-host" hidden={activeTab !== "radio"}><RadioPanel active={activeTab === "radio" && !collapsed} /></div>
-          {activeTab === "weather" && <WeatherEnvironmentPanel />}
+          {activeTab === "weather" && <WeatherEnvironmentPanel event={overview.event} />}
           {activeTab === "layers" && <section className="layer-control-list" aria-label="지도 레이어">
             <section className="layer-level-group" aria-labelledby="resource-layer-title">
               <header><strong id="resource-layer-title">현장 자산</strong></header>
