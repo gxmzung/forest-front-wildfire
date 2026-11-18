@@ -1515,6 +1515,7 @@ export default function UnifiedDisasterDashboard() {
           <header>
             <div className="readiness-brand"><span>산림청</span><strong>산림재난 통합상황판</strong><small>FOREST DISASTER COMMON OPERATIONAL PICTURE</small></div>
             <div className="readiness-actions">
+              <UsbRelayControl />
               {SHOW_VALIDATION_UI && typeof window !== "undefined" && new URLSearchParams(window.location.search).get("qa") === "1" && <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>기능 검증 현황</button>}
               <button type="button" className="asset-registry-open" onClick={() => { window.location.href = "/device"; }}>자산 등록·관리</button>
               <div className={`readiness-connection ${error ? "is-error" : eventsLoaded ? "is-ready" : "is-loading"}`}><i />{error ? "연결 점검 필요" : eventsLoaded ? "연결 정상" : "데이터 연결 중"}</div>
@@ -1543,6 +1544,7 @@ export default function UnifiedDisasterDashboard() {
       {overview && (
         <>
         <header className="map-command-header">
+          <UsbRelayControl />
           <div className="service-brand">
             <img
               className="service-brand-logo"
@@ -1566,7 +1568,6 @@ export default function UnifiedDisasterDashboard() {
           {localFieldMode && <div className={`demo-mode-badge field-mode-badge${""}`} title={"실제 MD1000 MAVLink만 수신하는 로컬 현장 모드입니다. Synthetic feed는 사용하지 않습니다."}><b>{"현장"}</b><span>{"MD1000 실기체 · MAVLink 연동"}</span></div>}
 
 {/* restore-field-header-nav-20261011: existing field tools in header */}
-          <UsbRelayControl />
           <nav className="field-header-tools-nav" aria-label="현장 도구 선택">
             <button type="button" className={toolDrawerOpen && rightDockTab === "status" ? "is-active" : ""} aria-pressed={toolDrawerOpen && rightDockTab === "status"} aria-controls="field-left-drawer-content" onClick={() => { setRightDockTab("status"); setToolDrawerOpen(value => rightDockTab === "status" ? !value : true); }}>현장 상태</button>
             <button type="button" className={toolDrawerOpen && rightDockTab === "semantic" ? "is-active" : ""} aria-pressed={toolDrawerOpen && rightDockTab === "semantic"} aria-controls="field-left-drawer-content" title={"Semantic AI 상세정보는 디버그·시연 모드에서만 제공됩니다"} onClick={() => { setRightDockTab("semantic"); setToolDrawerOpen(value => rightDockTab === "semantic" ? !value : true); }}>Semantic AI</button>
