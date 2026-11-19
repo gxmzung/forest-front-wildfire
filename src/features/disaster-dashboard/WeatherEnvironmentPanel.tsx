@@ -3,10 +3,12 @@
 //// 왼쪽 현장 기상 기본 화면 · 실측 API 연동 전 숫자 미표시
 ////
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { dashboardApi } from "../../http-api/client";
 import type { ForestEvent } from "../../http-api/forest-api";
 import { evaluateWeatherSnapshot, normalizeWeatherObservation, type WeatherObservation } from "./weatherObservation";
+import WeatherLedPanel from "./WeatherLedPanel";
+import "./weather-led.css";
 
 interface WeatherResponse { observation: WeatherObservation; nextRefreshAt: string; intervalSeconds: number; stale: boolean }
 
@@ -22,37 +24,46 @@ const fields: Array<{ key: keyof WeatherObservation; label: string; unit: string
 export default function WeatherEnvironmentPanel({ event }: { event: ForestEvent }) {
   const [weather, setWeather] = useState<WeatherResponse | null>(null);
   const [error, setError] = useState("");
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const [refreshing, setRefreshing] = useState(true);
   const geometryKey = JSON.stringify(event.geometry);
+  const eventKey = `${event.eventId}:${geometryKey}`;
+  const previousEvent = useRef(eventKey);
   useEffect(() => {
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
-    setWeather(null);
+    if (previousEvent.current !== eventKey) setWeather(null);
+    previousEvent.current = eventKey;
     setError("");
     async function update() {
+      setRefreshing(true);
       let delay = 60_000;
       try {
-        const result = await dashboardApi<{ data: WeatherResponse }>(`/api/v1/external/weather/current?eventId=${encodeURIComponent(event.eventId)}`, { signal: controller.signal });
+        const result = await dashboardApi<{ data: WeatherResponse }>(`/api/v1/external/weather/current?eventId=${encodeURIComponent(event.eventId)}`, { signal: controller.signal, cache: "no-store" });
         if (controller.signal.aborted) return;
         const observation = normalizeWeatherObservation(result.data.observation, "LIVE");
         if (!observation) throw new Error("날씨 응답을 확인할 수 없습니다.");
         setWeather({ ...result.data, observation });
         setError(result.data.stale ? "날씨 갱신 지연" : "");
-        if (!result.data.stale) delay = Math.max(60_000, Date.parse(result.data.nextRefreshAt) - Date.now());
+        const nextRefresh = Date.parse(result.data.nextRefreshAt);
+        if (!result.data.stale && Number.isFinite(nextRefresh)) delay = Math.max(60_000, nextRefresh - Date.now());
       } catch (cause) {
         if (controller.signal.aborted) return;
         setError(cause instanceof Error ? cause.message : "날씨 조회 실패");
       }
+      setRefreshing(false);
       timer = setTimeout(update, delay);
     }
     void update();
     return () => { controller.abort(); clearTimeout(timer); };
-  }, [event.eventId, geometryKey]);
+  }, [event.eventId, eventKey, refreshVersion]);
   const snapshot = evaluateWeatherSnapshot(weather?.observation ?? null);
   const current = snapshot.observation;
   const label = error ? "갱신 지연" : snapshot.status === "LIVE" ? "기상모델" : snapshot.status === "STALE" ? "갱신 지연" : "날씨 조회 중";
   return (
     <section className="weather-environment-panel" aria-label="현장 기상 종합정보">
       <header><strong>현장 기상 종합정보</strong><span>{label}</span></header>
+      <button className="weather-refresh-button" type="button" disabled={refreshing} onClick={() => setRefreshVersion(version => version + 1)}>{refreshing ? "조회 중…" : "기상정보 갱신"}</button>
       <div className="weather-environment-grid">
         {fields.map(field => {
           const value = current?.[field.key];
@@ -66,6 +77,7 @@ export default function WeatherEnvironmentPanel({ event }: { event: ForestEvent 
         })}
       </div>
       {error && <p role="status">{error}</p>}
+      <WeatherLedPanel key={eventKey} observation={current} fresh={!!weather && !weather.stale && !error && snapshot.status === "LIVE" && previousEvent.current === eventKey} eventId={event.eventId} />
       <p>기압: {current?.surfacePressureHpa ?? "—"} hPa</p>
       <p>산불 구역: {current?.stationName ?? event.locationName ?? event.eventName}</p>
       <p>기준 시각: {current?.observedAt ? new Date(current.observedAt).toLocaleString("ko-KR") : "—"}</p>
