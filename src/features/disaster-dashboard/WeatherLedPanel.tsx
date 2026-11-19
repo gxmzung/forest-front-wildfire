@@ -7,7 +7,6 @@ export default function WeatherLedPanel({ observation, fresh, eventId }: { obser
   const [recognizing, setRecognizing] = useState(false);
   const [sending, setSending] = useState(false);
   const [automatic, setAutomatic] = useState(true);
-  const [message, setMessage] = useState("장치를 인식하면 최신 기상정보를 자동으로 송신합니다.");
   const [failure, setFailure] = useState("");
   const delivery = useRef<ReturnType<typeof createWeatherDelivery> | null>(null);
   const lifetime = useRef<AbortController | null>(null);
@@ -20,14 +19,12 @@ export default function WeatherLedPanel({ observation, fresh, eventId }: { obser
     delivery.current = createWeatherDelivery(async (_key, line) => {
       setSending(true);
       setFailure("");
-      setMessage("최신 기상정보를 전광판으로 송신 중…");
       const bitmap = await weatherLedBitmap(line);
       controller.signal.throwIfAborted();
       const receipt = await ledRequest<LedReceipt>("scroll", bitmap, controller.signal);
       if (!receipt.acked) throw new Error("전광판의 송신 확인을 받지 못했습니다.");
       if (!controller.signal.aborted) {
         setSending(false);
-        setMessage(`${new Date().toLocaleTimeString("ko-KR")} ${receipt.skipped ? "동일 문구 유지" : "송신 완료"} · 왼쪽 이동 재생 중`);
       }
     }, error => {
       setSending(false);
@@ -51,7 +48,6 @@ export default function WeatherLedPanel({ observation, fresh, eventId }: { obser
       if (lifetime.current?.signal.aborted) return;
       delivery.current?.reset();
       setDevice(found);
-      setMessage("장치 인식 완료 · 새 기상정보 송신 대기");
     } catch (error) {
       if (lifetime.current?.signal.aborted) return;
       setDevice(null);
@@ -65,11 +61,8 @@ export default function WeatherLedPanel({ observation, fresh, eventId }: { obser
     <div className="weather-led-preview" title={text}>{text}</div>
     <button type="button" onClick={() => void recognize()} disabled={recognizing || sending}>{recognizing ? "인식 중…" : "전광판 장치 인식"}</button>
     <label><input type="checkbox" checked={automatic} onChange={event => setAutomatic(event.target.checked)} />기상정보 갱신 시 자동 송신</label>
-    <button type="button" disabled={!device || !observation || !fresh || sending || recognizing} onClick={() => { delivery.current?.reset(); delivery.current?.enqueue(key, text); }}>전광판으로 보내기</button>
-    {device && <p>{device.model} · {device.firmware}</p>}
-    <p role="status" aria-live="polite" className={failure ? "weather-led-error" : ""}>{failure || message}</p>
+    <button type="button" disabled={!device || !observation || !fresh || sending || recognizing} onClick={() => { delivery.current?.reset(); delivery.current?.enqueue(key, text); }}>{sending ? "송신 중…" : "전광판으로 보내기"}</button>
+    {failure && <p role="status" aria-live="polite" className="weather-led-error">{failure}</p>}
     {!fresh && <p>최신 기상정보를 조회하면 자동 송신을 이어갑니다.</p>}
-    <a href="/wf4-bridge.zip" download>전광판 연결 도구 다운로드</a>
-    <small>이 서비스 화면을 열어 두면 다른 탭을 보는 동안에도 갱신합니다. 연결 도구와 인터넷·WF4 연결이 필요합니다.</small>
   </section>;
 }

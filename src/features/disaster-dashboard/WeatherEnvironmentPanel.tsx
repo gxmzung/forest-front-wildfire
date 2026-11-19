@@ -78,12 +78,6 @@ export default function WeatherEnvironmentPanel({ event }: { event: ForestEvent 
       </div>
       {error && <p role="status">{error}</p>}
       <WeatherLedPanel key={eventKey} observation={current} fresh={!!weather && !weather.stale && !error && snapshot.status === "LIVE" && previousEvent.current === eventKey} eventId={event.eventId} />
-      <p>기압: {current?.surfacePressureHpa ?? "—"} hPa</p>
-      <p>산불 구역: {current?.stationName ?? event.locationName ?? event.eventName}</p>
-      <p>기준 시각: {current?.observedAt ? new Date(current.observedAt).toLocaleString("ko-KR") : "—"}</p>
-      <p>현재값 시간 간격: {weather ? `${weather.intervalSeconds / 60}분` : "—"}</p>
-      <p>다음 확인: {weather ? new Date(weather.nextRefreshAt).toLocaleString("ko-KR") : "—"}</p>
-      <p>데이터 출처: <a href="https://open-meteo.com/" target="_blank" rel="noreferrer">Open-Meteo · 기상모델</a></p>
     </section>
   );
 }
