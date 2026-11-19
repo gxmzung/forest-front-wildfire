@@ -57,7 +57,6 @@ export default function WeatherLedPanel({ observation, fresh, eventId }: { obser
 
   return <section className="weather-led-panel" aria-label="기상정보 전광판">
     <strong>기상정보 전광판</strong>
-    <p>가로 4장 · 256×32 · 나눔스퀘어 · 왼쪽 이동</p>
     <div className="weather-led-preview" title={text}>{text}</div>
     <button type="button" onClick={() => void recognize()} disabled={recognizing || sending}>{recognizing ? "인식 중…" : "전광판 장치 인식"}</button>
     <label><input type="checkbox" checked={automatic} onChange={event => setAutomatic(event.target.checked)} />기상정보 갱신 시 자동 송신</label>
