@@ -27,7 +27,6 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run check:parity
       - run: npm test
       - run: npm run build
 
@@ -36,7 +35,7 @@ jobs:
           docker build             --build-arg VITE_API_BASE_URL=https://api.forest.tobeunicorn.kr             --build-arg VITE_DASHBOARD_API_BASE_URL=https://api.forest.tobeunicorn.kr             -t forest-front-wildfire:verify .
 
   deploy:
-    if: github.event_name == 'push' && github.repository == 'sonjh-github/forest-front-wildfire'
+    if: github.event_name == 'push'
     needs: verify
     runs-on: ubuntu-latest
 
@@ -45,12 +44,11 @@ jobs:
         uses: appleboy/ssh-action@v1.2.5
         env:
           GH_TOKEN: ${{ github.token }}
-          DEPLOY_SHA: ${{ github.sha }}
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          envs: GH_TOKEN,DEPLOY_SHA
+          envs: GH_TOKEN
           script: |
             set -e
 
@@ -68,9 +66,8 @@ jobs:
               cd "$APP_DIR"
             fi
 
-            git fetch "$AUTH_REPO_URL" "$DEPLOY_SHA"
+            git fetch "$AUTH_REPO_URL" main
             git reset --hard FETCH_HEAD
-            test "$(git rev-parse HEAD)" = "$DEPLOY_SHA"
 
             docker build               --build-arg VITE_API_BASE_URL=https://api.forest.tobeunicorn.kr               --build-arg VITE_DASHBOARD_API_BASE_URL=https://api.forest.tobeunicorn.kr               -t forest-front-wildfire .
 

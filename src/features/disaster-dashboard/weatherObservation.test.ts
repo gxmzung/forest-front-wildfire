@@ -28,6 +28,12 @@ const base = {
 const observedMs = Date.parse(observedAt);
 
 describe("기상 데이터 정규화", () => {
+  it("원본 현재값 간격까지 유효하며 원본 주기를 지나면 지연으로 표시한다", () => {
+    const observation = normalizeWeatherObservation({ ...base, intervalSeconds: 900, surfacePressureHpa: 1001.2 }, "LIVE");
+    expect(evaluateWeatherSnapshot(observation, observedMs + 14 * 60_000).status).toBe("LIVE");
+    expect(evaluateWeatherSnapshot(observation, observedMs + 17 * 60_000).status).toBe("STALE");
+    expect(observation?.surfacePressureHpa).toBe(1001.2);
+  });
   it("유효한 실측 데이터를 변환한다", () => {
     const result = normalizeWeatherObservation(base, "LIVE");
     expect(result?.sourceMode).toBe("LIVE");

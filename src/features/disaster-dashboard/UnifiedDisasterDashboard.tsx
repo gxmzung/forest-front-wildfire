@@ -1,3 +1,4 @@
+import UsbRelayControl from "./UsbRelayControl";
 import RtkPacketPanel from "./RtkPacketPanel";
 import { DroneTwinDetail } from "./DroneTwinDetail";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -264,7 +265,7 @@ function locationFrom(item: Record<string, unknown>, kind: LiveLocation["kind"])
             : String(rawPathEvidence.coreReceivedAt),
       }
     : null;
-  const horizontalAccuracyM = item.horizontalAccuracyM == null ? NaN : Number(item.horizontalAccuracyM);
+  const horizontalAccuracyM = Number(item.horizontalAccuracyM);
   const expectedTelemetryIntervalSec = Number(
     item.expectedTelemetryIntervalSec
     ?? attributes.expectedTelemetryIntervalSec
@@ -1514,6 +1515,7 @@ export default function UnifiedDisasterDashboard() {
           <header>
             <div className="readiness-brand"><span>산림청</span><strong>산림재난 통합상황판</strong><small>FOREST DISASTER COMMON OPERATIONAL PICTURE</small></div>
             <div className="readiness-actions">
+              <UsbRelayControl />
               {SHOW_VALIDATION_UI && typeof window !== "undefined" && new URLSearchParams(window.location.search).get("qa") === "1" && <button type="button" className="requirements-open" onClick={() => setRequirementsOpen(true)}>기능 검증 현황</button>}
               <button type="button" className="asset-registry-open" onClick={() => { window.location.href = "/device"; }}>자산 등록·관리</button>
               <div className={`readiness-connection ${error ? "is-error" : eventsLoaded ? "is-ready" : "is-loading"}`}><i />{error ? "연결 점검 필요" : eventsLoaded ? "연결 정상" : "데이터 연결 중"}</div>
@@ -1555,6 +1557,7 @@ export default function UnifiedDisasterDashboard() {
               {events.map((event) => <option key={event.eventId} value={event.eventId}>{korean(event.disasterType, "재난")} · {text(event.eventName, event.eventCode)}</option>)}
             </select>
           </label>
+          <UsbRelayControl />
           <div className="header-event-state">
             <b data-type={overview.event.disasterType}>{korean(overview.event.disasterType, "재난")}</b>
             <span>{korean(overview.event.status)}</span>

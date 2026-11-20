@@ -60,8 +60,3 @@ npm.cmd run build
 - 실제 Gateway WebSocket 인증·부하 시험과 오프라인 캐시
 
 `src/entities`, `src/pages`, 일부 `src/features`와 `src/shared`의 README는 향후 모듈 분리 경계를 설명한다. 해당 디렉터리에 README만 있는 경우 구현 완료 기능을 의미하지 않는다.
-
-
-## 개인 개발과 회사 UI 기준
-
-회사 UI 기준 커밋과 실제 기상청 연동 절차는 [WEATHER_INTEGRATION.md](docs/WEATHER_INTEGRATION.md)에 기록한다. 운영과 같은 API·배포 검증 설정은 [PRODUCTION_PARITY.md](docs/PRODUCTION_PARITY.md)를 따른다.

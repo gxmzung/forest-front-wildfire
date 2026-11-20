@@ -7,9 +7,7 @@ import type { LiveLocation, ResourceGroup } from "./UnifiedDisasterDashboard";
 import { buildOperationalEvidence, buildPacketLossQualityAlerts, classifyLinkHealth, type TelemetrySample } from "./operationalEvidence";
 import type { TelemetryStreamStatus } from "./telemetryStream";
 import PerformanceKpiPanel from "./PerformanceKpiPanel";
-import KmaWeatherEnvironmentPanel from "./KmaWeatherEnvironmentPanel";
-import { AirQualityDataPanel, WildfireRiskDataPanel } from "./EnvironmentDataPanels";
-import { NetworkDataSummary } from "./DeviceDataPanels";
+import WeatherEnvironmentPanel from "./WeatherEnvironmentPanel";
 import RadioPanel from "./RadioPanel";
 import NetworkSequenceQualityPanel from "./NetworkSequenceQualityPanel";
 import SlenoNetworkQualityPanel from "./SlenoNetworkQualityPanel";
@@ -32,7 +30,7 @@ import {
   type AlertDeliveryTrace,
 } from "./alertDeliveryTrace";
 
-export type PanelTab = "camera" | "radio" | "weather" | "wildfire" | "air" | "position" | "layers" | "alerts" | "networks" | "reports" | "kpis" | "integrations";
+export type PanelTab = "camera" | "radio" | "weather" | "layers" | "alerts" | "networks" | "reports" | "kpis" | "integrations";
 
 export type ExternalSourceId =
   | "firms"
@@ -100,22 +98,19 @@ const SHOW_VALIDATION_UI =
 /* weather-operations-navigation-20261011: 시작 화면은 현장 기상 */
 const tabs: Array<{ id: PanelTab; label: string; icon: string }> = [
   { id: "weather", label: "현장 기상", icon: "☀" },
-  { id: "networks", label: "통신망", icon: "⌁" },
-  { id: "air", label: "대기질", icon: "≋" },
   { id: "radio", label: "무전 통화", icon: "◉" },
   { id: "layers", label: "지도 레이어", icon: "▱" },
   { id: "alerts", label: "현장 경보", icon: "!" },
+  { id: "networks", label: "통신망", icon: "⌁" },
   { id: "reports", label: "상황 보고", icon: "≡" },
   { id: "kpis", label: "현장 KPI", icon: "✓" },
-  { id: "wildfire", label: "산불위험", icon: "△" },
   { id: "integrations", label: "연계 상태", icon: "↔" },
 ];
 
 // 20261011 이영준
 // 현장 KPI는 운영 및 DEMO 화면에서 모두 접근 가능하도록 유지
 // 실측 여부는 PerformanceKpiPanel 내부에서 별도 구분
-const AIR_QUALITY_ENABLED = import.meta.env.VITE_AIR_QUALITY_ENABLED === "1";
-const visibleTabs = tabs.filter((tab) => tab.id !== "air" || AIR_QUALITY_ENABLED);
+const visibleTabs = tabs;
 
 
 const statusLabels: Record<string, string> = {
@@ -176,7 +171,6 @@ export function OperationsPanel({
   onOpenDroneVideo,
   initiallyCollapsed = false,
 }: OperationsPanelProps) {
-  const [weatherTarget, setWeatherTarget] = useState<{ latitude: number; longitude: number } | null>(null);
   const [fieldResourceKey, setFieldResourceKey] = useState("");
   const fieldResource = locations.find(x => `${x.kind}-${x.id}` === fieldResourceKey);
   const nms = nmsSummary(overview.networks, overview.assets);
@@ -1014,10 +1008,7 @@ export function OperationsPanel({
         </header>
         <div className="operations-panel-body">
           <div className="radio-panel-host" hidden={activeTab !== "radio"}><RadioPanel active={activeTab === "radio" && !collapsed} /></div>
-          <div hidden={activeTab !== "weather"}><KmaWeatherEnvironmentPanel onTargetChange={setWeatherTarget} latitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[1] : undefined} longitude={overview.event.geometry?.type === "Point" ? overview.event.geometry.coordinates?.[0] : undefined} /></div>
-          {activeTab === "wildfire" && <WildfireRiskDataPanel />}
-          {AIR_QUALITY_ENABLED && activeTab === "air" && (weatherTarget ? <AirQualityDataPanel key={`${weatherTarget.latitude}:${weatherTarget.longitude}`} latitude={weatherTarget.latitude} longitude={weatherTarget.longitude} /> : <section className="environment-data-panel"><strong>대기질</strong><p>현장 기상에서 조회 위치를 선택하세요.</p></section>)}
-          {activeTab === "networks" && <NetworkDataSummary locations={locations} samples={telemetrySamples} />}
+          <div hidden={activeTab !== "weather"}><WeatherEnvironmentPanel event={overview.event} /></div>
           {activeTab === "layers" && <section className="layer-control-list" aria-label="지도 레이어">
             <section className="layer-level-group" aria-labelledby="resource-layer-title">
               <header><strong id="resource-layer-title">현장 자산</strong></header>
@@ -1364,7 +1355,6 @@ export function OperationsPanel({
 
           </section>}
           {activeTab === "networks" && <section className="operations-records" aria-label="통신망 상태">
-            <details className="operational-disclosure"><summary>통신 연동 상세·개발 진단</summary>
             <SlenoNetworkQualityPanel />
 
             <article
@@ -1586,7 +1576,6 @@ export function OperationsPanel({
               </article>;
             })}
             <p className="operation-readonly-note">상태 {lastUpdatedAt ? relativeTime(lastUpdatedAt.toISOString()) : "측정 중"} · NMS 연계 오류와 현장망 두절은 별도 판정합니다.</p>
-            </details>
           </section>}
           {activeTab === "reports" && <section className="operations-records" aria-label="상황 보고">
             <article className="field-information-card" aria-label="현장 통합정보">
