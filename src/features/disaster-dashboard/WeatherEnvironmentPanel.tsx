@@ -3,8 +3,14 @@
 //// 왼쪽 현장 기상 기본 화면 · 실측 API 연동 전 숫자 미표시
 ////
 
-import { evaluateWeatherSnapshot, type WeatherObservation } from "./weatherObservation";
-import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
+import { dashboardApi } from "../../http-api/client";
+import type { ForestEvent } from "../../http-api/forest-api";
+import { evaluateWeatherSnapshot, normalizeWeatherObservation, type WeatherObservation } from "./weatherObservation";
+import WeatherLedPanel from "./WeatherLedPanel";
+import "./weather-led.css";
+
+interface WeatherResponse { observation: WeatherObservation; nextRefreshAt: string; intervalSeconds: number; stale: boolean }
 
 const fields: Array<{ key: keyof WeatherObservation; label: string; unit: string }> = [
   { key: "temperatureC", label: "기온", unit: "°C" },
@@ -15,30 +21,63 @@ const fields: Array<{ key: keyof WeatherObservation; label: string; unit: string
   { key: "precipitationMm", label: "강수량", unit: "mm" },
 ];
 
-export default function WeatherEnvironmentPanel({ observation = null, children, afterContent, statusLabel, staleAfterMs, unsupportedFields = [], hiddenFields = [], compact = false, showPressure = true }: { observation?: WeatherObservation | null; children?: ReactNode; afterContent?: ReactNode; statusLabel?: string; staleAfterMs?: number; unsupportedFields?: Array<keyof WeatherObservation>; hiddenFields?: Array<keyof WeatherObservation>; compact?: boolean; showPressure?: boolean }) {
-  const snapshot = evaluateWeatherSnapshot(observation, Date.now(), staleAfterMs);
+export default function WeatherEnvironmentPanel({ event }: { event: ForestEvent }) {
+  const [weather, setWeather] = useState<WeatherResponse | null>(null);
+  const [error, setError] = useState("");
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const [refreshing, setRefreshing] = useState(true);
+  const geometryKey = JSON.stringify(event.geometry);
+  const eventKey = `${event.eventId}:${geometryKey}`;
+  const previousEvent = useRef(eventKey);
+  useEffect(() => {
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    if (previousEvent.current !== eventKey) setWeather(null);
+    previousEvent.current = eventKey;
+    setError("");
+    async function update() {
+      setRefreshing(true);
+      let delay = 60_000;
+      try {
+        const result = await dashboardApi<{ data: WeatherResponse }>(`/api/v1/external/weather/current?eventId=${encodeURIComponent(event.eventId)}`, { signal: controller.signal, cache: "no-store" });
+        if (controller.signal.aborted) return;
+        const observation = normalizeWeatherObservation(result.data.observation, "LIVE");
+        if (!observation) throw new Error("날씨 응답을 확인할 수 없습니다.");
+        setWeather({ ...result.data, observation });
+        setError(result.data.stale ? "날씨 갱신 지연" : "");
+        const nextRefresh = Date.parse(result.data.nextRefreshAt);
+        if (!result.data.stale && Number.isFinite(nextRefresh)) delay = Math.max(60_000, nextRefresh - Date.now());
+      } catch (cause) {
+        if (controller.signal.aborted) return;
+        setError(cause instanceof Error ? cause.message : "날씨 조회 실패");
+      }
+      setRefreshing(false);
+      timer = setTimeout(update, delay);
+    }
+    void update();
+    return () => { controller.abort(); clearTimeout(timer); };
+  }, [event.eventId, eventKey, refreshVersion]);
+  const snapshot = evaluateWeatherSnapshot(weather?.observation ?? null);
   const current = snapshot.observation;
-  const label = snapshot.status === "LIVE" ? "실측" : snapshot.status === "DEMO" ? "DEMO" : snapshot.status === "STALE" ? "관측 지연" : "관측 대기";
+  const label = error ? "갱신 지연" : snapshot.status === "LIVE" ? "기상모델" : snapshot.status === "STALE" ? "갱신 지연" : "날씨 조회 중";
   return (
     <section className="weather-environment-panel" aria-label="현장 기상 종합정보">
-      <header><strong>현장 기상 종합정보</strong><span>{statusLabel ?? label}</span></header>
-      {children}
+      <header><strong>현장 기상 종합정보</strong><span>{label}</span></header>
+      <button className="weather-refresh-button" type="button" disabled={refreshing} onClick={() => setRefreshVersion(version => version + 1)}>{refreshing ? "조회 중…" : "기상정보 갱신"}</button>
       <div className="weather-environment-grid">
-        {fields.filter(field => !hiddenFields.includes(field.key)).map(field => {
+        {fields.map(field => {
           const value = current?.[field.key];
           return (
             <article key={field.key}>
-              <span>{field.key === "precipitationMm" && current?.precipitationPeriodMinutes === 60 ? "1시간 강수량" : field.label}</span>
-              <b>{unsupportedFields.includes(field.key) ? "미제공" : typeof value === "number" && Number.isFinite(value) ? value.toLocaleString("ko-KR") : "—"}</b>
-              <small>{unsupportedFields.includes(field.key) ? "현재 기상청 실황 API 미제공" : field.unit}</small>
+              <span>{field.label}</span>
+              <b>{typeof value === "number" && Number.isFinite(value) ? value.toLocaleString("ko-KR") : "—"}</b>
+              <small>{field.unit}</small>
             </article>
           );
         })}
       </div>
-      {showPressure && <p>기압: — hPa (관측 필드 연동 대기)</p>}
-      <p>관측 시각: {current?.observedAt ? `${new Date(current.observedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })} KST` : "미수신"}</p>
-      {compact ? <details className="operational-disclosure"><summary>출처·제공 항목</summary><p>관측 위치·격자: {current?.stationName ?? "미수신"}</p><p>데이터 출처: {current?.source ?? "미연결"}</p>{unsupportedFields.length > 0 && <p>최대순간풍속은 현재 API에서 제공하지 않습니다.</p>}</details> : <><p>관측 위치·격자: {current?.stationName ?? "미수신"}</p><p>데이터 출처: {current?.source ?? "미연결"}</p></>}
-      {afterContent}
+      {error && <p role="status">{error}</p>}
+      <WeatherLedPanel key={eventKey} observation={current} fresh={!!weather && !weather.stale && !error && snapshot.status === "LIVE" && previousEvent.current === eventKey} eventId={event.eventId} />
     </section>
   );
 }

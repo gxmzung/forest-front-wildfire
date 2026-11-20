@@ -1,0 +1,10 @@
+@font-face { font-family: WF4NanumSquare; src: url('/fonts/wf4/NanumSquareB.ttf') format('truetype'); font-weight:700; font-display:swap; }
+.weather-environment-panel .weather-refresh-button,
+.weather-led-panel button { border:1px solid #b9cec3; background:#f5faf7; color:#214d3e; border-radius:6px; padding:9px 10px; font:inherit; font-size:14px; cursor:pointer; }
+.weather-environment-panel button:disabled { opacity:.55; cursor:wait; }
+.weather-led-panel { display:grid; gap:10px; min-width:0; border-top:1px solid #dce8e1; padding-top:14px; }
+.weather-led-panel > strong { font-size:14px; color:#214d3e; }
+.weather-led-panel p, .weather-led-panel small { margin:0; color:#547066; font-size:12px; line-height:1.6; }
+.weather-led-panel label { display:flex; align-items:center; gap:7px; font-size:14px; color:#214d3e; }
+.weather-led-panel .weather-led-error { color:#b42318; }
+.weather-led-preview { min-width:0; overflow:auto; white-space:nowrap; background:#101b16; color:#fa726b; border-radius:6px; padding:12px; font:700 16px WF4NanumSquare,sans-serif; }

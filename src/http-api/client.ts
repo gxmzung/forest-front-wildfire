@@ -1,6 +1,11 @@
+const API_HOST =
+  typeof window === "undefined"
+    ? "127.0.0.1"
+    : window.location.hostname;
+
 const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL?.trim() ||
-  "https://api.forest.tobeunicorn.kr"
+  `http://${API_HOST}:18000`
 ).replace(/\/+$/, "");
 
 export const DASHBOARD_API_BASE_URL = (
@@ -87,7 +92,6 @@ export async function httpApi<T>(
 export async function dashboardApi<T>(
   path: string,
   init: RequestInit = {},
-  baseUrl = DASHBOARD_API_BASE_URL,
 ): Promise<T> {
   const headers = new Headers(init.headers);
 
@@ -102,7 +106,7 @@ export async function dashboardApi<T>(
   }
 
   const response = await fetch(
-    `${baseUrl.replace(/\/+$/, "")}${path}`,
+    `${DASHBOARD_API_BASE_URL}${path}`,
     {
       ...init,
       headers,

@@ -1,7 +1,0 @@
-services:
-  dashboard:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "127.0.0.1:15173:80"

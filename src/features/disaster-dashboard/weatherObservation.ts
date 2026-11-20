@@ -11,6 +11,8 @@ export type WeatherDataStatus =
   | "UNAVAILABLE";
 
 export interface WeatherObservation {
+  surfacePressureHpa?: number | null;
+  intervalSeconds?: number;
   stationId: string;
   stationName: string;
   observedAt: string;
@@ -95,6 +97,8 @@ export function normalizeWeatherObservation(
     observedAt,
     source,
     sourceMode,
+    surfacePressureHpa: metric(raw.surfacePressureHpa, 100, 1200),
+    intervalSeconds: metric(raw.intervalSeconds, 60, 86400) ?? undefined,
     temperatureC: metric(raw.temperatureC, -90, 65),
     humidityPct: metric(raw.humidityPct, 0, 100),
     windSpeedMps: metric(raw.windSpeedMps, 0, 150),
@@ -112,7 +116,6 @@ export function normalizeWeatherObservation(
 export function evaluateWeatherSnapshot(
   observation: WeatherObservation | null,
   nowMs: number = Date.now(),
-  staleAfterMs = WEATHER_STALE_AFTER_MS,
 ): WeatherSnapshot {
   if (!observation) {
     return { status: "UNAVAILABLE", observation: null, ageMs: null };
@@ -134,7 +137,7 @@ export function evaluateWeatherSnapshot(
   }
 
   return {
-    status: ageMs > staleAfterMs ? "STALE" : "LIVE",
+    status: ageMs > (observation.intervalSeconds ? observation.intervalSeconds * 1000 + 60_000 : WEATHER_STALE_AFTER_MS) ? "STALE" : "LIVE",
     observation,
     ageMs,
   };
